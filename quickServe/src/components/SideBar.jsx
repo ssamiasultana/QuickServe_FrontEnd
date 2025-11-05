@@ -17,7 +17,7 @@ const SideBar = () => {
 
   const menuItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', link: '/' },
-    { id: 'workers', icon: Users, label: 'Workers', link: '/create-worker' },
+    { id: 'workers', icon: Users, label: 'Workers', link: '/worker/add' },
     { id: 'customers', icon: Users, label: 'Customers', link: '/customers' },
     { id: 'moderators', icon: Users, label: 'Moderators', link: '/moderators' },
   ];
