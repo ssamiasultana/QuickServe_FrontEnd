@@ -2,6 +2,7 @@ import { use, useEffect, useState } from "react";
 
 import colors from "../ui/color";
 import Table from "../ui/table";
+import getShiftColor from "../../utils/util";
 
 
 const WorkerTable = ({ workerPromise }) => {
@@ -191,107 +192,17 @@ const [workers, setWorkers] = useState([
     <div className="space-y-5">
       <Table
         title="Workers List"
-        data={paginatedWorkers}
+        data={workers}
         columns={workerColumns}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
       />
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
-        <div className="flex items-center gap-3 text-sm">
-          <span style={{ color: colors.neutral[600] }}>Rows per page:</span>
-          <select
-            value={itemsPerPage}
-            onChange={handlePageSizeChange}
-            className="px-3 py-1.5 text-sm rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
-            style={{
-              border: `1px solid ${colors.neutral[300]}`,
-              color: colors.neutral[700],
-              backgroundColor: colors.white,
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = colors.accent[500];
-              e.target.style.boxShadow = `0 0 0 2px ${colors.accent[50]}`;
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = colors.neutral[300];
-              e.target.style.boxShadow = "none";
-            }}
-          >
-            {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <span style={{ color: colors.neutral[500] }} className="ml-2">
-            Showing{" "}
-            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
-              {workers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-            </span>
-            {" - "}
-            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
-              {Math.min(currentPage * itemsPerPage, workers.length)}
-            </span>
-            {" of "}
-            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
-              {workers.length}
-            </span>
-          </span>
-        </div>
+      
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-1.5 text-sm rounded-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              border: `1px solid ${colors.neutral[300]}`,
-              color: colors.neutral[700],
-              backgroundColor: colors.white,
-            }}
-            onMouseEnter={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = colors.neutral[50];
-                e.currentTarget.style.borderColor = colors.neutral[400];
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.white;
-              e.currentTarget.style.borderColor = colors.neutral[300];
-            }}
-          >
-            Previous
-          </button>
-          <span className="text-sm px-3" style={{ color: colors.neutral[600] }}>
-            Page <span style={{ fontWeight: 500 }}>{currentPage}</span> of{" "}
-            <span style={{ fontWeight: 500 }}>{totalPages}</span>
-          </span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-1.5 text-sm rounded-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              border: `1px solid ${colors.neutral[300]}`,
-              color: colors.neutral[700],
-              backgroundColor: colors.white,
-            }}
-            onMouseEnter={(e) => {
-              if (!e.currentTarget.disabled) {
-                e.currentTarget.style.backgroundColor = colors.neutral[50];
-                e.currentTarget.style.borderColor = colors.neutral[400];
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.white;
-              e.currentTarget.style.borderColor = colors.neutral[300];
-            }}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+        
+      
     </div>
   );
 };

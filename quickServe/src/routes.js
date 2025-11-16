@@ -9,9 +9,10 @@ const routes = createBrowserRouter([
        Component: App,
        children:[
         {
-            path: "/worker/add",
+            path: "/add",
             Component: AddWorker
-        }, { path: '/manage-workers', Component: WorkerTable },
+        },
+         { path: '/manage', Component: WorkerTable },
        ]
     }
 

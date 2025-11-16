@@ -27,11 +27,11 @@ const [subMenuExpand, setSubMenuExpand] = useState({});
       link: '/workers',
       hasSubmenu: true,
       subMenu: [
-        { id: 'create-worker', label: 'Add Worker', link: '/create-worker' },
+        { id: 'create-worker', label: 'Add Worker', link: '/add' },
         {
           id: 'manage-workers',
           label: 'Manage Workers',
-          link: '/manage-workers',
+          link: '/manage',
         },
       ],
     },
