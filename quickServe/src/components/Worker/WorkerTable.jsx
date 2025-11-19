@@ -1,47 +1,12 @@
-import { use, useEffect, useState } from "react";
+import {use} from "react";
 
 import colors from "../ui/color";
 import Table from "../ui/table";
 import getShiftColor from "../../utils/util";
 
 
-const WorkerTable = ({ workerPromise }) => {
-const [workers, setWorkers] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john@example.com',
-      phone: '+1234567890',
-      serviceType: 'Plumbing',
-      expertise: 8,
-      rating: 4.5,
-      status: 'Active',
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah@example.com',
-      phone: '+1234567891',
-      serviceType: 'Cleaning',
-      expertise: 9,
-      rating: 4.8,
-      status: 'Active',
-    },
-    {
-      id: 3,
-      name: 'Mike Wilson',
-      email: 'mike@example.com',
-      phone: '+1234567892',
-      serviceType: 'Electrician',
-      expertise: 7,
-      rating: 4.2,
-      status: 'Inactive',
-    },
-  ]);
+const WorkerTable = ({ workers }) => {
 
-  
-
- 
 
   
   const workerColumns = [
@@ -101,6 +66,7 @@ const [workers, setWorkers] = useState([
           try {
             serviceTypes = JSON.parse(serviceTypes);
           } catch (error) {
+            error;
             serviceTypes = [serviceTypes];
           }
         }
@@ -156,7 +122,7 @@ const [workers, setWorkers] = useState([
         );
       },
     },
-    { header: "NID", accessor: "nid" },
+
     {
       header: "Shift",
       accessor: (item) => {
@@ -192,7 +158,7 @@ const [workers, setWorkers] = useState([
     <div className="space-y-5">
       <Table
         title="Workers List"
-        data={workers}
+        data={workers.data}
         columns={workerColumns}
         onEdit={handleEdit}
         onDelete={handleDelete}

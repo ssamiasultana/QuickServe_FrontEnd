@@ -1,7 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import App from "./App.jsx";
 import AddWorker from "./components/Worker/AddWorker.jsx";
-import WorkerTable from "./components/Worker/workertable.jsx";
+
+import WorkerList from "./components/Worker/WorkerList.jsx";
 
 const routes = createBrowserRouter([
     {
@@ -12,7 +13,7 @@ const routes = createBrowserRouter([
             path: "/add",
             Component: AddWorker
         },
-         { path: '/manage', Component: WorkerTable },
+         { path: '/manage', Component: WorkerList },
        ]
     }
 
