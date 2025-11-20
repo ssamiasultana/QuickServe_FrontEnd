@@ -1,5 +1,5 @@
 import {useEffect, useState } from 'react';
-import WorkerService from '../../services/workerService';
+import { getAllWorkers } from '../../services/WorkerService.js';
 import WorkerTable from './workertable.jsx';
 
 const WorkerList = () => {
@@ -12,7 +12,7 @@ const WorkerList = () => {
      const fetchWorkers = async () => {
        try {
          setLoading(true);
-         const data = await WorkerService.getAllWorkers();
+         const data = await getAllWorkers();
          
          setWorkers(data);
        } catch (err) {

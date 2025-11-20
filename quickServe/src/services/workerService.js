@@ -1,49 +1,61 @@
-import API_CONFIG from "../config/apiService.js";
+import API_CONFIG from "../config/apiService";
 
-class WorkerService {
-  constructor() {
-    this.baseURL = API_CONFIG.baseURL;
-    console.log("Base URL:", this.baseURL);
-  }
+const request = async (endpoint, options = {}) => {
+  const url = `${API_CONFIG.baseURL}${endpoint}`;
 
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    console.log("Making request to:", url); // Debug log
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...options.headers,
+    },
+    ...options,
+  };
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        ...options.headers,
-      },
-      ...options,
-    };
+  try {
+    const response = await (await fetch(url, config)).json();
 
-    try {
-      // FIX: Proper fetch implementation
-      const response = await fetch(url, config);
-      
-      // Check if response is OK
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log("API Response:", data); // Debug log
-
-      return data;
-
-    } catch (error) {
-      console.error("API request failed:", error);
-      throw error;
+    if (response.errors && Object.keys(response.errors).length > 0) {
+      throw new Error(` ${response.message}`);
     }
-  }
 
-  async getAllWorkers() {
-    return this.request(API_CONFIG.endpoints.workers.getAll, {
-      method: "GET",
-    });
+    return response;
+  } catch (error) {
+    console.error("API request failed:", error);
+    throw error;
   }
-}
+};
 
-export default new WorkerService();
+ export  const createWorker = async (workerData) => {
+  const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.workers.create}`;
+
+  const config = {
+    method: "POST",
+    body: JSON.stringify(workerData),
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  };
+
+  try {
+    const response = await fetch(url, config);
+    const data = await response.json();
+
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      throw new Error(` ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("API request failed:", error);
+    throw error;
+  }
+};
+
+ export const getAllWorkers = async () => {
+  return request(API_CONFIG.endpoints.workers.getAll, {
+    method: "GET",
+  });
+};
+
