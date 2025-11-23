@@ -1,14 +1,30 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { createWorker } from "../../services/WorkerService";
+import { createWorker, getServices } from "../../services/WorkerService";
 import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
 import Card from "../ui/Card";
+
 export default function CreateWorker() {
   const [preview, setPreview] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [errors, setErrors] = useState({});
+  const [services, setServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [serviceRatings, setServiceRatings] = useState({});
+
+  const fetchServices = async () => {
+    try {
+      const res = await getServices();
+      setServices(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,9 +32,9 @@ export default function CreateWorker() {
     setErrors({});
 
     const formData = new FormData(e.target);
-    
+
     const serviceTypes = formData.getAll("service_type[]");
-    
+
     const workerData = {
       name: formData.get("name"),
       email: formData.get("email"),
@@ -30,10 +46,10 @@ export default function CreateWorker() {
       shift: formData.get("shift"),
       rating: formData.get("rating"),
     };
-    
+
     try {
       const result = await createWorker(workerData);
-      
+
       if (result.success || result.data) {
         toast.success(result.message || "Worker registered successfully!");
         e.target.reset();
@@ -43,7 +59,7 @@ export default function CreateWorker() {
       }
     } catch (error) {
       toast.error(error.message || "Failed to register worker");
-      
+
       // Handle validation errors if returned from API
       if (error.errors) {
         setErrors(error.errors);
@@ -103,7 +119,43 @@ export default function CreateWorker() {
       setImageUrl(null);
     }
   };
+  const handleServiceChange = (serviceName, isChecked) => {
+    if (isChecked) {
+      setSelectedServices([...selectedServices, serviceName]);
+      setServiceRatings({ ...serviceRatings, [serviceName]: 0 });
+    } else {
+      setSelectedServices(selectedServices.filter((s) => s !== serviceName));
+      const newRatings = { ...serviceRatings };
+      delete newRatings[serviceName];
+      setServiceRatings(newRatings);
+    }
+  };
 
+  const handleRatingChange = (serviceName, rating) => {
+    setServiceRatings({ ...serviceRatings, [serviceName]: rating });
+  };
+  const renderHiddenInputs = () => {
+    return (
+      <>
+        {selectedServices.map((service) => (
+          <input
+            key={`service_${service}`}
+            type="hidden"
+            name="service_type[]"
+            value={service}
+          />
+        ))}
+        {Object.entries(serviceRatings).map(([service, rating]) => (
+          <input
+            key={`rating_${service}`}
+            type="hidden"
+            name={`service_rating_${service}`}
+            value={rating}
+          />
+        ))}
+      </>
+    );
+  };
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
       <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
@@ -118,6 +170,7 @@ export default function CreateWorker() {
         formCard={true}
       >
         <form onSubmit={handleSubmit}>
+          {renderHiddenInputs()}
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-blue-100">
               Personal Information
@@ -135,9 +188,7 @@ export default function CreateWorker() {
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                   {errors?.name && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {errors.name}
-                    </p>
+                    <p className="text-sm mt-1 text-red-500">{errors.name}</p>
                   )}
                 </div>
 
@@ -152,9 +203,7 @@ export default function CreateWorker() {
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                   {errors?.email && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {errors.email}
-                    </p>
+                    <p className="text-sm mt-1 text-red-500">{errors.email}</p>
                   )}
                 </div>
 
@@ -169,9 +218,7 @@ export default function CreateWorker() {
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                   {errors?.age && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {errors.age}
-                    </p>
+                    <p className="text-sm mt-1 text-red-500">{errors.age}</p>
                   )}
                 </div>
               </div>
@@ -188,9 +235,7 @@ export default function CreateWorker() {
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                   {errors?.phone && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {errors.phone}
-                    </p>
+                    <p className="text-sm mt-1 text-red-500">{errors.phone}</p>
                   )}
                 </div>
 
@@ -241,24 +286,26 @@ export default function CreateWorker() {
                 Service Type *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {["Cleaning", "Plumbing", "Electrician", "Cooking"].map(
-                  (type) => (
-                    <label
-                      key={type}
-                      className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white"
-                    >
-                      <input
-                        type="checkbox"
-                        name="service_type[]"
-                        value={type}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">
-                        {type}
-                      </span>
-                    </label>
-                  )
-                )}
+                {services.map((service) => (
+                  <label
+                    key={service.id}
+                    className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white"
+                  >
+                    <input
+                      type="checkbox"
+                      name="service_type[]"
+                      value={service.name}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      checked={selectedServices.includes(service.name)}
+                      onChange={(e) =>
+                        handleServiceChange(service.name, e.target.checked)
+                      }
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {service.name}
+                    </span>
+                  </label>
+                ))}
               </div>
               {errors?.service_type && (
                 <p className="text-sm mt-2 text-red-500">
@@ -266,27 +313,39 @@ export default function CreateWorker() {
                 </p>
               )}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                  Expertise Level (1-10) *
+            {selectedServices.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm mb-3 text-gray-600 font-semibold">
+                  Rate Your Expertise Per Service *
                 </label>
-                <input
-                  type="number"
-                  name="expertise_of_service"
-                  placeholder="Enter 1-10"
-                  min="1"
-                  max="10"
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                />
-                {errors?.expertise_of_service && (
-                  <p className="text-sm mt-1 text-red-500">
-                    {errors.expertise_of_service}
+                <div className="space-y-4">
+                  {selectedServices.map((serviceName) => (
+                    <div
+                      key={serviceName}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <span className="text-sm font-medium text-gray-700">
+                        {serviceName}
+                      </span>
+                      <Rating
+                        value={serviceRatings[serviceName] || 0}
+                        onChange={(rating) =>
+                          handleRatingChange(serviceName, rating)
+                        }
+                        name={`service_rating_${serviceName}`}
+                        max={5}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {errors?.service_ratings && (
+                  <p className="text-sm mt-2 text-red-500">
+                    {errors.service_ratings}
                   </p>
                 )}
               </div>
-
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm mb-2 text-gray-600 font-semibold">
                   Preferred Shift *
@@ -301,9 +360,7 @@ export default function CreateWorker() {
                   <option value="Flexible">Flexible</option>
                 </select>
                 {errors?.shift && (
-                  <p className="text-sm mt-1 text-red-500">
-                    {errors.shift}
-                  </p>
+                  <p className="text-sm mt-1 text-red-500">{errors.shift}</p>
                 )}
               </div>
 
@@ -320,9 +377,7 @@ export default function CreateWorker() {
                   className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 />
                 {errors?.rating && (
-                  <p className="text-sm mt-1 text-red-500">
-                    {errors.rating}
-                  </p>
+                  <p className="text-sm mt-1 text-red-500">{errors.rating}</p>
                 )}
               </div>
             </div>

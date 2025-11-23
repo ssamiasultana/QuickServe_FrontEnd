@@ -26,7 +26,7 @@ const request = async (endpoint, options = {}) => {
   }
 };
 
- export  const createWorker = async (workerData) => {
+export const createWorker = async (workerData) => {
   const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.workers.create}`;
 
   const config = {
@@ -53,9 +53,14 @@ const request = async (endpoint, options = {}) => {
   }
 };
 
- export const getAllWorkers = async () => {
+export const getAllWorkers = async () => {
   return request(API_CONFIG.endpoints.workers.getAll, {
     method: "GET",
   });
 };
 
+export const getServices = async () => {
+  return this.request(API_CONFIG.endpoints.services.getServices, {
+    method: "GET",
+  });
+};
