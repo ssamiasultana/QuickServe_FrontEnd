@@ -1,22 +1,36 @@
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { createWorker, getServices } from "../../services/WorkerService";
+import workerService from "../../services/workerService";
 import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
+import { submitWorkerData } from "../../utils/workerAction";
 import Card from "../ui/Card";
-
-export default function CreateWorker() {
+import Rating from "../ui/Rating";
+export default function AddWorker() {
   const [preview, setPreview] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const [errors, setErrors] = useState({});
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    age: "",
+    phone: "",
+    shift: "",
+    rating: "",
+  });
+
+  const [state, formAction, isPending] = useActionState(submitWorkerData, {
+    success: false,
+    message: "",
+    errors: {},
+    data: null,
+  });
   const [services, setServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [serviceRatings, setServiceRatings] = useState({});
-
   const fetchServices = async () => {
     try {
-      const res = await getServices();
+      const res = await workerService.getServices();
       setServices(res.data);
     } catch (err) {
       console.error(err);
@@ -26,47 +40,52 @@ export default function CreateWorker() {
     fetchServices();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsPending(true);
-    setErrors({});
-
-    const formData = new FormData(e.target);
-
-    const serviceTypes = formData.getAll("service_type[]");
-
-    const workerData = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      age: formData.get("age"),
-      phone: formData.get("phone"),
-      imageUrl: formData.get("imageUrl"),
-      service_type: serviceTypes,
-      expertise_of_service: formData.get("expertise_of_service"),
-      shift: formData.get("shift"),
-      rating: formData.get("rating"),
-    };
-
-    try {
-      const result = await createWorker(workerData);
-
-      if (result.success || result.data) {
-        toast.success(result.message || "Worker registered successfully!");
-        e.target.reset();
-        setPreview(null);
-        setImageUrl(null);
-        setErrors({});
-      }
-    } catch (error) {
-      toast.error(error.message || "Failed to register worker");
-
-      // Handle validation errors if returned from API
-      if (error.errors) {
-        setErrors(error.errors);
-      }
-    } finally {
-      setIsPending(false);
+  useEffect(() => {
+    if (state.success) {
+      // Reset form on successful submission
+      setFormData({
+        name: "",
+        email: "",
+        age: "",
+        phone: "",
+        shift: "",
+        rating: "",
+      });
+      setSelectedServices([]);
+      setServiceRatings({});
+      setPreview(null);
+      setImageUrl(null);
+      // Clear file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = "";
     }
+
+    if (state.message) {
+      if (state.success) {
+        toast.success(state.message);
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state]);
+
+  console.log(services);
+  useEffect(() => {
+    if (state.message) {
+      if (state.success) {
+        toast.success(state.message);
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleImageChange = async (event) => {
@@ -134,6 +153,7 @@ export default function CreateWorker() {
   const handleRatingChange = (serviceName, rating) => {
     setServiceRatings({ ...serviceRatings, [serviceName]: rating });
   };
+
   const renderHiddenInputs = () => {
     return (
       <>
@@ -156,6 +176,7 @@ export default function CreateWorker() {
       </>
     );
   };
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
       <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
@@ -169,8 +190,10 @@ export default function CreateWorker() {
         borderColor="border-blue-100"
         formCard={true}
       >
-        <form onSubmit={handleSubmit}>
+        <form action={formAction}>
           {renderHiddenInputs()}
+          <input type="hidden" name="imageUrl" value={imageUrl || ""} />
+
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-blue-100">
               Personal Information
@@ -184,11 +207,15 @@ export default function CreateWorker() {
                   <input
                     type="text"
                     name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
                     placeholder="Full Name"
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
-                  {errors?.name && (
-                    <p className="text-sm mt-1 text-red-500">{errors.name}</p>
+                  {state.errors?.name && (
+                    <p className="text-sm mt-1 text-red-500">
+                      {state.errors.name}
+                    </p>
                   )}
                 </div>
 
@@ -199,11 +226,15 @@ export default function CreateWorker() {
                   <input
                     type="email"
                     name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     placeholder="Email Address"
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
-                  {errors?.email && (
-                    <p className="text-sm mt-1 text-red-500">{errors.email}</p>
+                  {state.errors?.email && (
+                    <p className="text-sm mt-1 text-red-500">
+                      {state.errors.email}
+                    </p>
                   )}
                 </div>
 
@@ -214,11 +245,15 @@ export default function CreateWorker() {
                   <input
                     type="number"
                     name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
                     placeholder="Age"
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
-                  {errors?.age && (
-                    <p className="text-sm mt-1 text-red-500">{errors.age}</p>
+                  {state.errors?.age && (
+                    <p className="text-sm mt-1 text-red-500">
+                      {state.errors.age}
+                    </p>
                   )}
                 </div>
               </div>
@@ -231,11 +266,15 @@ export default function CreateWorker() {
                   <input
                     type="text"
                     name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
                     placeholder="Phone Number"
                     className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                   />
-                  {errors?.phone && (
-                    <p className="text-sm mt-1 text-red-500">{errors.phone}</p>
+                  {state.errors?.phone && (
+                    <p className="text-sm mt-1 text-red-500">
+                      {state.errors.phone}
+                    </p>
                   )}
                 </div>
 
@@ -270,7 +309,6 @@ export default function CreateWorker() {
                       />
                     </div>
                   )}
-                  <input type="hidden" name="imageUrl" value={imageUrl || ""} />
                 </div>
               </div>
             </div>
@@ -285,18 +323,17 @@ export default function CreateWorker() {
               <label className="block text-sm mb-3 text-gray-600 font-semibold">
                 Service Type *
               </label>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {services.map((service) => (
                   <label
-                    key={service.id}
+                    key={service.name}
                     className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white"
                   >
                     <input
                       type="checkbox"
-                      name="service_type[]"
-                      value={service.name}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                       checked={selectedServices.includes(service.name)}
+                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                       onChange={(e) =>
                         handleServiceChange(service.name, e.target.checked)
                       }
@@ -307,9 +344,9 @@ export default function CreateWorker() {
                   </label>
                 ))}
               </div>
-              {errors?.service_type && (
+              {state.errors?.service_type && (
                 <p className="text-sm mt-2 text-red-500">
-                  {errors.service_type}
+                  {state.errors.service_type}
                 </p>
               )}
             </div>
@@ -338,9 +375,9 @@ export default function CreateWorker() {
                     </div>
                   ))}
                 </div>
-                {errors?.service_ratings && (
+                {state.errors?.service_ratings && (
                   <p className="text-sm mt-2 text-red-500">
-                    {errors.service_ratings}
+                    {state.errors.service_ratings}
                   </p>
                 )}
               </div>
@@ -352,6 +389,8 @@ export default function CreateWorker() {
                 </label>
                 <select
                   name="shift"
+                  value={formData.shift}
+                  onChange={handleInputChange}
                   className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white"
                 >
                   <option value="">Select Shift</option>
@@ -359,8 +398,10 @@ export default function CreateWorker() {
                   <option value="Night">Night Shift</option>
                   <option value="Flexible">Flexible</option>
                 </select>
-                {errors?.shift && (
-                  <p className="text-sm mt-1 text-red-500">{errors.shift}</p>
+                {state.errors?.shift && (
+                  <p className="text-sm mt-1 text-red-500">
+                    {state.errors.shift}
+                  </p>
                 )}
               </div>
 
@@ -371,13 +412,17 @@ export default function CreateWorker() {
                 <input
                   type="number"
                   name="rating"
+                  value={formData.rating}
+                  onChange={handleInputChange}
                   placeholder="Enter 1-5"
                   min="1"
                   max="5"
                   className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 />
-                {errors?.rating && (
-                  <p className="text-sm mt-1 text-red-500">{errors.rating}</p>
+                {state.errors?.rating && (
+                  <p className="text-sm mt-1 text-red-500">
+                    {state.errors.rating}
+                  </p>
                 )}
               </div>
             </div>

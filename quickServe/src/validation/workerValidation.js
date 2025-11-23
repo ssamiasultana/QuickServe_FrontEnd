@@ -10,7 +10,7 @@ export const workerValidationSchema = Yup.object({
     .required("Email is required"),
 
   phone: Yup.string()
-    .matches(/^\d{10,15}$/, "Phone number must be 10-15 digits")
+    .matches(/^\d{10,15}$/, "Phone number must be 11 digits")
     .required("Phone number is required"),
 
   age: Yup.number()
@@ -18,18 +18,9 @@ export const workerValidationSchema = Yup.object({
     .positive("Age must be positive")
     .integer("Age must be an integer"),
 
-  nid: Yup.string()
-    .matches(/^\d{10,17}$/, "NID must be 10–17 digits")
-    .required("NID is required"),
-
-  serviceType: Yup.array()
+  service_type: Yup.array()
     .min(1, "Select at least one service type")
     .required("Select at least one service type"),
-
-  expertise: Yup.number()
-    .required("Enter expertise level")
-    .min(1, "Minimum value is 1")
-    .max(10, "Maximum value is 10"),
 
   shift: Yup.string().required("Select shift"),
 

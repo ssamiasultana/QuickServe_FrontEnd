@@ -1,14 +1,35 @@
-import {use} from "react";
-
+import { use, useEffect, useState } from "react";
+import getShiftColor from "../../utils/util";
 import colors from "../ui/color";
 import Table from "../ui/table";
-import getShiftColor from "../../utils/util";
 
+const WorkerTable = ({ workerPromise }) => {
+  const workerData = use(workerPromise);
+  const workers = workerData.data || workerData || [];
+  const ITEMS_PER_PAGE_OPTIONS = [10, 20];
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
-const WorkerTable = ({ workers }) => {
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [workers.length]);
 
+  const totalPages = Math.max(1, Math.ceil(workers.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedWorkers = workers.slice(startIndex, startIndex + itemsPerPage);
 
-  
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handlePageSizeChange = (event) => {
+    const newSize = Number(event.target.value);
+    setItemsPerPage(newSize);
+    setCurrentPage(1);
+  };
+
   const workerColumns = [
     { header: "Id", accessor: "id" },
     {
@@ -61,17 +82,39 @@ const WorkerTable = ({ workers }) => {
       header: "Service Type",
       accessor: (item) => {
         let serviceTypes = item.service_type;
+        let serviceRatings = item.expertise_of_service;
 
         if (typeof serviceTypes === "string") {
           try {
             serviceTypes = JSON.parse(serviceTypes);
           } catch (error) {
-            error;
+            console.error("Error parsing service_type:", error);
             serviceTypes = [serviceTypes];
           }
         }
 
-        if (Array.isArray(serviceTypes)) {
+        if (typeof serviceRatings === "string") {
+          try {
+            serviceRatings = JSON.parse(serviceRatings);
+          } catch (error) {
+            console.error("Error parsing service_ratings:", error);
+            serviceRatings = {};
+          }
+        }
+
+        if (!serviceRatings || Object.keys(serviceRatings).length === 0) {
+          if (Array.isArray(serviceTypes)) {
+            return (
+              <span
+                className="text-xs"
+                style={{
+                  color: colors.neutral[600],
+                }}
+              >
+                {serviceTypes.join(", ")}
+              </span>
+            );
+          }
           return (
             <span
               className="text-xs"
@@ -79,12 +122,29 @@ const WorkerTable = ({ workers }) => {
                 color: colors.neutral[600],
               }}
             >
-              {serviceTypes.join(", ")}
+              {serviceTypes || "Not specified"}
             </span>
           );
         }
 
-        // Fallback for single service or invalid data
+        if (Array.isArray(serviceTypes)) {
+          const formattedServices = serviceTypes.map((service) => {
+            const rating = serviceRatings[service];
+            return rating ? `${service}(${rating})` : service;
+          });
+
+          return (
+            <span
+              className="text-xs"
+              style={{
+                color: colors.neutral[600],
+              }}
+            >
+              {formattedServices.join(", ")}
+            </span>
+          );
+        }
+
         return (
           <span
             className="text-xs"
@@ -97,9 +157,9 @@ const WorkerTable = ({ workers }) => {
         );
       },
     },
-    { header: "Expertise", accessor: "expertise_of_service" },
+
     {
-      header: "Rating",
+      header: "Overall Rating",
       accessor: (item) => `${item.rating}/5`,
     },
     {
@@ -143,32 +203,122 @@ const WorkerTable = ({ workers }) => {
     },
   ];
   const handleEdit = (worker) => {
-    console.log("Edit worker:", worker);
+    "Edit worker:", worker;
   };
 
   const handleDelete = () => {
-    console.log("data delete");
+    ("data delete");
   };
 
   const handleView = (worker) => {
-    console.log("View worker:", worker);
+    "View worker:", worker;
   };
 
   return (
     <div className="space-y-5">
       <Table
         title="Workers List"
-        data={workers.data}
+        data={paginatedWorkers}
         columns={workerColumns}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
       />
 
-      
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
+        <div className="flex items-center gap-3 text-sm">
+          <span style={{ color: colors.neutral[600] }}>Rows per page:</span>
+          <select
+            value={itemsPerPage}
+            onChange={handlePageSizeChange}
+            className="px-3 py-1.5 text-sm rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+            style={{
+              border: `1px solid ${colors.neutral[300]}`,
+              color: colors.neutral[700],
+              backgroundColor: colors.white,
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = colors.accent[500];
+              e.target.style.boxShadow = `0 0 0 2px ${colors.accent[50]}`;
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = colors.neutral[300];
+              e.target.style.boxShadow = "none";
+            }}
+          >
+            {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <span style={{ color: colors.neutral[500] }} className="ml-2">
+            Showing{" "}
+            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
+              {workers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
+            </span>
+            {" - "}
+            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
+              {Math.min(currentPage * itemsPerPage, workers.length)}
+            </span>
+            {" of "}
+            <span style={{ color: colors.neutral[700], fontWeight: 500 }}>
+              {workers.length}
+            </span>
+          </span>
+        </div>
 
-        
-      
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-1.5 text-sm rounded-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              border: `1px solid ${colors.neutral[300]}`,
+              color: colors.neutral[700],
+              backgroundColor: colors.white,
+            }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled) {
+                e.currentTarget.style.backgroundColor = colors.neutral[50];
+                e.currentTarget.style.borderColor = colors.neutral[400];
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.white;
+              e.currentTarget.style.borderColor = colors.neutral[300];
+            }}
+          >
+            Previous
+          </button>
+          <span className="text-sm px-3" style={{ color: colors.neutral[600] }}>
+            Page <span style={{ fontWeight: 500 }}>{currentPage}</span> of{" "}
+            <span style={{ fontWeight: 500 }}>{totalPages}</span>
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-1.5 text-sm rounded-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              border: `1px solid ${colors.neutral[300]}`,
+              color: colors.neutral[700],
+              backgroundColor: colors.white,
+            }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled) {
+                e.currentTarget.style.backgroundColor = colors.neutral[50];
+                e.currentTarget.style.borderColor = colors.neutral[400];
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.white;
+              e.currentTarget.style.borderColor = colors.neutral[300];
+            }}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

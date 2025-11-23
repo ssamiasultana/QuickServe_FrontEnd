@@ -11,9 +11,9 @@ const API_CONFIG = {
     },
     services: {
       getServices: "/getServices",
-      createService: "/service",
-      updateService: "/service",
-      deleteService: "/service",
+      createService: "/services",
+      updateService: "/services",
+      deleteService: "/services",
     },
   },
   timeout: 10000,
