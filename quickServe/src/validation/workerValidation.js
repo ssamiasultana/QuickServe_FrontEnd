@@ -24,10 +24,5 @@ export const workerValidationSchema = Yup.object({
 
   shift: Yup.string().required("Select shift"),
 
-  rating: Yup.number()
-    .required("Rating is required")
-    .min(1, "Minimum rating is 1")
-    .max(5, "Maximum rating is 5"),
-
   feedback: Yup.string().max(200, "Feedback can’t exceed 200 characters"),
 });

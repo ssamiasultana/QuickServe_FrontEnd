@@ -17,6 +17,7 @@ export default function AddWorker() {
     phone: "",
     shift: "",
     rating: "",
+    feedback: "",
   });
 
   const [state, formAction, isPending] = useActionState(submitWorkerData, {
@@ -50,6 +51,7 @@ export default function AddWorker() {
         phone: "",
         shift: "",
         rating: "",
+        feedback: "",
       });
       setSelectedServices([]);
       setServiceRatings({});
@@ -320,108 +322,112 @@ export default function AddWorker() {
             </h3>
 
             <div className="mb-6">
-              <label className="block text-sm mb-3 text-gray-600 font-semibold">
-                Service Type *
-              </label>
+              <h3 className="text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-green-100">
+                Service Information
+              </h3>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {services.map((service) => (
-                  <label
-                    key={service.name}
-                    className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedServices.includes(service.name)}
-                      className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                      onChange={(e) =>
-                        handleServiceChange(service.name, e.target.checked)
-                      }
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      {service.name}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              {state.errors?.service_type && (
-                <p className="text-sm mt-2 text-red-500">
-                  {state.errors.service_type}
-                </p>
-              )}
-            </div>
-            {selectedServices.length > 0 && (
               <div className="mb-6">
                 <label className="block text-sm mb-3 text-gray-600 font-semibold">
-                  Rate Your Expertise Per Service *
+                  Service Type *
                 </label>
-                <div className="space-y-4">
-                  {selectedServices.map((serviceName) => (
-                    <div
-                      key={serviceName}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {services.map((service) => (
+                    <label
+                      key={service.name}
+                      className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white"
                     >
-                      <span className="text-sm font-medium text-gray-700">
-                        {serviceName}
-                      </span>
-                      <Rating
-                        value={serviceRatings[serviceName] || 0}
-                        onChange={(rating) =>
-                          handleRatingChange(serviceName, rating)
+                      <input
+                        type="checkbox"
+                        checked={selectedServices.includes(service.name)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        onChange={(e) =>
+                          handleServiceChange(service.name, e.target.checked)
                         }
-                        name={`service_rating_${serviceName}`}
-                        max={5}
                       />
-                    </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {service.name}
+                      </span>
+                    </label>
                   ))}
                 </div>
-                {state.errors?.service_ratings && (
+                {state.errors?.service_type && (
                   <p className="text-sm mt-2 text-red-500">
-                    {state.errors.service_ratings}
+                    {state.errors.service_type}
                   </p>
                 )}
               </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                  Preferred Shift *
-                </label>
-                <select
-                  name="shift"
-                  value={formData.shift}
-                  onChange={handleInputChange}
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white"
-                >
-                  <option value="">Select Shift</option>
-                  <option value="Day">Day Shift</option>
-                  <option value="Night">Night Shift</option>
-                  <option value="Flexible">Flexible</option>
-                </select>
-                {state.errors?.shift && (
-                  <p className="text-sm mt-1 text-red-500">
-                    {state.errors.shift}
-                  </p>
-                )}
+              {selectedServices.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm mb-3 text-gray-600 font-semibold">
+                    Rate Your Expertise Per Service *
+                  </label>
+                  <div className="space-y-4">
+                    {selectedServices.map((serviceName) => (
+                      <div
+                        key={serviceName}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <span className="text-sm font-medium text-gray-700">
+                          {serviceName}
+                        </span>
+                        <Rating
+                          value={serviceRatings[serviceName] || 0}
+                          onChange={(rating) =>
+                            handleRatingChange(serviceName, rating)
+                          }
+                          name={`service_rating_${serviceName}`}
+                          max={5}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {state.errors?.service_ratings && (
+                    <p className="text-sm mt-2 text-red-500">
+                      {state.errors.service_ratings}
+                    </p>
+                  )}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
+                    Preferred Shift *
+                  </label>
+                  <select
+                    name="shift"
+                    value={formData.shift}
+                    onChange={handleInputChange}
+                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white"
+                  >
+                    <option value="">Select Shift</option>
+                    <option value="Day">Day Shift</option>
+                    <option value="Night">Night Shift</option>
+                    <option value="Flexible">Flexible</option>
+                  </select>
+                  {state.errors?.shift && (
+                    <p className="text-sm mt-1 text-red-500">
+                      {state.errors.shift}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                  Self Rating (1-5) *
+                  Additional Feedback
                 </label>
-                <input
-                  type="number"
-                  name="rating"
-                  value={formData.rating}
+                <textarea
+                  name="feedback"
+                  value={formData.feedback || ""}
                   onChange={handleInputChange}
-                  placeholder="Enter 1-5"
-                  min="1"
-                  max="5"
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+                  placeholder="Share any additional information, special skills, or preferences..."
+                  rows={4}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white resize-none"
                 />
-                {state.errors?.rating && (
+                {state.errors?.feedback && (
                   <p className="text-sm mt-1 text-red-500">
-                    {state.errors.rating}
+                    {state.errors.feedback}
                   </p>
                 )}
               </div>

@@ -29,7 +29,7 @@ export const submitWorkerData = async (prevState, formData) => {
       age: values.age ? parseInt(values.age) : null,
 
       shift: values.shift,
-      rating: values.rating ? parseInt(values.rating) : null,
+      feedback: values.feedback,
       expertise_of_service: serviceRatings,
       service_type: serviceTypeArray,
       image: imageUrl || null,
