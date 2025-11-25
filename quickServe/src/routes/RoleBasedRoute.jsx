@@ -9,9 +9,9 @@ const RoleBasedRoute = ({ children, allowedRoles }) => {
       case "moderator":
         return "/dashboard";
       case "worker":
-        return "/worker-dashboard";
+        return "/worker";
       case "customer":
-        return "/customer-dashboard";
+        return "/customer";
       default:
         return "/login";
     }
