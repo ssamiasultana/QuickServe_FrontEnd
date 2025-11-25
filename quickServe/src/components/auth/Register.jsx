@@ -1,24 +1,40 @@
-import { use, useActionState } from "react";
-import { Link } from "react-router";
+import { use, useActionState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import logo from "../../assets/logo.png";
 import { signUpAction } from "../../utils/authAction";
 import { AuthContext } from "../Context/AuthContext";
 import Card from "../ui/Card";
-import colors from "../ui/color";
+import { colors } from "../ui/color";
 import { FormInput } from "../ui/FormInput";
 import { FormSelect } from "../ui/FormSelect";
 
 const Register = () => {
-  const authContext = use(AuthContext);
-  if (!authContext) {
-    throw new Error("Register must be used within an AuthProvider");
-  }
-  const { login } = use(AuthContext);
+  const { login, isAuthenticated, user } = use(AuthContext);
+  const navigate = useNavigate();
 
   const roleOptions = [
     { value: "Worker", label: "Worker" },
     { value: "Customer", label: "Customer" },
   ];
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role.toLowerCase();
+      switch (role) {
+        case "admin":
+        case "moderator":
+          navigate("/dashboard", { replace: true });
+          break;
+        case "worker":
+          navigate("/worker/dashboard", { replace: true });
+          break;
+        case "customer":
+          navigate("/customer/dashboard", { replace: true });
+          break;
+        default:
+          break;
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const [state, formAction, isPending] = useActionState(
     async (prevState, formData) => {
@@ -26,6 +42,15 @@ const Register = () => {
 
       if (result.success && result.data?.token) {
         login(result.data.token, result.data.user);
+
+        const role = result.data.user.role.toLowerCase();
+        if (role === "worker") {
+          navigate("/worker/dashboard");
+        } else if (role === "customer") {
+          navigate("/customer/dashboard");
+        } else {
+          navigate("/login");
+        }
       }
 
       return result;
