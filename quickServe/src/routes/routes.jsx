@@ -23,8 +23,8 @@ const routes = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", Component: Dashboard },
-      { path: "create-worker", Component: AddWorker },
-      { path: "manage-workers", Component: WorkerList },
+      { path: "/add", Component: AddWorker },
+      { path: "/manage", Component: WorkerList },
     ],
   },
   {
@@ -37,12 +37,24 @@ const routes = createBrowserRouter([
   },
   {
     path: "/worker",
-    Component: WorkerLayout,
+    element: (
+      <ProtectedRoute>
+        <RoleBasedRoute allowedRoles={"Worker"}>
+          <WorkerLayout />
+        </RoleBasedRoute>
+      </ProtectedRoute>
+    ),
   },
 
   {
     path: "/customer",
-    Component: CustomerLayout,
+    element: (
+      <ProtectedRoute>
+        <RoleBasedRoute allowedRoles={"Customer"}>
+          <CustomerLayout />
+        </RoleBasedRoute>
+      </ProtectedRoute>
+    ),
   },
 ]);
 export default routes;

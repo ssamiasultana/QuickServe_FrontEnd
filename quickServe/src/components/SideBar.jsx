@@ -6,13 +6,15 @@ import {
   Menu,
   Users,
 } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { use, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { AuthContext } from "./Context/AuthContext";
 
 const SideBar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
-  console.log(location.pathname);
+  const { user, logout } = use(AuthContext);
+  const navigate = useNavigate();
   const [subMenuExpand, setSubMenuExpand] = useState({});
 
   const menuItems = [
@@ -42,6 +44,10 @@ const SideBar = () => {
       [itemId]: !prev[itemId],
     }));
   };
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div
@@ -59,7 +65,9 @@ const SideBar = () => {
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
             </div>
-            <span className="font-bold text-slate-900 text-lg">Admin</span>
+            <span className="font-bold text-slate-900 text-lg">
+              {user.name}
+            </span>
           </div>
         )}
         <button
@@ -184,7 +192,10 @@ const SideBar = () => {
           )}
         </div>
         {!isCollapsed && (
-          <button className="w-full mt-3 flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-neutral-100 rounded-lg transition-colors">
+          <button
+            onClick={handleLogout}
+            className="w-full mt-3 flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-neutral-100 rounded-lg transition-colors"
+          >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>
           </button>

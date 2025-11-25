@@ -21,10 +21,10 @@ const Login = () => {
           navigate("/dashboard", { replace: true });
           break;
         case "worker":
-          navigate("/worker/dashboard", { replace: true });
+          navigate("/worker", { replace: true });
           break;
         case "customer":
-          navigate("/customer/dashboard", { replace: true });
+          navigate("/customer", { replace: true });
           break;
         default:
           break;
@@ -46,10 +46,10 @@ const Login = () => {
             navigate("/dashboard");
             break;
           case "worker":
-            navigate("/worker/dashboard");
+            navigate("/worker");
             break;
           case "customer":
-            navigate("/customer/dashboard");
+            navigate("/customer");
             break;
           default:
             navigate("/login");
