@@ -1,6 +1,9 @@
-import { use, useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { use, useEffect, useRef, useState, useTransition } from "react";
+import workerService from "../../services/workerService";
 import getShiftColor from "../../utils/util";
 import colors from "../ui/color";
+import Modal from "../ui/Modal";
 import Table from "../ui/table";
 import UpdateModal from "./UpdateModal";
 
@@ -18,7 +21,9 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [editModal, setEditModal] = useState({ open: false, worker: null });
-
+  const [deleteModal, setDeleteModal] = useState({ open: false, worker: null });
+  const [isPending, startTransition] = useTransition();
+  const lastDeleteSuccessRef = useRef(false);
   useEffect(() => {
     setCurrentPage(1);
   }, [workers.length]);
@@ -115,7 +120,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
           if (Array.isArray(serviceTypes)) {
             return (
               <span
-                className="text-xs"
+                className="text-xl"
                 style={{
                   color: colors.neutral[600],
                 }}
@@ -168,10 +173,6 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
     },
 
     {
-      header: "Overall Rating",
-      accessor: (item) => `${item.rating}/5`,
-    },
-    {
       header: "Status",
       accessor: (item) => {
         const isActive = item.is_active;
@@ -215,6 +216,31 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
   const handleEdit = (worker) => {
     setEditModal({ open: true, worker });
   };
+  const handleDelete = (worker) => {
+    setDeleteModal({ open: true, worker });
+
+    lastDeleteSuccessRef.current = false;
+  };
+
+  const confirmDelete = () => {
+    if (!deleteModal.worker) return;
+    setDeleteModal({ open: false });
+
+    startTransition(async () => {
+      try {
+        await workerService.deleteWorker(deleteModal.worker.id);
+
+        if (!lastDeleteSuccessRef.current) {
+          lastDeleteSuccessRef.current = true;
+          onWorkerUpdate();
+        }
+      } catch (error) {
+        console.error("Failed to delete worker:", error);
+        alert("Delete failed. Please try again.");
+        lastDeleteSuccessRef.current = false;
+      }
+    });
+  };
 
   return (
     <div className="space-y-5">
@@ -223,6 +249,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
         data={paginatedWorkers}
         columns={workerColumns}
         onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <UpdateModal
@@ -230,6 +257,45 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
         setEditModal={setEditModal}
         onWorkerUpdate={onWorkerUpdate}
       />
+      <Modal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, worker: null })}
+        title="Delete Worker"
+        icon={AlertTriangle}
+        iconBgColor="bg-red-100"
+        iconColor="text-red-600"
+        size="md"
+        footer={
+          <>
+            <button
+              onClick={() => setDeleteModal({ open: false, worker: null })}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              disabled={isPending}
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-gray-600">
+            Are you sure you want to delete worker{" "}
+            <strong className="text-gray-900">
+              {deleteModal.worker?.name}
+            </strong>
+            ?
+          </p>
+          <p className="text-sm text-gray-500">This action cannot be undone.</p>
+        </div>
+      </Modal>
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
         <div className="flex items-center gap-3 text-sm">
           <span style={{ color: colors.neutral[600] }}>Rows per page:</span>

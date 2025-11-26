@@ -91,20 +91,17 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
   }, [editModal.open, editModal.worker]);
 
   useEffect(() => {
-    // Only handle success once per update
     if (state?.success && !lastSuccessRef.current) {
       lastSuccessRef.current = true;
 
       toast.success(state.message || "Worker updated successfully!");
       setEditModal({ open: false, worker: null });
 
-      // Call refresh only once
       if (onWorkerUpdate) {
         onWorkerUpdate();
       }
     }
 
-    // Show errors (these can happen multiple times)
     if (state?.message && !state?.success) {
       toast.error(state.message);
     }

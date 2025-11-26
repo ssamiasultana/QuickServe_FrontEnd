@@ -73,7 +73,7 @@ class WorkerService {
     );
   }
   async deleteWorker(id) {
-    return this.request(`${API_CONFIG.endpoints.workers.deleteWorker}/${id}`, {
+    return this.request(`${API_CONFIG.endpoints.workers.deleteWorker(id)}`, {
       method: "DELETE",
     });
   }
