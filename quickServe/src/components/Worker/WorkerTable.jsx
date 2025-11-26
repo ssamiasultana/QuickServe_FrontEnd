@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { use, useEffect, useRef, useState, useTransition } from "react";
 import { useNavigate } from "react-router";
 import workerService from "../../services/workerService";
-import getShiftColor from "../../utils/util";
+import { getShiftColor } from "../../utils/util";
 import colors from "../ui/color";
 import Modal from "../ui/Modal";
 import Table from "../ui/table";
