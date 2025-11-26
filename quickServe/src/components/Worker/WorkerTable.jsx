@@ -121,7 +121,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
           if (Array.isArray(serviceTypes)) {
             return (
               <span
-                className="text-xl"
+                className="text-lg"
                 style={{
                   color: colors.neutral[600],
                 }}
@@ -132,7 +132,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
           }
           return (
             <span
-              className="text-xs"
+              className="text-sm"
               style={{
                 color: colors.neutral[600],
               }}
@@ -150,7 +150,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
 
           return (
             <span
-              className="text-xs"
+              className="text-sm font-semibold"
               style={{
                 color: colors.neutral[600],
               }}

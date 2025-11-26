@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App.jsx";
+import CustomerDashboard from "../components/CustomerDashboard.jsx";
 import Dashboard from "../components/Dashboard.jsx";
 import CustomerLayout from "../components/Layout/CustomerLayout.jsx";
 import WorkerLayout from "../components/Layout/WorkerLayout.jsx";
@@ -48,15 +49,23 @@ const routes = createBrowserRouter([
     ),
   },
 
+  // {
+  //   path: "/customer",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <RoleBasedRoute allowedRoles={"Customer"}>
+  //         <CustomerLayout />
+  //       </RoleBasedRoute>
+  //     </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/customer",
-    element: (
-      <ProtectedRoute>
-        <RoleBasedRoute allowedRoles={"Customer"}>
-          <CustomerLayout />
-        </RoleBasedRoute>
-      </ProtectedRoute>
-    ),
+    element: <CustomerLayout />,
+    children: [
+      { index: true, element: <Navigate to="/customer/dashboard" replace /> },
+      { path: "dashboard", Component: CustomerDashboard },
+    ],
   },
 ]);
 export default routes;

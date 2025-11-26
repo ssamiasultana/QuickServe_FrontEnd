@@ -26,9 +26,9 @@ export const getShiftColor = (shift) => {
     case "flexible":
     case "any":
       return {
-        background: colors.success[50],
-        text: colors.success[500],
-        border: colors.success[200] || colors.success[500],
+        background: colors.accent[50],
+        text: colors.accent[500],
+        border: colors.accent[200] || colors.accent[500],
       };
     default:
       return {

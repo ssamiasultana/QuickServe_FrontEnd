@@ -1,25 +1,17 @@
-import { LogOut } from "lucide-react";
-import { use } from "react";
-import { useNavigate } from "react-router";
-import { AuthContext } from "../Context/AuthContext";
-function CustomerLayout() {
-  const { user, logout, isAuthenticated } = use(AuthContext);
-  const navigate = useNavigate();
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-  return (
-    <div>
-      {isAuthenticated && <h3>{user.name}</h3>}
+import { Toaster } from "react-hot-toast";
+import { Outlet } from "react-router";
+import CustomerNavbar from "../Customer/CustomerNavbar";
 
-      <button
-        onClick={handleLogout}
-        className="w-full mt-3 flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-neutral-100 rounded-lg transition-colors"
-      >
-        <LogOut className="w-4 h-4" />
-        <span>Logout</span>
-      </button>
+function CustomerLayout() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <CustomerNavbar />
+      <main className="flex-1 p-6 overflow-auto">
+        <Toaster position="top-right" />
+        <div className="max-w-7xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }
