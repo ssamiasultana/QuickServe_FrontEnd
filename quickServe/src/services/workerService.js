@@ -6,6 +6,7 @@ class WorkerService {
   }
 
   async request(endpoint, options = {}) {
+    console.log("🔍 [DEBUG] Making request to:", endpoint);
     const url = `${this.baseURL}${endpoint}`;
 
     const config = {
@@ -60,6 +61,12 @@ class WorkerService {
 
   async getAllWorkers() {
     return this.request(API_CONFIG.endpoints.workers.getAll, {
+      method: "GET",
+    });
+  }
+
+  async getSingleWorker(id) {
+    return this.request(API_CONFIG.endpoints.workers.getSingleWorker(id), {
       method: "GET",
     });
   }

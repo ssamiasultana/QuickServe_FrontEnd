@@ -7,6 +7,7 @@ const API_CONFIG = {
       getAll: "/getWorkers",
       updateWorker: (id) => `/workers/${id}`,
       deleteWorker: (id) => `/workers/${id}`,
+      getSingleWorker: (id) => `/workers/${id}`,
     },
     services: {
       getServices: "/getServices",

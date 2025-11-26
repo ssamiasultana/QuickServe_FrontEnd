@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { use, useEffect, useRef, useState, useTransition } from "react";
+import { useNavigate } from "react-router";
 import workerService from "../../services/workerService";
 import getShiftColor from "../../utils/util";
 import colors from "../ui/color";
@@ -15,7 +16,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
     : Array.isArray(workerData)
     ? workerData
     : [];
-
+  const navigate = useNavigate();
   const ITEMS_PER_PAGE_OPTIONS = [10, 20];
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -241,6 +242,9 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
       }
     });
   };
+  const handleView = (worker) => {
+    navigate(`/workers/${worker.id}`);
+  };
 
   return (
     <div className="space-y-5">
@@ -250,6 +254,7 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
         columns={workerColumns}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onView={handleView}
       />
 
       <UpdateModal
