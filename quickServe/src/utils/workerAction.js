@@ -68,6 +68,90 @@ export const submitWorkerData = async (prevState, formData) => {
     }
   }
 };
+export async function updateWorkerData(prevState, formData) {
+  try {
+    const id = formData.get("id");
+    const serviceTypeArray = formData.getAll("service_type[]");
+    const values = Object.fromEntries(formData);
+
+    if (!id) {
+      return {
+        success: false,
+        message: "Worker ID is required",
+        errors: { id: "Worker ID is required" },
+        data: null,
+      };
+    }
+
+    const serviceRatings = {};
+    serviceTypeArray.forEach((serviceName) => {
+      const ratingKey = `service_rating_${serviceName}`;
+      const rating = formData.get(ratingKey);
+      if (rating) {
+        serviceRatings[serviceName] = parseInt(rating);
+      }
+    });
+
+    console.log("Submitting data:", {
+      id,
+      service_type: serviceTypeArray,
+      serviceRatings,
+
+      is_active: values.is_active === "on" || values.is_active === true,
+    });
+
+    await workerValidationSchema.validate(
+      { ...values, service_type: serviceTypeArray },
+      { abortEarly: false }
+    );
+
+    const workerData = {
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      age: values.age ? parseInt(values.age) : null,
+      shift: values.shift,
+
+      feedback: values.feedback,
+      image: values.imageUrl || null,
+      is_active: values.is_active === "on" || values.is_active === true,
+      expertise_of_service: serviceRatings,
+      service_type: serviceTypeArray,
+    };
+
+    const response = await workerService.updateWorker(id, workerData);
+
+    return {
+      success: true,
+      message: "Worker updated successfully!",
+      data: response.data || response,
+      errors: {},
+    };
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      const errors = {};
+      error.inner.forEach((err) => {
+        errors[err.path] = err.message;
+      });
+
+      return {
+        success: false,
+        message: "Please submit form with all fields",
+        errors: errors,
+        data: null,
+      };
+    }
+
+    if (error.message) {
+      return {
+        success: false,
+        message: error.message,
+        errors: {},
+        data: null,
+      };
+    }
+  }
+}
 
 export async function createServiceAction(prevState, formData) {
   try {

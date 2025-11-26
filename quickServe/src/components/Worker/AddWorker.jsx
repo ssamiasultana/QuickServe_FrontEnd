@@ -2,9 +2,13 @@ import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import workerService from "../../services/workerService";
 import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
+import { SHIFT_OPTIONS } from "../../utils/constants";
 import { submitWorkerData } from "../../utils/workerAction";
 import Card from "../ui/Card";
+import { FormInput } from "../ui/FormInput";
+import { FormSelect } from "../ui/FormSelect";
 import Rating from "../ui/Rating";
+
 export default function AddWorker() {
   const [preview, setPreview] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
@@ -202,83 +206,49 @@ export default function AddWorker() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Full Name"
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  />
-                  {state.errors?.name && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {state.errors.name}
-                    </p>
-                  )}
-                </div>
+                <FormInput
+                  label="Full Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Full Name"
+                  required
+                  error={state.errors?.name}
+                />
 
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Email Address"
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  />
-                  {state.errors?.email && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {state.errors.email}
-                    </p>
-                  )}
-                </div>
+                <FormInput
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Email Address"
+                  required
+                  error={state.errors?.email}
+                />
 
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                    Age *
-                  </label>
-                  <input
-                    type="number"
-                    name="age"
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    placeholder="Age"
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  />
-                  {state.errors?.age && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {state.errors.age}
-                    </p>
-                  )}
-                </div>
+                <FormInput
+                  label="Age"
+                  type="number"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleInputChange}
+                  placeholder="Age"
+                  required
+                  error={state.errors?.age}
+                />
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="Phone Number"
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-                  />
-                  {state.errors?.phone && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {state.errors.phone}
-                    </p>
-                  )}
-                </div>
+                <FormInput
+                  label="Phone Number"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Phone Number"
+                  required
+                  error={state.errors?.phone}
+                />
 
                 <div>
                   <label className="block text-sm mb-2 text-gray-600 font-semibold">
@@ -330,7 +300,6 @@ export default function AddWorker() {
                 <label className="block text-sm mb-3 text-gray-600 font-semibold">
                   Service Type *
                 </label>
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {services.map((service) => (
                     <label
@@ -390,47 +359,26 @@ export default function AddWorker() {
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                    Preferred Shift *
-                  </label>
-                  <select
-                    name="shift"
-                    value={formData.shift}
-                    onChange={handleInputChange}
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white"
-                  >
-                    <option value="">Select Shift</option>
-                    <option value="Day">Day Shift</option>
-                    <option value="Night">Night Shift</option>
-                    <option value="Flexible">Flexible</option>
-                  </select>
-                  {state.errors?.shift && (
-                    <p className="text-sm mt-1 text-red-500">
-                      {state.errors.shift}
-                    </p>
-                  )}
-                </div>
+                <FormSelect
+                  label="Preferred Shift"
+                  name="shift"
+                  options={SHIFT_OPTIONS}
+                  value={formData.shift}
+                  onChange={handleInputChange}
+                  required
+                  error={state.errors?.shift}
+                />
               </div>
 
-              <div>
-                <label className="block text-sm mb-2 text-gray-600 font-semibold">
-                  Additional Feedback
-                </label>
-                <textarea
-                  name="feedback"
-                  value={formData.feedback || ""}
-                  onChange={handleInputChange}
-                  placeholder="Share any additional information, special skills, or preferences..."
-                  rows={4}
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none transition-colors bg-white resize-none"
-                />
-                {state.errors?.feedback && (
-                  <p className="text-sm mt-1 text-red-500">
-                    {state.errors.feedback}
-                  </p>
-                )}
-              </div>
+              <FormInput
+                label="Additional Feedback"
+                name="feedback"
+                type="textarea"
+                value={formData.feedback || ""}
+                onChange={handleInputChange}
+                placeholder="Share any additional information, special skills, or preferences..."
+                error={state.errors?.feedback}
+              />
             </div>
           </div>
 

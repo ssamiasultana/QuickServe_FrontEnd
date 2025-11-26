@@ -1,5 +1,5 @@
 import { CirclePlus } from "lucide-react";
-import { Suspense, useActionState, useEffect, useState } from "react";
+import { Suspense, useActionState, useEffect, useRef, useState } from "react";
 import WorkerService from "../../services/workerService";
 import { createServiceAction } from "../../utils/workerAction";
 import { FormInput } from "../ui/FormInput";
@@ -14,16 +14,22 @@ function Service() {
     createServiceAction,
     null
   );
-
+  const lastSuccessRef = useRef(false);
   const refreshServices = () => {
     setServicePromise(WorkerService.getServices());
   };
 
   useEffect(() => {
-    if (state?.success) {
-      setServicePromise(WorkerService.getServices());
+    // Only refresh if this is a NEW success (not a re-render of the same success state)
+    if (state?.success && !lastSuccessRef.current) {
+      lastSuccessRef.current = true;
+      refreshServices();
+      setShowForm(false); // Close form on success
+    } else if (!state?.success) {
+      lastSuccessRef.current = false;
     }
-  }, [state]);
+  }, [state?.success]);
+
   const [showForm, setShowForm] = useState(false);
   const handleFormToggle = () => {
     setShowForm(!showForm);
@@ -100,7 +106,6 @@ function Service() {
           >
             <ServiceList
               servicePromise={servicePromise}
-              key={state?.success ? "updated-" + Date.now() : "initial"}
               onRefresh={refreshServices}
             />
           </Suspense>

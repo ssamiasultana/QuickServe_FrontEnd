@@ -1,9 +1,18 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import WorkerService from "../../services/workerService";
 import WorkerTable from "./WorkerTable";
 
 const WorkerList = () => {
-  const workersPromise = WorkerService.getAllWorkers();
+  const [workersPromise, setWorkersPromise] = useState(null);
+
+  const refreshWorkers = () => {
+    const promise = WorkerService.getAllWorkers();
+    setWorkersPromise(promise);
+  };
+
+  useEffect(() => {
+    refreshWorkers();
+  }, []);
 
   return (
     <div className="p-6">
@@ -19,7 +28,12 @@ const WorkerList = () => {
           </div>
         }
       >
-        <WorkerTable workerPromise={workersPromise} />
+        {workersPromise && (
+          <WorkerTable
+            workerPromise={workersPromise}
+            onWorkerUpdate={refreshWorkers}
+          />
+        )}
       </Suspense>
     </div>
   );

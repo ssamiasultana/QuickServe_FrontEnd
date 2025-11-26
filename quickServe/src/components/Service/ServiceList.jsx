@@ -1,5 +1,12 @@
 import { AlertTriangle, Pencil, X } from "lucide-react";
-import { use, useActionState, useEffect, useState, useTransition } from "react";
+import {
+  use,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import WorkerService from "../../services/workerService";
 import { updateServiceAction } from "../../utils/workerAction";
 import Modal from "../ui/Modal";
@@ -18,6 +25,7 @@ function ServiceList({ servicePromise, onRefresh }) {
     updateServiceAction,
     null
   );
+  const lastUpdateSuccessRef = useRef(false);
   const handleDelete = (service) => {
     setSelectedService(service);
     setShowDeleteModal(true);
@@ -27,7 +35,6 @@ function ServiceList({ servicePromise, onRefresh }) {
 
     const prev = services;
 
-    // Optimistic UI
     setServices({
       ...services,
       data: services.data.filter((s) => s.id !== selectedService.id),
@@ -51,16 +58,25 @@ function ServiceList({ servicePromise, onRefresh }) {
   const handleEdit = (service) => {
     setSelectedService(service);
     setShowEditModal(true);
+    lastUpdateSuccessRef.current = false;
   };
 
   useEffect(() => {
-    if (updateState?.success) {
+    // Only refresh once per successful update
+    if (updateState?.success && !lastUpdateSuccessRef.current) {
+      lastUpdateSuccessRef.current = true;
       setShowEditModal(false);
       setSelectedService(null);
       onRefresh();
+    } else if (!updateState?.success) {
+      lastUpdateSuccessRef.current = false;
     }
-  }, [updateState?.success]);
+  }, [updateState?.success, onRefresh]);
 
+  // Update local state when promise changes (from parent refresh)
+  useEffect(() => {
+    setServices(initialServices);
+  }, [initialServices]);
   return (
     <>
       <div className="flex flex-row gap-3 flex-wrap">

@@ -2,13 +2,22 @@ import { use, useEffect, useState } from "react";
 import getShiftColor from "../../utils/util";
 import colors from "../ui/color";
 import Table from "../ui/table";
+import UpdateModal from "./UpdateModal";
 
-const WorkerTable = ({ workerPromise }) => {
+const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
   const workerData = use(workerPromise);
-  const workers = workerData.data || workerData || [];
+
+  const workers = Array.isArray(workerData?.data)
+    ? workerData.data
+    : Array.isArray(workerData)
+    ? workerData
+    : [];
+
   const ITEMS_PER_PAGE_OPTIONS = [10, 20];
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [editModal, setEditModal] = useState({ open: false, worker: null });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -202,16 +211,9 @@ const WorkerTable = ({ workerPromise }) => {
       },
     },
   ];
+
   const handleEdit = (worker) => {
-    "Edit worker:", worker;
-  };
-
-  const handleDelete = () => {
-    ("data delete");
-  };
-
-  const handleView = (worker) => {
-    "View worker:", worker;
+    setEditModal({ open: true, worker });
   };
 
   return (
@@ -221,10 +223,13 @@ const WorkerTable = ({ workerPromise }) => {
         data={paginatedWorkers}
         columns={workerColumns}
         onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
       />
 
+      <UpdateModal
+        editModal={editModal}
+        setEditModal={setEditModal}
+        onWorkerUpdate={onWorkerUpdate}
+      />
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
         <div className="flex items-center gap-3 text-sm">
           <span style={{ color: colors.neutral[600] }}>Rows per page:</span>

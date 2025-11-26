@@ -63,12 +63,26 @@ class WorkerService {
       method: "GET",
     });
   }
-
+  async updateWorker(workerId, workerData) {
+    return this.request(
+      `${API_CONFIG.endpoints.workers.updateWorker(workerId)}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(workerData),
+      }
+    );
+  }
+  async deleteWorker(id) {
+    return this.request(`${API_CONFIG.endpoints.workers.deleteWorker}/${id}`, {
+      method: "DELETE",
+    });
+  }
   async getServices() {
     return this.request(API_CONFIG.endpoints.services.getServices, {
       method: "GET",
     });
   }
+
   async createService(serviceData) {
     return this.request(API_CONFIG.endpoints.services.createService, {
       method: "POST",
