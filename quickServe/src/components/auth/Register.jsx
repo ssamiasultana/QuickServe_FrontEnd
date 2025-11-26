@@ -45,9 +45,9 @@ const Register = () => {
 
         const role = result.data.user.role.toLowerCase();
         if (role === "worker") {
-          navigate("/worker/dashboard");
+          navigate("/worker");
         } else if (role === "customer") {
-          navigate("/customer/dashboard");
+          navigate("/customer");
         } else {
           navigate("/login");
         }
