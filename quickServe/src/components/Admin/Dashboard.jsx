@@ -7,9 +7,9 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import workerService from "../services/workerService";
-import Service from "./Service/Service";
-import Card from "./ui/Card";
+import workerService from "../../services/workerService";
+import Service from "../Service/Service";
+import Card from "../ui/Card";
 function Dashboard() {
   const [totalWorkers, setTotalWorkers] = useState(0);
 

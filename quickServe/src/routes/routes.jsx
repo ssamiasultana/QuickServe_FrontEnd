@@ -2,12 +2,14 @@ import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App.jsx";
 import WorkersCard from "../components/Customer/WorkerCard.jsx";
 import CustomerDashboard from "../components/CustomerDashboard.jsx";
-import Dashboard from "../components/Dashboard.jsx";
 import CustomerLayout from "../components/Layout/CustomerLayout.jsx";
 import WorkerLayout from "../components/Layout/WorkerLayout.jsx";
-import AddWorker from "../components/Worker/AddWorker.jsx";
-import SingleWorker from "../components/Worker/SingleWorker.jsx";
-import WorkerList from "../components/Worker/WorkerList.jsx";
+
+import Dashboard from "../components/Admin/Dashboard.jsx";
+import AddWorker from "../components/Admin/Worker/AddWorker.jsx";
+
+import SingleWorker from "../components/Admin/Worker/SingleWorker.jsx";
+import WorkerList from "../components/Admin/Worker/WorkerList.jsx";
 import Login from "../components/auth/Login.jsx";
 import Register from "../components/auth/Register.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";

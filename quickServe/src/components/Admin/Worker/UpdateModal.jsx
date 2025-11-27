@@ -1,14 +1,14 @@
 import { Edit } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import workerService from "../../services/workerService";
-import { SHIFT_OPTIONS } from "../../utils/constants";
-import { updateWorkerData } from "../../utils/workerAction";
-import { FormCheckboxGroup } from "../ui/FormCheckbox";
-import { FormInput } from "../ui/FormInput";
-import { FormSelect } from "../ui/FormSelect";
-import Modal from "../ui/Modal";
-import Rating from "../ui/Rating";
+import workerService from "../../../services/workerService";
+import { SHIFT_OPTIONS } from "../../../utils/constants";
+import { updateWorkerData } from "../../../utils/workerAction";
+import { FormCheckboxGroup } from "../../ui/FormCheckbox";
+import { FormInput } from "../../ui/FormInput";
+import { FormSelect } from "../../ui/FormSelect";
+import Modal from "../../ui/Modal";
+import Rating from "../../ui/Rating";
 
 function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
   const [services, setServices] = useState([]);

@@ -1,12 +1,12 @@
 import { Suspense, useEffect, useState } from "react";
-import WorkerService from "../../services/workerService";
+import workerService from "../../../services/workerService";
 import WorkerTable from "./WorkerTable";
 
 const WorkerList = () => {
   const [workersPromise, setWorkersPromise] = useState(null);
 
   const refreshWorkers = () => {
-    const promise = WorkerService.getAllWorkers();
+    const promise = workerService.getAllWorkers();
     setWorkersPromise(promise);
   };
 

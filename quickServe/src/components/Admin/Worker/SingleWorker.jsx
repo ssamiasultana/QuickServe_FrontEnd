@@ -1,8 +1,8 @@
 import { ArrowLeft, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import workerService from "../../services/workerService";
-import { calculateAverageRating } from "../../utils/util";
+import workerService from "../../../services/workerService";
+import { calculateAverageRating } from "../../../utils/util";
 
 function SingleWorker() {
   const params = useParams();

@@ -1,42 +1,23 @@
-import {
-  ChevronDown,
-  ChevronLeft,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Users,
-} from "lucide-react";
-import { use, useState } from "react";
+import { ChevronDown, ChevronLeft, LogOut, Menu } from "lucide-react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { AuthContext } from "./Context/AuthContext";
 
-const SideBar = () => {
+// Reusable Sidebar Component
+const Sidebar = ({
+  user,
+  menuItems = [],
+  onLogout,
+  logo = "A",
+  brandName = "Admin Panel",
+  collapsedWidth = "w-20",
+  expandedWidth = "w-64",
+  activeColor = "blue",
+  className = "",
+}) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const location = useLocation();
-  const { user, logout } = use(AuthContext);
-  const navigate = useNavigate();
   const [subMenuExpand, setSubMenuExpand] = useState({});
-
-  const menuItems = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", link: "/" },
-    {
-      id: "workers",
-      icon: Users,
-      label: "Workers",
-      link: "/workers",
-      hasSubmenu: true,
-      subMenu: [
-        { id: "create-worker", label: "Add Worker", link: "/add" },
-        {
-          id: "manage-workers",
-          label: "Manage Workers",
-          link: "/manage",
-        },
-      ],
-    },
-    { id: "customers", icon: Users, label: "Customers", link: "/customers" },
-    { id: "moderators", icon: Users, label: "Moderators", link: "/moderators" },
-  ];
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleSubMenu = (itemId) => {
     setSubMenuExpand((prev) => ({
@@ -44,17 +25,54 @@ const SideBar = () => {
       [itemId]: !prev[itemId],
     }));
   };
+
   const handleLogout = () => {
-    logout();
+    if (onLogout) {
+      onLogout();
+    }
     navigate("/login");
   };
+
+  const getColorClasses = (color) => {
+    const colorMap = {
+      blue: {
+        bg: "bg-blue-50",
+        text: "text-blue-600",
+        icon: "text-blue-600",
+      },
+      green: {
+        bg: "bg-green-50",
+        text: "text-green-600",
+        icon: "text-green-600",
+      },
+      purple: {
+        bg: "bg-purple-50",
+        text: "text-purple-600",
+        icon: "text-purple-600",
+      },
+      red: {
+        bg: "bg-red-50",
+        text: "text-red-600",
+        icon: "text-red-600",
+      },
+      indigo: {
+        bg: "bg-indigo-50",
+        text: "text-indigo-600",
+        icon: "text-indigo-600",
+      },
+    };
+    return colorMap[color] || colorMap.blue;
+  };
+
+  const colors = getColorClasses(activeColor);
 
   return (
     <div
       className={`bg-white shadow-lg transition-all duration-300 flex flex-col h-screen ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
+        isCollapsed ? collapsedWidth : expandedWidth
+      } ${className}`}
     >
+      {/* Header */}
       <div
         className={`flex items-center ${
           isCollapsed ? "justify-center" : "justify-between"
@@ -63,10 +81,10 @@ const SideBar = () => {
         {!isCollapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+              <span className="text-white font-bold text-sm">{logo}</span>
             </div>
             <span className="font-bold text-slate-900 text-lg">
-              {user.name}
+              {brandName}
             </span>
           </div>
         )}
@@ -85,6 +103,7 @@ const SideBar = () => {
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
+
           const isActive =
             location.pathname === item.link ||
             (item.subMenu &&
@@ -101,14 +120,14 @@ const SideBar = () => {
                       isCollapsed ? "justify-center" : ""
                     } ${
                       isActive
-                        ? "bg-blue-50 text-blue-600"
+                        ? `${colors.bg} ${colors.text}`
                         : "text-slate-700 hover:bg-neutral-100"
                     }`}
                   >
                     {Icon && (
                       <Icon
-                        className={`w-5 h-5 shrink-0 ${
-                          isActive ? "text-blue-600" : "text-neutral-600"
+                        className={`shrink-0 w-5 h-5 ${
+                          isActive ? colors.icon : "text-neutral-600"
                         }`}
                       />
                     )}
@@ -135,7 +154,7 @@ const SideBar = () => {
                             to={subItem.link}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
                               isSubActive
-                                ? "bg-blue-50 text-blue-600"
+                                ? `${colors.bg} ${colors.text}`
                                 : "text-slate-600 hover:bg-neutral-50"
                             }`}
                           >
@@ -155,14 +174,14 @@ const SideBar = () => {
                     isCollapsed ? "justify-center" : ""
                   } ${
                     isActive
-                      ? "bg-blue-50 text-blue-600"
+                      ? `${colors.bg} ${colors.text}`
                       : "text-slate-700 hover:bg-neutral-100"
                   }`}
                 >
                   {Icon && (
                     <Icon
                       className={`w-5 h-5 shrink-0 ${
-                        isActive ? "text-blue-600" : "text-neutral-600"
+                        isActive ? colors.icon : "text-neutral-600"
                       }`}
                     />
                   )}
@@ -178,16 +197,28 @@ const SideBar = () => {
         })}
       </nav>
 
+      {/* Footer */}
       <div className="border-t border-neutral-200 p-4">
-        <div
-          className={`flex items-center gap-3 ${
-            isCollapsed ? "justify-center" : ""
-          }`}
-        ></div>
+        {!isCollapsed && user && (
+          <div className="flex items-center gap-3 mb-3 p-2 rounded-lg bg-neutral-50">
+            <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {user.name?.charAt(0) || "U"}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-900 truncate">
+                {user.name}
+              </p>
+              <p className="text-xs text-slate-500 truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+
         {!isCollapsed && (
           <button
             onClick={handleLogout}
-            className="w-full mt-3 flex items-center gap-2 px-3 py-2 text-lg font-semibold text-slate-700 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>
@@ -198,4 +229,4 @@ const SideBar = () => {
   );
 };
 
-export default SideBar;
+export default Sidebar;

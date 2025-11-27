@@ -1,13 +1,13 @@
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import workerService from "../../services/workerService";
-import { uploadImageToCloudinary } from "../../utils/cloudinaryUpload";
-import { SHIFT_OPTIONS } from "../../utils/constants";
-import { submitWorkerData } from "../../utils/workerAction";
-import Card from "../ui/Card";
-import { FormInput } from "../ui/FormInput";
-import { FormSelect } from "../ui/FormSelect";
-import Rating from "../ui/Rating";
+import workerService from "../../../services/workerService";
+import { uploadImageToCloudinary } from "../../../utils/cloudinaryUpload";
+import { SHIFT_OPTIONS } from "../../../utils/constants";
+import { submitWorkerData } from "../../../utils/workerAction";
+import Card from "../../ui/Card";
+import { FormInput } from "../../ui/FormInput";
+import { FormSelect } from "../../ui/FormSelect";
+import Rating from "../../ui/Rating";
 
 export default function AddWorker() {
   const [preview, setPreview] = useState(null);

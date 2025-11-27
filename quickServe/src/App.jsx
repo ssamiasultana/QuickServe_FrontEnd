@@ -1,12 +1,12 @@
 import { Toaster } from "react-hot-toast";
 import { Outlet } from "react-router";
-import SideBar from "./components/SideBar";
+import AdminSideBar from "./components/Admin/AdminSideBar";
 import colors from "./components/ui/color";
 
 function App() {
   return (
     <div className="flex h-screen" style={{ background: colors.neutral[50] }}>
-      <SideBar />
+      <AdminSideBar />
       <main className="flex-1 p-6 overflow-auto">
         <Toaster
           position="top-right"
