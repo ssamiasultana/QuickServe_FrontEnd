@@ -1,4 +1,5 @@
 // components/auth/Login.jsx
+import { Lock, Mail } from "lucide-react";
 import { use, useActionState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import logo from "../../assets/logo.png";
@@ -68,35 +69,54 @@ const Login = () => {
 
   return (
     <div className="h-screen flex flex-col lg:flex-row items-center justify-center p-4 lg:p-6">
-      <div className="w-full lg:w-2/5 max-w-xs text-center lg:text-left mb-4 lg:mb-0 lg:pr-6">
-        <div className="flex justify-center lg:justify-start mb-3">
-          <img src={logo} alt="Logo" className="w-16 h-16 lg:w-20 lg:h-20" />
+      <div className="w-full lg:w-2/5 max-w-md text-center lg:text-left mb-8 lg:mb-0 lg:pr-12">
+        <div className="flex justify-center lg:justify-start mb-6">
+          <div className="flex justify-center lg:justify-start mb-3">
+            <img src={logo} alt="Logo" className="w-32 h-32 lg:w-48 lg:h-48" />
+          </div>
         </div>
-        <h2
-          className="text-xl lg:text-2xl font-bold mb-2"
-          style={{ color: colors.primary[900] }}
+
+        <h1
+          className="text-3xl lg:text-4xl font-extrabold mb-4"
+          style={{
+            background: `linear-gradient(135deg, ${colors.primary[900]} 0%, ${colors.accent[600]} 100%)`,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
         >
-          Welcome back
-        </h2>
+          Quick Serve
+        </h1>
+
         <p
-          className="text-xs lg:text-sm mb-2"
+          className="text-sm lg:text-base mb-2 leading-relaxed"
           style={{ color: colors.neutral[600] }}
         >
-          Sign in to your account
-        </p>
-        <p className="text-xs" style={{ color: colors.neutral[500] }}>
-          Don't have an account?{" "}
-          <Link
-            to="/signup"
-            className="font-semibold hover:underline"
-            style={{ color: colors.accent[600] }}
-          >
-            Sign up
-          </Link>
+          Connect with trusted service providers in your area. Fast, reliable,
+          and convenient.
         </p>
       </div>
-
       <div className="w-full lg:w-3/5 max-w-lg">
+        <div className="mb-6">
+          <h2
+            className="text-2xl lg:text-3xl font-bold mb-2"
+            style={{ color: colors.primary[900] }}
+          >
+            Welcome back
+          </h2>
+
+          <p className="text-xs" style={{ color: colors.neutral[500] }}>
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-bold hover:underline transition-all"
+              style={{ color: colors.accent[600] }}
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
+
         <Card
           className="w-full"
           bgColor="bg-gradient-to-br from-blue-25 to-white"
@@ -120,9 +140,10 @@ const Login = () => {
               label="Email"
               name="email"
               type="email"
-              placeholder="Email address"
+              placeholder="your@email.com"
               required
               error={state.errors?.email}
+              icon={Mail}
             />
 
             <FormInput
@@ -132,6 +153,7 @@ const Login = () => {
               placeholder="Password"
               required
               error={state.errors?.password}
+              icon={Lock}
             />
 
             <button

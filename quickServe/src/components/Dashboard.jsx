@@ -6,9 +6,27 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import workerService from "../services/workerService";
 import Service from "./Service/Service";
 import Card from "./ui/Card";
 function Dashboard() {
+  const [totalWorkers, setTotalWorkers] = useState(0);
+
+  useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const res = await workerService.getAllWorkers();
+        console.log(res);
+        setTotalWorkers(res?.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching workers:", error);
+      }
+    };
+
+    fetchWorkers();
+  }, []);
+  console.log(totalWorkers);
   return (
     <div className="p-4 md:p-6 bg-neutral-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -24,7 +42,7 @@ function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 mb-6">
           <Card
             title="Total Workers"
-            value="456"
+            value={totalWorkers}
             icon={Users}
             iconColor="text-blue-600"
             iconBgColor="bg-blue-50"
@@ -32,7 +50,9 @@ function Dashboard() {
             trendValue="+8%"
             bgColor="bg-gradient-to-br from-blue-25 to-white"
             borderColor="border-blue-100"
-          />
+          >
+            {totalWorkers}
+          </Card>
 
           <Card
             title="Total Moderators"
