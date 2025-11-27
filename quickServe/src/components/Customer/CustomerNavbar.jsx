@@ -52,7 +52,7 @@ const CustomerNavbar = () => {
                 className="text-xl font-bold transition-colors group-hover:text-accent-600"
                 style={{ color: colors.primary[900] }}
               >
-                Quick Service
+                Quick Serve
               </h1>
               <p
                 className="text-xs transition-colors group-hover:text-accent-500"

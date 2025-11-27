@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App.jsx";
+import WorkersCard from "../components/Customer/WorkerCard.jsx";
 import CustomerDashboard from "../components/CustomerDashboard.jsx";
 import Dashboard from "../components/Dashboard.jsx";
 import CustomerLayout from "../components/Layout/CustomerLayout.jsx";
@@ -65,6 +66,7 @@ const routes = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/customer/dashboard" replace /> },
       { path: "dashboard", Component: CustomerDashboard },
+      { path: "manage-workers", Component: WorkersCard },
     ],
   },
 ]);
