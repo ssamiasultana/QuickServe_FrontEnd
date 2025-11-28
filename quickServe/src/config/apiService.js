@@ -8,6 +8,7 @@ const API_CONFIG = {
       updateWorker: (id) => `/workers/${id}`,
       deleteWorker: (id) => `/workers/${id}`,
       getSingleWorker: (id) => `/workers/${id}`,
+      checkWorkerProfile: "/worker/check-profile",
     },
     services: {
       getServices: "/getServices",

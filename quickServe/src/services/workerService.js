@@ -1,14 +1,15 @@
+import Cookies from "js-cookie";
 import API_CONFIG from "../config/apiService";
-
 class WorkerService {
   constructor() {
     this.baseURL = API_CONFIG.baseURL;
   }
-
+  getToken() {
+    return Cookies.get("auth_token");
+  }
   async request(endpoint, options = {}) {
-    console.log("🔍 [DEBUG] Making request to:", endpoint);
     const url = `${this.baseURL}${endpoint}`;
-
+    const token = this.getToken();
     const config = {
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +18,9 @@ class WorkerService {
       },
       ...options,
     };
-
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     try {
       const response = await (await fetch(url, config)).json();
 
@@ -84,6 +87,13 @@ class WorkerService {
       method: "DELETE",
     });
   }
+
+  async checkWorkerProfile() {
+    return this.request(API_CONFIG.endpoints.workers.checkWorkerProfile, {
+      method: "GET",
+    });
+  }
+
   async getServices() {
     return this.request(API_CONFIG.endpoints.services.getServices, {
       method: "GET",

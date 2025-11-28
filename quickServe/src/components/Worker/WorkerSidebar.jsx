@@ -1,4 +1,4 @@
-import { Briefcase, Calendar } from "lucide-react";
+import { Briefcase, Calendar, UserPen } from "lucide-react";
 import { use } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import Sidebar from "../ui/SideBar";
@@ -40,6 +40,12 @@ const WorkerSidebar = () => {
       icon: TakaSignIcon,
       label: "Earnings",
       link: "/worker/earnings",
+    },
+    {
+      id: "info",
+      icon: UserPen,
+      label: "Information",
+      link: "/worker/info",
     },
   ];
 

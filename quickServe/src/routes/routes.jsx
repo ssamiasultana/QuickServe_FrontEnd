@@ -12,6 +12,7 @@ import SingleWorker from "../components/Admin/Worker/SingleWorker.jsx";
 import WorkerList from "../components/Admin/Worker/WorkerList.jsx";
 import Login from "../components/auth/Login.jsx";
 import Register from "../components/auth/Register.jsx";
+import WorkerPortal from "../components/Worker/WorkerPortal.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import RoleBasedRoute from "./RoleBasedRoute.jsx";
 
@@ -50,18 +51,16 @@ const routes = createBrowserRouter([
         </RoleBasedRoute>
       </ProtectedRoute>
     ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/worker/jobs" replace />,
+      },
+      { path: "jobs", Component: WorkerPortal },
+      { path: "info", Component: AddWorker },
+    ],
   },
 
-  // {
-  //   path: "/customer",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <RoleBasedRoute allowedRoles={"Customer"}>
-  //         <CustomerLayout />
-  //       </RoleBasedRoute>
-  //     </ProtectedRoute>
-  //   ),
-  // },
   {
     path: "/customer",
     element: <CustomerLayout />,
