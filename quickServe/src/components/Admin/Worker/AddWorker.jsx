@@ -201,9 +201,6 @@ export default function AddWorker({ isAdminMode = false }) {
           ? "Register Worker (Admin)"
           : "Worker Profile Registration"}
       </h2>
-      <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
-        Worker Profile Registration
-      </h2>
 
       <Card
         title=""
@@ -216,7 +213,7 @@ export default function AddWorker({ isAdminMode = false }) {
           {renderHiddenInputs()}
           <input type="hidden" name="imageUrl" value={imageUrl || ""} />
           {isAdminMode && (
-            <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-6">
+            <div className="mb-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
                 <svg
                   className="w-5 h-5 mr-2 text-amber-600"

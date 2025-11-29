@@ -26,7 +26,7 @@ const Register = () => {
           navigate("/dashboard", { replace: true });
           break;
         case "worker":
-          navigate("/worker/dashboard", { replace: true });
+          navigate("/worker/jobs", { replace: true });
           break;
         case "customer":
           navigate("/customer/dashboard", { replace: true });
