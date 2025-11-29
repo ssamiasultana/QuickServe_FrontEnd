@@ -35,31 +35,14 @@ class WorkerService {
     }
   }
 
-  async createWorker(workerData) {
-    const url = `${this.baseURL}${API_CONFIG.endpoints.workers.create}`;
-
-    const config = {
+  async createWorker(workerData, userId) {
+    const payload = userId
+      ? { ...workerData, user_id: userId } // Admin case
+      : workerData;
+    return this.request(API_CONFIG.endpoints.workers.create, {
       method: "POST",
-      body: JSON.stringify(workerData),
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
-
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      if (data.errors && Object.keys(data.errors).length > 0) {
-        throw new Error(` ${data.message}`);
-      }
-
-      return data;
-    } catch (error) {
-      console.error("API request failed:", error);
-      throw error;
-    }
+      body: JSON.stringify(payload),
+    });
   }
 
   async getAllWorkers() {

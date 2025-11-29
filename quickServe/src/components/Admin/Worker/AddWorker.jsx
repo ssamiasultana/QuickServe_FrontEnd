@@ -1,5 +1,6 @@
 import { useActionState, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import authService from "../../../services/authService";
 import workerService from "../../../services/workerService";
 import { uploadImageToCloudinary } from "../../../utils/cloudinaryUpload";
 import { SHIFT_OPTIONS } from "../../../utils/constants";
@@ -9,10 +10,13 @@ import { FormInput } from "../../ui/FormInput";
 import { FormSelect } from "../../ui/FormSelect";
 import Rating from "../../ui/Rating";
 
-export default function AddWorker() {
+export default function AddWorker({ isAdminMode = false }) {
   const [preview, setPreview] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState();
+
+  const [users, setUsers] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,7 +51,6 @@ export default function AddWorker() {
 
   useEffect(() => {
     if (state.success) {
-      // Reset form on successful submission
       setFormData({
         name: "",
         email: "",
@@ -61,7 +64,8 @@ export default function AddWorker() {
       setServiceRatings({});
       setPreview(null);
       setImageUrl(null);
-      // Clear file input
+      setSelectedUserId("");
+
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = "";
     }
@@ -74,6 +78,20 @@ export default function AddWorker() {
       }
     }
   }, [state]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await authService.getAllUsers();
+
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -152,6 +170,10 @@ export default function AddWorker() {
   const renderHiddenInputs = () => {
     return (
       <>
+        {/* Add user_id if admin mode */}
+        {isAdminMode && selectedUserId && (
+          <input type="hidden" name="user_id" value={selectedUserId} />
+        )}
         {selectedServices.map((service) => (
           <input
             key={`service_${service}`}
@@ -175,6 +197,11 @@ export default function AddWorker() {
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
       <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
+        {isAdminMode
+          ? "Register Worker (Admin)"
+          : "Worker Profile Registration"}
+      </h2>
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
         Worker Profile Registration
       </h2>
 
@@ -188,6 +215,49 @@ export default function AddWorker() {
         <form action={formAction}>
           {renderHiddenInputs()}
           <input type="hidden" name="imageUrl" value={imageUrl || ""} />
+          {isAdminMode && (
+            <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                <svg
+                  className="w-5 h-5 mr-2 text-amber-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Select User for Worker Profile
+              </h3>
+              <div>
+                <label className="block text-sm mb-2 text-gray-600 font-semibold">
+                  User *
+                </label>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  <option value="">-- Select a user --</option>
+                  {users
+                    .filter((user) => user.role === "Customer")
+                    .map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                </select>
+                {state.errors?.user_id && (
+                  <p className="text-sm mt-2 text-red-500">
+                    {state.errors.user_id}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-blue-100">

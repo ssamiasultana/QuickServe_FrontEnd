@@ -19,6 +19,7 @@ const API_CONFIG = {
     auth: {
       signUp: "/signup",
       login: "/login",
+      getAll: "/users",
     },
   },
   timeout: 10000,

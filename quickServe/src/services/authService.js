@@ -1,12 +1,15 @@
+import Cookies from "js-cookie";
 import API_CONFIG from "../config/apiService";
-
 class AuthService {
   constructor() {
     this.baseURL = API_CONFIG.baseURL;
   }
-
+  getToken() {
+    return Cookies.get("auth_token");
+  }
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
 
     const config = {
       headers: {
@@ -16,7 +19,9 @@ class AuthService {
       },
       ...options,
     };
-
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     try {
       const response = await fetch(url, config);
       const data = await response.json();
@@ -46,6 +51,11 @@ class AuthService {
     return this.request(API_CONFIG.endpoints.auth.login, {
       method: "POST",
       body: JSON.stringify(credentials),
+    });
+  }
+  async getAllUsers() {
+    return this.request(API_CONFIG.endpoints.auth.getAll, {
+      method: "GET",
     });
   }
 }

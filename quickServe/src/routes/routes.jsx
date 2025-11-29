@@ -29,7 +29,7 @@ const routes = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", Component: Dashboard },
-      { path: "/add", Component: AddWorker },
+      { path: "/add", element: <AddWorker isAdminMode={true} /> },
       { path: "/manage", Component: WorkerList },
       { path: "/workers/:id", Component: SingleWorker },
     ],
