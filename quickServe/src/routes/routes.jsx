@@ -10,8 +10,10 @@ import AddWorker from "../components/Admin/Worker/AddWorker.jsx";
 
 import SingleWorker from "../components/Admin/Worker/SingleWorker.jsx";
 import WorkerList from "../components/Admin/Worker/WorkerList.jsx";
+import ForgotPassword from "../components/auth/ForgotPassword.jsx";
 import Login from "../components/auth/Login.jsx";
 import Register from "../components/auth/Register.jsx";
+import ResetPassword from "../components/auth/ResetPassword.jsx";
 import WorkerPortal from "../components/Worker/WorkerPortal.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import RoleBasedRoute from "./RoleBasedRoute.jsx";
@@ -42,6 +44,15 @@ const routes = createBrowserRouter([
     path: "/signup",
     Component: Register,
   },
+  {
+    path: "/forgot-password",
+    Component: ForgotPassword,
+  },
+  {
+    path: "/reset-password/:token",
+    Component: ResetPassword,
+  },
+
   {
     path: "/worker",
     element: (

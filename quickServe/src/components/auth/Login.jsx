@@ -96,6 +96,7 @@ const Login = () => {
           and convenient.
         </p>
       </div>
+
       <div className="w-full lg:w-3/5 max-w-lg">
         <div className="mb-6">
           <h2
@@ -146,15 +147,25 @@ const Login = () => {
               icon={Mail}
             />
 
-            <FormInput
-              label="Password"
-              name="password"
-              type="password"
-              placeholder="Password"
-              required
-              error={state.errors?.password}
-              icon={Lock}
-            />
+            <div>
+              <FormInput
+                label="Password"
+                name="password"
+                type="password"
+                placeholder="Password"
+                required
+                error={state.errors?.password}
+                icon={Lock}
+              />
+              <div className="text-right mt-2">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-500 hover:underline transition-all"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
 
             <button
               type="submit"
