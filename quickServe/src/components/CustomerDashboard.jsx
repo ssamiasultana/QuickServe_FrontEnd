@@ -22,6 +22,8 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
+  console.log(user);
+
   const popularServices = [
     {
       id: 1,
@@ -59,7 +61,7 @@ const CustomerDashboard = () => {
 
   const handleConditionalClick = () => {
     if (isAuthenticated) {
-      navigate('/customer/manage-workers"');
+      navigate("/customer/manage-workers");
     } else {
       setShowModal(true);
     }
