@@ -240,7 +240,7 @@ export default function AddWorker({ isAdminMode = false }) {
                 >
                   <option value="">-- Select a user --</option>
                   {users
-                    .filter((user) => user.role === "Customer")
+                    .filter((user) => user.role === "Worker")
                     .map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name} ({user.email})
