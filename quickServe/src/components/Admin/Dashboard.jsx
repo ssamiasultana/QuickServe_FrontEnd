@@ -46,22 +46,16 @@ function Dashboard() {
             icon={Users}
             iconColor="text-blue-600"
             iconBgColor="bg-blue-50"
-            trend="up"
-            trendValue="+8%"
             bgColor="bg-gradient-to-br from-blue-25 to-white"
             borderColor="border-blue-100"
-          >
-            {totalWorkers}
-          </Card>
+          />
 
           <Card
             title="Total Moderators"
-            value="420"
+            value="0"
             icon={Shield}
             iconColor="text-purple-600"
             iconBgColor="bg-purple-50"
-            trend="up"
-            trendValue="+3%"
             bgColor="bg-gradient-to-br from-purple-25 to-white"
             borderColor="border-purple-100"
           />
@@ -72,15 +66,13 @@ function Dashboard() {
             icon={UserCheck}
             iconColor="text-emerald-600"
             iconBgColor="bg-emerald-50"
-            trend="up"
-            trendValue="+15%"
             bgColor="bg-gradient-to-br from-emerald-25 to-white"
             borderColor="border-emerald-100"
           />
 
           <Card
             title="Complete Bookings"
-            value="20"
+            value="0"
             icon={CalendarCheck}
             iconColor="text-green-600"
             iconBgColor="bg-green-50"
@@ -100,7 +92,7 @@ function Dashboard() {
 
           <Card
             title="Pending Bookings"
-            value="15"
+            value="0"
             icon={Clock}
             iconColor="text-amber-600"
             iconBgColor="bg-amber-50"
@@ -111,24 +103,10 @@ function Dashboard() {
               <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-amber-500 rounded-full"
-                  style={{ width: "60%" }}
+                  style={{ width: "0%" }}
                 ></div>
               </div>
-              <span className="text-xs text-neutral-600 font-medium">60%</span>
-            </div>
-          </Card>
-
-          <Card
-            title="Revenue Today"
-            value="$2,450"
-            icon={null}
-            trend="up"
-            trendValue="+12%"
-            bgColor="bg-gradient-to-br from-slate-25 to-white"
-            borderColor="border-slate-100"
-          >
-            <div className="mt-1">
-              <span className="text-xs text-neutral-500">Target: $3,000</span>
+              <span className="text-xs text-neutral-600 font-medium">0%</span>
             </div>
           </Card>
         </div>

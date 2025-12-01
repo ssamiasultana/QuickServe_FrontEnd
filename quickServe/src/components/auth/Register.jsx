@@ -1,6 +1,6 @@
 import { Lock, Mail, Phone, User } from "lucide-react";
 import { use, useActionState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import logo from "../../assets/logo.png";
 import { signUpAction } from "../../utils/authAction";
 import { AuthContext } from "../Context/AuthContext";
@@ -12,30 +12,39 @@ import { FormSelect } from "../ui/FormSelect";
 const Register = () => {
   const { login, isAuthenticated, user } = use(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminCreating = location.pathname.includes("user-signup");
 
-  const roleOptions = [
-    { value: "Worker", label: "Worker" },
-    { value: "Customer", label: "Customer" },
-  ];
+  const roleOptions = isAdminCreating
+    ? [
+        { value: "Worker", label: "Worker" },
+
+        { value: "Moderator", label: "Moderator" },
+      ]
+    : [
+        { value: "Worker", label: "Worker" },
+        { value: "Customer", label: "Customer" },
+      ];
   useEffect(() => {
+    if (isAdminCreating) return;
     if (isAuthenticated && user) {
       const role = user.role.toLowerCase();
       switch (role) {
         case "admin":
         case "moderator":
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard");
           break;
         case "worker":
-          navigate("/worker/jobs", { replace: true });
+          navigate("/worker/jobs");
           break;
         case "customer":
-          navigate("/customer/dashboard", { replace: true });
+          navigate("/customer/dashboard");
           break;
         default:
           break;
       }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, isAdminCreating]);
 
   const [state, formAction, isPending] = useActionState(
     async (prevState, formData) => {
@@ -69,33 +78,39 @@ const Register = () => {
       className="min-h-screen flex flex-col lg:flex-row items-center justify-center p-4 lg:p-8"
       style={{ backgroundColor: colors.neutral[50] }}
     >
-      <div className="w-full lg:w-2/5 max-w-md text-center lg:text-left mb-8 lg:mb-0 lg:pr-12">
-        <div className="flex justify-center lg:justify-start mb-6">
-          <div className="flex justify-center lg:justify-start mb-3">
-            <img src={logo} alt="Logo" className="w-32 h-32 lg:w-48 lg:h-48" />
+      {!isAdminCreating && (
+        <div className="w-full lg:w-2/5 max-w-md text-center lg:text-left mb-8 lg:mb-0 lg:pr-12">
+          <div className="flex justify-center lg:justify-start mb-6">
+            <div className="flex justify-center lg:justify-start mb-3">
+              <img
+                src={logo}
+                alt="Logo"
+                className="w-32 h-32 lg:w-48 lg:h-48"
+              />
+            </div>
           </div>
+
+          <h1
+            className="text-3xl lg:text-4xl font-extrabold mb-4"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary[900]} 0%, ${colors.accent[600]} 100%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Quick Serve
+          </h1>
+
+          <p
+            className="text-sm lg:text-base mb-2 leading-relaxed"
+            style={{ color: colors.neutral[600] }}
+          >
+            Connect with trusted service providers in your area. Fast, reliable,
+            and convenient.
+          </p>
         </div>
-
-        <h1
-          className="text-3xl lg:text-4xl font-extrabold mb-4"
-          style={{
-            background: `linear-gradient(135deg, ${colors.primary[900]} 0%, ${colors.accent[600]} 100%)`,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          Quick Serve
-        </h1>
-
-        <p
-          className="text-sm lg:text-base mb-2 leading-relaxed"
-          style={{ color: colors.neutral[600] }}
-        >
-          Connect with trusted service providers in your area. Fast, reliable,
-          and convenient.
-        </p>
-      </div>
+      )}
 
       {/* Right Side - Form */}
       <div className="w-full lg:w-3/5 max-w-2xl">

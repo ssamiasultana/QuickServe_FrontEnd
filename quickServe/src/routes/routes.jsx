@@ -34,6 +34,7 @@ const routes = createBrowserRouter([
       { path: "/add", element: <AddWorker isAdminMode={true} /> },
       { path: "/manage", Component: WorkerList },
       { path: "/workers/:id", Component: SingleWorker },
+      { path: "user-signup", Component: Register },
     ],
   },
   {
