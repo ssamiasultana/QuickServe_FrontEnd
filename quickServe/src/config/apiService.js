@@ -21,6 +21,9 @@ const API_CONFIG = {
       login: "/login",
       getAll: "/users",
     },
+    customers: {
+      getAll: "/customers",
+    },
   },
   timeout: 10000,
 };
