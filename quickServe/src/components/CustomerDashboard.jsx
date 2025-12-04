@@ -171,7 +171,7 @@ const CustomerDashboard = () => {
                 Find Workers Now
               </button>
               <button
-                onClick={handleConditionalClick}
+                onClick={() => {}}
                 className="px-8 py-4 rounded-lg font-semibold transition-all duration-300 border transform hover:scale-105"
                 style={{
                   borderColor: colors.accent[600],
