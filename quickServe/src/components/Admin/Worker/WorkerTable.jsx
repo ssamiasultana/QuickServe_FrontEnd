@@ -1,21 +1,17 @@
 import { AlertTriangle } from "lucide-react";
-import { use, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import workerService from "../../../services/workerService";
+import { useDeleteWorker, useUpdateWorker } from "../../../hooks/useWorker";
 import { getShiftColor } from "../../../utils/util";
 import colors from "../../ui/color";
 import Modal from "../../ui/Modal";
 import Table from "../../ui/table";
 import UpdateModal from "./UpdateModal";
 
-const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
-  const workerData = use(workerPromise);
+const WorkerTable = ({ workers = [] }) => {
+  const { mutate: deleteWorker, isPending: isDeleting } = useDeleteWorker();
+  const { mutate: updateWorker, isPending: isUpdating } = useUpdateWorker();
 
-  const workers = Array.isArray(workerData?.data)
-    ? workerData.data
-    : Array.isArray(workerData)
-    ? workerData
-    : [];
   const navigate = useNavigate();
   const ITEMS_PER_PAGE_OPTIONS = [10, 20];
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -23,7 +19,6 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
 
   const [editModal, setEditModal] = useState({ open: false, worker: null });
   const [deleteModal, setDeleteModal] = useState({ open: false, worker: null });
-  const [isPending, startTransition] = useTransition();
   const lastDeleteSuccessRef = useRef(false);
   useEffect(() => {
     setCurrentPage(1);
@@ -225,25 +220,27 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
 
   const confirmDelete = () => {
     if (!deleteModal.worker) return;
-    setDeleteModal({ open: false });
 
-    startTransition(async () => {
-      try {
-        await workerService.deleteWorker(deleteModal.worker.id);
-
-        if (!lastDeleteSuccessRef.current) {
-          lastDeleteSuccessRef.current = true;
-          onWorkerUpdate();
-        }
-      } catch (error) {
-        console.error("Failed to delete worker:", error);
-        alert("Delete failed. Please try again.");
-        lastDeleteSuccessRef.current = false;
-      }
+    deleteWorker(deleteModal.worker.id, {
+      onSuccess: () => {
+        setDeleteModal({ open: false, worker: null });
+      },
     });
   };
+
   const handleView = (worker) => {
     navigate(`/workers/${worker.id}`);
+  };
+
+  const handleWorkerUpdate = (id, updatedData) => {
+    updateWorker(
+      { id, data: updatedData },
+      {
+        onSuccess: () => {
+          setEditModal({ open: false, worker: null });
+        },
+      }
+    );
   };
 
   return (
@@ -260,7 +257,8 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
       <UpdateModal
         editModal={editModal}
         setEditModal={setEditModal}
-        onWorkerUpdate={onWorkerUpdate}
+        onWorkerUpdate={handleWorkerUpdate}
+        isUpdating={isUpdating}
       />
       <Modal
         isOpen={deleteModal.open}
@@ -275,16 +273,16 @@ const WorkerTable = ({ workerPromise, onWorkerUpdate }) => {
             <button
               onClick={() => setDeleteModal({ open: false, worker: null })}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-              disabled={isPending}
+              disabled={isDeleting}
             >
               Cancel
             </button>
             <button
               onClick={confirmDelete}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-              disabled={isPending}
+              disabled={isDeleting}
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </button>
           </>
         }

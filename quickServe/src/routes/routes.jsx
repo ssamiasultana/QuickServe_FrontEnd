@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import App from "../App.jsx";
-import WorkersCard from "../components/Customer/WorkerCard.jsx";
 import CustomerDashboard from "../components/CustomerDashboard.jsx";
 import CustomerLayout from "../components/Layout/CustomerLayout.jsx";
 import WorkerLayout from "../components/Layout/WorkerLayout.jsx";
@@ -15,6 +14,7 @@ import ForgotPassword from "../components/auth/ForgotPassword.jsx";
 import Login from "../components/auth/Login.jsx";
 import Register from "../components/auth/Register.jsx";
 import ResetPassword from "../components/auth/ResetPassword.jsx";
+import CustomerPage from "../components/Customer/CustomerPage.jsx";
 import WorkerPortal from "../components/Worker/WorkerPortal.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import RoleBasedRoute from "./RoleBasedRoute.jsx";
@@ -81,7 +81,7 @@ const routes = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/customer/dashboard" replace /> },
       { path: "dashboard", Component: CustomerDashboard },
-      { path: "manage-workers", Component: WorkersCard },
+      { path: "manage-workers", Component: CustomerPage },
     ],
   },
 ]);
