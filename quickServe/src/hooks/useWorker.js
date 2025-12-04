@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import workerService from "../services/workerService";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import workerService from '../services/workerService';
 
 export const useWorkers = () => {
   return useQuery({
-    queryKey: ["workers"],
+    queryKey: ['workers'],
     queryFn: async () => {
       const response = await workerService.getAllWorkers();
       return response.data || response;
@@ -12,6 +12,15 @@ export const useWorkers = () => {
   });
 };
 
+export const usePaginatedWorkers = (page, limit) => {
+  return useQuery({
+    queryKey: ['workers', 'paginated', page, limit],
+    queryFn: async () => {
+      const response = await workerService.getPaginatedWorkers(page, limit);
+      return response.data || response;
+    },
+  });
+};
 // export const useSearchWorkers = (searchParams) => {
 //   return useQuery({
 //     queryKey: ["workers", "search", searchParams],
@@ -30,11 +39,11 @@ export const useCreateWorker = () => {
   return useMutation({
     mutationFn: (workerData) => workerService.createWorker(workerData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workers"] });
-      toast.success("Worker created successfully!");
+      queryClient.invalidateQueries({ queryKey: ['workers'] });
+      toast.success('Worker created successfully!');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to create worker");
+      toast.error(error.response?.data?.message || 'Failed to create worker');
     },
   });
 };
@@ -46,11 +55,11 @@ export const useUpdateWorker = () => {
   return useMutation({
     mutationFn: ({ id, data }) => workerService.updateWorker(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workers"] });
-      toast.success("Worker updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ['workers'] });
+      toast.success('Worker updated successfully!');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to update worker");
+      toast.error(error.response?.data?.message || 'Failed to update worker');
     },
   });
 };
@@ -63,11 +72,11 @@ export const useDeleteWorker = () => {
     mutationFn: (id) => workerService.deleteWorker(id),
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["workers"] });
-      toast.success("Worker deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ['workers'] });
+      toast.success('Worker deleted successfully!');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to delete worker");
+      toast.error(error.response?.data?.message || 'Failed to delete worker');
     },
   });
 };

@@ -1,28 +1,29 @@
 const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
 
   endpoints: {
     workers: {
-      create: "/workers",
-      getAll: "/getWorkers",
+      create: '/workers',
+      getAll: '/getWorkers',
       updateWorker: (id) => `/workers/${id}`,
       deleteWorker: (id) => `/workers/${id}`,
       getSingleWorker: (id) => `/workers/${id}`,
-      checkWorkerProfile: "/worker/check-profile",
+      checkWorkerProfile: '/worker/check-profile',
+      getPaginatedWorkers: '/workers/paginated',
     },
     services: {
-      getServices: "/getServices",
-      createService: "/services",
-      updateService: "/services",
-      deleteService: "/services",
+      getServices: '/getServices',
+      createService: '/services',
+      updateService: '/services',
+      deleteService: '/services',
     },
     auth: {
-      signUp: "/signup",
-      login: "/login",
-      getAll: "/users",
+      signUp: '/signup',
+      login: '/login',
+      getAll: '/users',
     },
     customers: {
-      getAll: "/customers",
+      getAll: '/customers',
     },
   },
   timeout: 10000,

@@ -1,25 +1,25 @@
-import Cookies from "js-cookie";
-import API_CONFIG from "../config/apiService";
+import Cookies from 'js-cookie';
+import API_CONFIG from '../config/apiService';
 class WorkerService {
   constructor() {
     this.baseURL = API_CONFIG.baseURL;
   }
   getToken() {
-    return Cookies.get("auth_token");
+    return Cookies.get('auth_token');
   }
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
     const config = {
       headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
         ...options.headers,
       },
       ...options,
     };
     if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     try {
       const response = await (await fetch(url, config)).json();
@@ -30,7 +30,7 @@ class WorkerService {
 
       return response;
     } catch (error) {
-      console.error("API request failed:", error);
+      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -40,52 +40,58 @@ class WorkerService {
       ? { ...workerData, user_id: userId } // Admin case
       : workerData;
     return this.request(API_CONFIG.endpoints.workers.create, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(payload),
     });
   }
 
   async getAllWorkers() {
     return this.request(API_CONFIG.endpoints.workers.getAll, {
-      method: "GET",
+      method: 'GET',
+    });
+  }
+  async getPaginatedWorkers(page, limit) {
+    return this.request(API_CONFIG.endpoints.workers.getPaginatedWorkers, {
+      method: 'GET',
+      query: { page, limit },
     });
   }
 
   async getSingleWorker(id) {
     return this.request(API_CONFIG.endpoints.workers.getSingleWorker(id), {
-      method: "GET",
+      method: 'GET',
     });
   }
   async updateWorker(workerId, workerData) {
     return this.request(
       `${API_CONFIG.endpoints.workers.updateWorker(workerId)}`,
       {
-        method: "PUT",
+        method: 'PUT',
         body: JSON.stringify(workerData),
       }
     );
   }
   async deleteWorker(id) {
     return this.request(`${API_CONFIG.endpoints.workers.deleteWorker(id)}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   }
 
   async checkWorkerProfile() {
     return this.request(API_CONFIG.endpoints.workers.checkWorkerProfile, {
-      method: "GET",
+      method: 'GET',
     });
   }
 
   async getServices() {
     return this.request(API_CONFIG.endpoints.services.getServices, {
-      method: "GET",
+      method: 'GET',
     });
   }
 
   async createService(serviceData) {
     return this.request(API_CONFIG.endpoints.services.createService, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(serviceData),
     });
   }
@@ -93,7 +99,7 @@ class WorkerService {
     return this.request(
       `${API_CONFIG.endpoints.services.updateService}/${id}`,
       {
-        method: "PUT",
+        method: 'PUT',
         body: JSON.stringify(serviceData),
       }
     );
@@ -103,7 +109,7 @@ class WorkerService {
     return this.request(
       `${API_CONFIG.endpoints.services.deleteService}/${id}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   }
