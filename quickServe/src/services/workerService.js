@@ -57,6 +57,23 @@ class WorkerService {
     });
   }
 
+  async searchWorkers(searchTerm) {
+    const trimmedSearch = searchTerm?.trim();
+    if (!trimmedSearch) {
+      return { data: [] };
+    }
+    const params = new URLSearchParams({
+      search: trimmedSearch,
+    });
+
+    return this.request(
+      `${API_CONFIG.endpoints.workers.searchWorkers}?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
   async getSingleWorker(id) {
     return this.request(API_CONFIG.endpoints.workers.getSingleWorker(id), {
       method: 'GET',

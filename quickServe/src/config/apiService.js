@@ -10,6 +10,7 @@ const API_CONFIG = {
       getSingleWorker: (id) => `/workers/${id}`,
       checkWorkerProfile: '/worker/check-profile',
       getPaginatedWorkers: '/workers/paginated',
+      searchWorkers: '/workers/search',
     },
     services: {
       getServices: '/getServices',
