@@ -1,50 +1,44 @@
-import { use } from "react";
-import colors from "../../ui/color";
-import Table from "../../ui/table";
+import colors from '../../ui/color';
+import Table from '../../ui/table';
 
-const CustomerTable = ({ customerPromise }) => {
-  const customerData = use(customerPromise);
-
+const CustomerTable = ({ customerData }) => {
+  console.log('customer data', customerData);
   const CustomerColumn = [
-    { header: "Id", accessor: "id" },
+    { header: 'Id', accessor: 'id' },
     {
-      header: "Customer",
+      header: 'Customer',
       accessor: (item) => (
-        <div className="flex items-center gap-3">
+        <div className='flex items-center gap-3'>
           {item.image ? (
             <img
               src={item.image}
               alt={item.name}
-              className="w-9 h-9 rounded-full object-cover"
+              className='w-9 h-9 rounded-full object-cover'
               style={{ border: `1px solid ${colors.neutral[200]}` }}
             />
           ) : (
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center"
+              className='w-9 h-9 rounded-full flex items-center justify-center'
               style={{
                 backgroundColor: colors.accent[500],
                 border: `1px solid ${colors.neutral[200]}`,
-              }}
-            >
+              }}>
               <span
-                className="font-medium text-sm"
-                style={{ color: colors.white }}
-              >
-                {item.name ? item.name.charAt(0).toUpperCase() : "U"}
+                className='font-medium text-sm'
+                style={{ color: colors.white }}>
+                {item.name ? item.name.charAt(0).toUpperCase() : 'U'}
               </span>
             </div>
           )}
           <div>
             <div
-              className="font-medium text-sm"
-              style={{ color: colors.neutral[900] }}
-            >
+              className='font-medium text-sm'
+              style={{ color: colors.neutral[900] }}>
               {item.name}
             </div>
             <div
-              className="text-xs mt-0.5"
-              style={{ color: colors.neutral[500] }}
-            >
+              className='text-xs mt-0.5'
+              style={{ color: colors.neutral[500] }}>
               {item.email}
             </div>
           </div>
@@ -52,14 +46,14 @@ const CustomerTable = ({ customerPromise }) => {
       ),
     },
 
-    { header: "Phone", accessor: "phone" },
+    { header: 'Phone', accessor: 'phone' },
   ];
 
   return (
-    <div className="space-y-5">
+    <div className='space-y-5'>
       <Table
-        title="Workers List"
-        data={customerData.data}
+        title='Workers List'
+        data={customerData}
         columns={CustomerColumn}
       />
     </div>

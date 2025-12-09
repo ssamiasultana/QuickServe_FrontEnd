@@ -1,21 +1,25 @@
-import { useEffect, useState } from "react";
-import workerService from "../../services/workerService";
+import { useCheckWorkerProfile } from '../../hooks/useWorker';
 
 export default function WorkerPortal() {
-  const [data, setData] = useState();
+  const { data, isLoading, isError } = useCheckWorkerProfile();
 
-  useEffect(() => {
-    const checkProfile = async () => {
-      try {
-        const response = await workerService.checkWorkerProfile();
+  if (isLoading) {
+    return (
+      <div className='flex justify-center items-center py-12'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        <span className='ml-3 text-gray-600'>Checking profile...</span>
+      </div>
+    );
+  }
 
-        setData(response);
-      } catch (error) {
-        console.error("Error checking profile:", error);
-      }
-    };
-    checkProfile();
-  }, []);
+  if (isError) {
+    return (
+      <div className='text-center py-12'>
+        <p className='text-red-600'>Failed to load profile information</p>
+      </div>
+    );
+  }
+
   return (
     <div>{!data?.isComplete ? <h1>{data?.message}</h1> : <h2>Jobs</h2>}</div>
   );
