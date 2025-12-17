@@ -42,42 +42,48 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
     if (editModal.open && editModal.worker) {
       const worker = editModal.worker;
 
-      let serviceTypes = [];
-      if (typeof worker.service_type === 'string') {
-        try {
-          serviceTypes = JSON.parse(worker.service_type);
-        } catch {
-          serviceTypes = [worker.service_type];
-        }
-      } else if (Array.isArray(worker.service_type)) {
-        serviceTypes = worker.service_type;
-      }
+      let serviceIds = [];
+      let expertiseOfService = [];
+      if (worker.services && Array.isArray(worker.services)) {
+        // Worker has services relationship loaded
+        serviceIds = worker.services.map((service) => service.id);
 
-      let serviceRatingsData = {};
-      if (typeof worker.expertise_of_service === 'string') {
-        try {
-          serviceRatingsData = JSON.parse(worker.expertise_of_service);
-        } catch {
-          serviceRatingsData = {};
-        }
-      } else if (typeof worker.expertise_of_service === 'object') {
-        serviceRatingsData = worker.expertise_of_service || {};
-      }
+        // Get expertise ratings - need to map service_ids to ratings
+        if (worker.expertise_of_service) {
+          try {
+            const ratings =
+              typeof worker.expertise_of_service === 'string'
+                ? JSON.parse(worker.expertise_of_service)
+                : worker.expertise_of_service;
 
+            if (Array.isArray(ratings)) {
+              // If it's an array, assume same order as service_ids
+              expertiseOfService = ratings;
+            }
+          } catch (error) {
+            console.error('Error parsing expertise_of_service:', error);
+          }
+        }
+      }
       setFormData({
         name: worker.name || '',
         email: worker.email || '',
         phone: worker.phone || '',
         age: worker.age || '',
-        shift: worker.shift || 'morning',
+        shift: worker.shift || '',
         rating: worker.rating || 0,
         feedback: worker.feedback || '',
         imageUrl: worker.image || '',
         is_active: worker.is_active ?? true,
       });
 
-      setSelectedServices(serviceTypes);
-      setServiceRatings(serviceRatingsData);
+      setSelectedServices(serviceIds);
+      const ratingsObj = {};
+      serviceIds.forEach((serviceId, index) => {
+        ratingsObj[serviceId] = expertiseOfService[index] || 0;
+      });
+      setServiceRatings(ratingsObj);
+
       lastSuccessRef.current = false;
     }
   }, [editModal.open, editModal.worker]);
@@ -106,23 +112,23 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
     }));
   };
 
-  const handleServiceChange = (serviceName, isChecked) => {
+  const handleServiceChange = (serviceId, isChecked) => {
     if (isChecked) {
-      setSelectedServices([...selectedServices, serviceName]);
+      setSelectedServices([...selectedServices, serviceId]);
       setServiceRatings({
         ...serviceRatings,
-        [serviceName]: serviceRatings[serviceName] || 0,
+        [serviceId]: serviceRatings[serviceId] || 0,
       });
     } else {
-      setSelectedServices(selectedServices.filter((s) => s !== serviceName));
+      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
       const newRatings = { ...serviceRatings };
-      delete newRatings[serviceName];
+      delete newRatings[serviceId];
       setServiceRatings(newRatings);
     }
   };
 
-  const handleRatingChange = (serviceName, rating) => {
-    setServiceRatings({ ...serviceRatings, [serviceName]: rating });
+  const handleRatingChange = (serviceId, rating) => {
+    setServiceRatings({ ...serviceRatings, [serviceId]: rating });
   };
 
   const handleClose = () => {
@@ -135,24 +141,32 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
         <input type='hidden' name='id' value={editModal.worker?.id || ''} />
         <input type='hidden' name='imageUrl' value={formData.imageUrl || ''} />
         <input type='hidden' name='rating' value={formData.rating || 0} />
-        {selectedServices.map((service) => (
+
+        {/* Send service_ids */}
+        {selectedServices.map((serviceId) => (
           <input
-            key={`service_${service}`}
+            key={`service_${serviceId}`}
             type='hidden'
-            name='service_type[]'
-            value={service}
+            name='service_ids[]'
+            value={serviceId}
           />
         ))}
-        {Object.entries(serviceRatings).map(([service, rating]) => (
+
+        {/* Send expertise_of_service */}
+        {selectedServices.map((serviceId) => (
           <input
-            key={`rating_${service}`}
+            key={`expertise_${serviceId}`}
             type='hidden'
-            name={`service_rating_${service}`}
-            value={rating}
+            name='expertise_of_service[]'
+            value={serviceRatings[serviceId] || 0}
           />
         ))}
       </>
     );
+  };
+
+  const handleServiceCheckbox = (service, isChecked) => {
+    handleServiceChange(service.id, isChecked);
   };
 
   return (
@@ -247,14 +261,14 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
             <div className='grid grid-cols-2 gap-3'>
               {services.map((service) => (
                 <label
-                  key={service.name}
+                  key={service.id}
                   className='flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white'>
                   <input
                     type='checkbox'
-                    checked={selectedServices.includes(service.name)}
+                    checked={selectedServices.includes(service.id)}
                     className='w-4 h-4 text-blue-600 focus:ring-blue-500'
                     onChange={(e) =>
-                      handleServiceChange(service.name, e.target.checked)
+                      handleServiceCheckbox(service, e.target.checked)
                     }
                   />
                   <span className='text-sm font-medium text-gray-700'>
@@ -277,23 +291,26 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
                 Rate Your Expertise Per Service *
               </label>
               <div className='space-y-3'>
-                {selectedServices.map((serviceName) => (
-                  <div
-                    key={serviceName}
-                    className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200'>
-                    <span className='text-sm font-medium text-gray-700'>
-                      {serviceName}
-                    </span>
-                    <Rating
-                      value={serviceRatings[serviceName] || 0}
-                      onChange={(rating) =>
-                        handleRatingChange(serviceName, rating)
-                      }
-                      name={`service_rating_${serviceName}`}
-                      max={5}
-                    />
-                  </div>
-                ))}
+                {selectedServices.map((serviceId) => {
+                  const service = services.find((s) => s.id === serviceId);
+                  return service ? (
+                    <div
+                      key={serviceId}
+                      className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200'>
+                      <span className='text-sm font-medium text-gray-700'>
+                        {service.name}
+                      </span>
+                      <Rating
+                        value={serviceRatings[serviceId] || 0}
+                        onChange={(rating) =>
+                          handleRatingChange(serviceId, rating)
+                        }
+                        name={`rating_${serviceId}`}
+                        max={5}
+                      />
+                    </div>
+                  ) : null;
+                })}
               </div>
               {state.errors?.service_ratings && (
                 <p className='text-sm mt-2 text-red-500'>

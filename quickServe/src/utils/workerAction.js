@@ -79,7 +79,14 @@ export const submitWorkerData = async (prevState, formData) => {
 export async function updateWorkerData(prevState, formData) {
   try {
     const id = formData.get('id');
-    const serviceTypeArray = formData.getAll('service_type[]');
+
+    const serviceIds = formData
+      .getAll('service_ids[]')
+      .map((id) => parseInt(id));
+    const expertiseRatings = formData
+      .getAll('expertise_of_service[]')
+      .map((rating) => parseInt(rating));
+
     const values = Object.fromEntries(formData);
 
     if (!id) {
@@ -91,25 +98,19 @@ export async function updateWorkerData(prevState, formData) {
       };
     }
 
-    const serviceRatings = {};
-    serviceTypeArray.forEach((serviceName) => {
-      const ratingKey = `service_rating_${serviceName}`;
-      const rating = formData.get(ratingKey);
-      if (rating) {
-        serviceRatings[serviceName] = parseInt(rating);
-      }
-    });
-
     console.log('Submitting data:', {
       id,
-      service_type: serviceTypeArray,
-      serviceRatings,
-
+      service_ids: serviceIds,
+      expertise_of_service: expertiseRatings,
       is_active: values.is_active === 'on' || values.is_active === true,
     });
 
     await workerValidationSchema.validate(
-      { ...values, service_type: serviceTypeArray },
+      {
+        ...values,
+        service_ids: serviceIds,
+        expertise_of_service: expertiseRatings,
+      },
       { abortEarly: false }
     );
 
@@ -119,13 +120,20 @@ export async function updateWorkerData(prevState, formData) {
       phone: values.phone,
       age: values.age ? parseInt(values.age) : null,
       shift: values.shift,
-
       feedback: values.feedback,
       image: values.imageUrl || null,
       is_active: values.is_active === 'on' || values.is_active === true,
-      expertise_of_service: serviceRatings,
-      service_type: serviceTypeArray,
+      // Send as arrays matching backend expectations
+      service_ids: serviceIds,
+      expertise_of_service: expertiseRatings,
     };
+
+    // Remove any null/undefined values
+    Object.keys(workerData).forEach((key) => {
+      if (workerData[key] === undefined || workerData[key] === null) {
+        delete workerData[key];
+      }
+    });
 
     const response = await workerService.updateWorker(id, workerData);
 
@@ -158,9 +166,15 @@ export async function updateWorkerData(prevState, formData) {
         data: null,
       };
     }
+
+    return {
+      success: false,
+      message: 'An unexpected error occurred',
+      errors: {},
+      data: null,
+    };
   }
 }
-
 export async function createServiceAction(prevState, formData) {
   try {
     const name = formData.get('name')?.trim();
