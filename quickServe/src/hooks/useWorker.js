@@ -175,3 +175,25 @@ export const useDeleteService = () => {
     },
   });
 };
+
+// In useWorker.js, ensure getServices returns an array of {id, name}
+export const useGetWorkerByServices = (options = {}) => {
+  return useQuery({
+    queryKey: ['services'],
+    queryFn: async () => {
+      const response = await workerService.getServices();
+      // Ensure response.data is an array of {id, name} objects
+      const services = response.data || response;
+      if (Array.isArray(services)) {
+        return services.map((service) => ({
+          id: service.id,
+          name: service.name || service.service_name || 'Unknown',
+        }));
+      }
+      return [];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    ...options,
+  });
+};

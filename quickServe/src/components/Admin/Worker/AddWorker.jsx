@@ -20,6 +20,7 @@ export default function AddWorker({ isAdminMode = false }) {
   const users = usersData || [];
 
   const [formData, setFormData] = useState({
+    user_id: '',
     name: '',
     email: '',
     age: '',
@@ -53,6 +54,7 @@ export default function AddWorker({ isAdminMode = false }) {
         shift: '',
         rating: '',
         feedback: '',
+        user_id: '',
       });
       setSelectedServices([]);
       setServiceRatings({});
@@ -131,47 +133,51 @@ export default function AddWorker({ isAdminMode = false }) {
       setImageUrl(null);
     }
   };
-  const handleServiceChange = (serviceName, isChecked) => {
+  const handleServiceChange = (serviceId, isChecked) => {
     if (isChecked) {
-      setSelectedServices([...selectedServices, serviceName]);
-      setServiceRatings({ ...serviceRatings, [serviceName]: 0 });
+      setSelectedServices([...selectedServices, serviceId]);
+      setServiceRatings({ ...serviceRatings, [serviceId]: 0 });
     } else {
-      setSelectedServices(selectedServices.filter((s) => s !== serviceName));
+      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
       const newRatings = { ...serviceRatings };
-      delete newRatings[serviceName];
+      delete newRatings[serviceId];
       setServiceRatings(newRatings);
     }
   };
 
-  const handleRatingChange = (serviceName, rating) => {
-    setServiceRatings({ ...serviceRatings, [serviceName]: rating });
+  const handleRatingChange = (serviceId, rating) => {
+    setServiceRatings({ ...serviceRatings, [serviceId]: rating });
   };
 
   const renderHiddenInputs = () => {
     return (
       <>
-        {/* Add user_id if admin mode */}
         {isAdminMode && selectedUserId && (
           <input type='hidden' name='user_id' value={selectedUserId} />
         )}
-        {selectedServices.map((service) => (
+
+        {selectedServices.map((serviceId) => (
           <input
-            key={`service_${service}`}
+            key={`service_${serviceId}`}
             type='hidden'
-            name='service_type[]'
-            value={service}
+            name='service_ids[]'
+            value={serviceId}
           />
         ))}
-        {Object.entries(serviceRatings).map(([service, rating]) => (
+
+        {Object.entries(serviceRatings).map(([serviceId, rating]) => (
           <input
-            key={`rating_${service}`}
+            key={`rating_${serviceId}`}
             type='hidden'
-            name={`service_rating_${service}`}
+            name='expertise_of_service[]'
             value={rating}
           />
         ))}
       </>
     );
+  };
+  const handleServiceCheckbox = (service, isChecked) => {
+    handleServiceChange(service.id, isChecked);
   };
 
   return (
@@ -331,14 +337,14 @@ export default function AddWorker({ isAdminMode = false }) {
               <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
                 {services.map((service) => (
                   <label
-                    key={service.name}
+                    key={service.id}
                     className='flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white'>
                     <input
                       type='checkbox'
-                      checked={selectedServices.includes(service.name)}
+                      checked={selectedServices.includes(service.id)}
                       className='w-4 h-4 text-blue-600 focus:ring-blue-500'
                       onChange={(e) =>
-                        handleServiceChange(service.name, e.target.checked)
+                        handleServiceCheckbox(service, e.target.checked)
                       }
                     />
                     <span className='text-sm font-medium text-gray-700'>
@@ -349,7 +355,7 @@ export default function AddWorker({ isAdminMode = false }) {
               </div>
               {state.errors?.service_type && (
                 <p className='text-sm mt-2 text-red-500'>
-                  {state.errors.service_type}
+                  {state.errors.service_ids}
                 </p>
               )}
             </div>
@@ -359,23 +365,26 @@ export default function AddWorker({ isAdminMode = false }) {
                   Rate Your Expertise Per Service *
                 </label>
                 <div className='space-y-4'>
-                  {selectedServices.map((serviceName) => (
-                    <div
-                      key={serviceName}
-                      className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200'>
-                      <span className='text-sm font-medium text-gray-700'>
-                        {serviceName}
-                      </span>
-                      <Rating
-                        value={serviceRatings[serviceName] || 0}
-                        onChange={(rating) =>
-                          handleRatingChange(serviceName, rating)
-                        }
-                        name={`service_rating_${serviceName}`}
-                        max={5}
-                      />
-                    </div>
-                  ))}
+                  {selectedServices.map((serviceId) => {
+                    const service = services.find((s) => s.id === serviceId);
+                    return service ? (
+                      <div
+                        key={serviceId}
+                        className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200'>
+                        <span className='text-sm font-medium text-gray-700'>
+                          {service.name}
+                        </span>
+                        <Rating
+                          value={serviceRatings[serviceId] || 0}
+                          onChange={(rating) =>
+                            handleRatingChange(serviceId, rating)
+                          }
+                          name={`rating_${serviceId}`}
+                          max={5}
+                        />
+                      </div>
+                    ) : null;
+                  })}
                 </div>
                 {state.errors?.service_ratings && (
                   <p className='text-sm mt-2 text-red-500'>

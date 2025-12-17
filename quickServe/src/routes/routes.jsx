@@ -1,66 +1,67 @@
-import { createBrowserRouter, Navigate } from "react-router";
-import App from "../App.jsx";
-import CustomerDashboard from "../components/CustomerDashboard.jsx";
-import CustomerLayout from "../components/Layout/CustomerLayout.jsx";
-import WorkerLayout from "../components/Layout/WorkerLayout.jsx";
+import { createBrowserRouter, Navigate } from 'react-router';
+import App from '../App.jsx';
+import CustomerDashboard from '../components/CustomerDashboard.jsx';
+import CustomerLayout from '../components/Layout/CustomerLayout.jsx';
+import WorkerLayout from '../components/Layout/WorkerLayout.jsx';
 
-import Dashboard from "../components/Admin/Dashboard.jsx";
-import AddWorker from "../components/Admin/Worker/AddWorker.jsx";
+import Dashboard from '../components/Admin/Dashboard.jsx';
+import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
-import CustomerList from "../components/Admin/Customer/CustomerList.jsx";
-import SingleWorker from "../components/Admin/Worker/SingleWorker.jsx";
-import WorkerList from "../components/Admin/Worker/WorkerList.jsx";
-import ForgotPassword from "../components/auth/ForgotPassword.jsx";
-import Login from "../components/auth/Login.jsx";
-import Register from "../components/auth/Register.jsx";
-import ResetPassword from "../components/auth/ResetPassword.jsx";
-import CustomerPage from "../components/Customer/CustomerPage.jsx";
-import WorkerPortal from "../components/Worker/WorkerPortal.jsx";
-import ProtectedRoute from "./ProtectedRoute.jsx";
-import RoleBasedRoute from "./RoleBasedRoute.jsx";
+import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
+import SingleWorker from '../components/Admin/Worker/SingleWorker.jsx';
+import WorkerList from '../components/Admin/Worker/WorkerList.jsx';
+import ForgotPassword from '../components/auth/ForgotPassword.jsx';
+import Login from '../components/auth/Login.jsx';
+import Register from '../components/auth/Register.jsx';
+import ResetPassword from '../components/auth/ResetPassword.jsx';
+import CustomerPage from '../components/Customer/CustomerPage.jsx';
+import HirePage from '../components/Customer/HirePage.jsx';
+import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
+import ProtectedRoute from './ProtectedRoute.jsx';
+import RoleBasedRoute from './RoleBasedRoute.jsx';
 
 const routes = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: (
       <ProtectedRoute>
-        <RoleBasedRoute allowedRoles={["Admin", "Moderator"]}>
+        <RoleBasedRoute allowedRoles={['Admin', 'Moderator']}>
           <App />
         </RoleBasedRoute>
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: "dashboard", Component: Dashboard },
-      { path: "/add", element: <AddWorker isAdminMode={true} /> },
-      { path: "/manage", Component: WorkerList },
-      { path: "/workers/:id", Component: SingleWorker },
-      { path: "user-signup", Component: Register },
-      { path: "/customers", Component: CustomerList },
+      { index: true, element: <Navigate to='/dashboard' replace /> },
+      { path: 'dashboard', Component: Dashboard },
+      { path: '/add', element: <AddWorker isAdminMode={true} /> },
+      { path: '/manage', Component: WorkerList },
+      { path: '/workers/:id', Component: SingleWorker },
+      { path: 'user-signup', Component: Register },
+      { path: '/customers', Component: CustomerList },
     ],
   },
   {
-    path: "/login",
+    path: '/login',
     Component: Login,
   },
   {
-    path: "/signup",
+    path: '/signup',
     Component: Register,
   },
   {
-    path: "/forgot-password",
+    path: '/forgot-password',
     Component: ForgotPassword,
   },
   {
-    path: "/reset-password/:token",
+    path: '/reset-password/:token',
     Component: ResetPassword,
   },
 
   {
-    path: "/worker",
+    path: '/worker',
     element: (
       <ProtectedRoute>
-        <RoleBasedRoute allowedRoles={"Worker"}>
+        <RoleBasedRoute allowedRoles={'Worker'}>
           <WorkerLayout />
         </RoleBasedRoute>
       </ProtectedRoute>
@@ -68,20 +69,21 @@ const routes = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/worker/jobs" replace />,
+        element: <Navigate to='/worker/jobs' replace />,
       },
-      { path: "jobs", Component: WorkerPortal },
-      { path: "info", Component: AddWorker },
+      { path: 'jobs', Component: WorkerPortal },
+      { path: 'info', Component: AddWorker },
     ],
   },
 
   {
-    path: "/customer",
+    path: '/customer',
     element: <CustomerLayout />,
     children: [
-      { index: true, element: <Navigate to="/customer/dashboard" replace /> },
-      { path: "dashboard", Component: CustomerDashboard },
-      { path: "manage-workers", Component: CustomerPage },
+      { index: true, element: <Navigate to='/customer/dashboard' replace /> },
+      { path: 'dashboard', Component: CustomerDashboard },
+      { path: 'manage-workers', Component: CustomerPage },
+      { path: 'hire-worker/:id', Component: HirePage },
     ],
   },
 ]);

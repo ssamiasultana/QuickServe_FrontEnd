@@ -130,6 +130,22 @@ class WorkerService {
       }
     );
   }
+  async getServicecategoryById(serviceId) {
+    return this.request(
+      `${API_CONFIG.endpoints.services.getSubServices}/${serviceId}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+  async getWorkersByService(serviceId) {
+    return this.request(
+      `${API_CONFIG.endpoints.workers.getWorkersByService}/${serviceId}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
 }
 
 export default new WorkerService();

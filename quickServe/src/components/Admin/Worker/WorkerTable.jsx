@@ -80,79 +80,42 @@ const WorkerTable = ({
     {
       header: 'Service Type',
       accessor: (item) => {
-        let serviceTypes = item.service_type;
-        let serviceRatings = item.expertise_of_service;
-
-        if (typeof serviceTypes === 'string') {
-          try {
-            serviceTypes = JSON.parse(serviceTypes);
-          } catch (error) {
-            console.error('Error parsing service_type:', error);
-            serviceTypes = [serviceTypes];
-          }
+        // Check if services relationship is loaded
+        if (item.services && Array.isArray(item.services)) {
+          const serviceNames = item.services.map((service) => service.name);
+          return (
+            <span
+              className='text-sm font-semibold'
+              style={{ color: colors.neutral[600] }}>
+              {serviceNames.length > 0 ? serviceNames.join(', ') : 'N/A'}
+            </span>
+          );
         }
 
-        if (typeof serviceRatings === 'string') {
-          try {
-            serviceRatings = JSON.parse(serviceRatings);
-          } catch (error) {
-            console.error('Error parsing service_ratings:', error);
-            serviceRatings = {};
+        // Fallback for old data format
+        if (item.service_type) {
+          let serviceTypes = item.service_type;
+          if (typeof serviceTypes === 'string') {
+            try {
+              serviceTypes = JSON.parse(serviceTypes);
+            } catch (error) {
+              console.error('Error parsing service_type:', error);
+              serviceTypes = [serviceTypes];
+            }
           }
-        }
 
-        if (!serviceRatings || Object.keys(serviceRatings).length === 0) {
           if (Array.isArray(serviceTypes)) {
             return (
               <span
-                className='text-lg'
-                style={{
-                  color: colors.neutral[600],
-                }}>
+                className='text-sm font-semibold'
+                style={{ color: colors.neutral[600] }}>
                 {serviceTypes.join(', ')}
               </span>
             );
           }
-          return (
-            <span
-              className='text-sm'
-              style={{
-                color: colors.neutral[600],
-              }}>
-              {serviceTypes || 'Not specified'}
-            </span>
-          );
         }
-
-        if (Array.isArray(serviceTypes)) {
-          const formattedServices = serviceTypes.map((service) => {
-            const rating = serviceRatings[service];
-            return rating ? `${service}(${rating})` : service;
-          });
-
-          return (
-            <span
-              className='text-sm font-semibold'
-              style={{
-                color: colors.neutral[600],
-              }}>
-              {formattedServices.join(', ')}
-            </span>
-          );
-        }
-
-        return (
-          <span
-            className='text-xs'
-            style={{
-              color: colors.neutral[600],
-            }}>
-            {serviceTypes || 'Not specified'}
-          </span>
-        );
       },
     },
-
     {
       header: 'Status',
       accessor: (item) => {

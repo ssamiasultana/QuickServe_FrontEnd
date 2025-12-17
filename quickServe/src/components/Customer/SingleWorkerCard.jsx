@@ -1,9 +1,11 @@
 import { Briefcase, Star, User } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { calculateAverageRating, getShiftColor } from '../../utils/util';
 import Card from '../ui/Card';
 import colors from '../ui/color';
 
 function SingleWorkerCard({ workerData }) {
+  const navigate = useNavigate();
   const parseServiceType = (serviceType) => {
     try {
       return JSON.parse(serviceType);
@@ -82,6 +84,7 @@ function SingleWorkerCard({ workerData }) {
               <div className='flex gap-1 pt-0.5'>
                 <button
                   className='flex-1 py-0.5 px-1.5 rounded text-xs font-medium transition-colors'
+                  onClick={() => navigate(`/customer/hire-worker/${worker.id}`)}
                   style={{
                     backgroundColor: colors.primary[100],
                     color: colors.primary[700],

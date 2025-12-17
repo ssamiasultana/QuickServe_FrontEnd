@@ -11,12 +11,14 @@ const API_CONFIG = {
       checkWorkerProfile: '/worker/check-profile',
       getPaginatedWorkers: '/workers/paginated',
       searchWorkers: '/workers/search',
+      getWorkersByService: (serviceId) => `/workers/${serviceId}`,
     },
     services: {
       getServices: '/getServices',
       createService: '/services',
       updateService: '/services',
       deleteService: '/services',
+      getSubServices: (serviceId) => `/service-subcategories/${serviceId}`,
     },
     auth: {
       signUp: '/signup',

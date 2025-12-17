@@ -1,28 +1,36 @@
-import workerService from "../services/workerService";
-import { workerValidationSchema } from "../validation/workerValidation";
+import workerService from '../services/workerService';
+import { workerValidationSchema } from '../validation/workerValidation';
 
 export const submitWorkerData = async (prevState, formData) => {
   try {
-    const serviceTypeArray = formData.getAll("service_type[]");
+    // const serviceTypeArray = formData.getAll("service_type[]");
+
+    const serviceIds = formData
+      .getAll('service_ids[]')
+      .map((id) => parseInt(id));
+    const expertiseOfService = formData
+      .getAll('expertise_of_service[]')
+      .map((rating) => parseInt(rating));
 
     const values = Object.fromEntries(formData);
-
-    const imageUrl = values.imageUrl || "";
-    const serviceRatings = {};
-    serviceTypeArray.forEach((serviceName) => {
-      const ratingKey = `service_rating_${serviceName}`;
-      const rating = formData.get(ratingKey);
-      if (rating) {
-        serviceRatings[serviceName] = parseInt(rating);
-      }
-    });
+    console.log({ values });
+    const imageUrl = values.imageUrl || '';
+    // const serviceRatings = {};
+    // serviceTypeArray.forEach((serviceName) => {
+    //   const ratingKey = `service_rating_${serviceName}`;
+    //   const rating = formData.get(ratingKey);
+    //   if (rating) {
+    //     serviceRatings[serviceName] = parseInt(rating);
+    //   }
+    // });
 
     await workerValidationSchema.validate(
-      { ...values, service_type: serviceTypeArray },
+      { ...values, service_type: serviceIds },
       { abortEarly: false }
     );
 
     const workerData = {
+      user_id: values.user_id,
       name: values.name,
       email: values.email,
       phone: values.phone,
@@ -30,8 +38,8 @@ export const submitWorkerData = async (prevState, formData) => {
 
       shift: values.shift,
       feedback: values.feedback,
-      expertise_of_service: serviceRatings,
-      service_type: serviceTypeArray,
+      service_ids: serviceIds,
+      expertise_of_service: expertiseOfService,
       image: imageUrl || null,
     };
 
@@ -39,12 +47,12 @@ export const submitWorkerData = async (prevState, formData) => {
 
     return {
       success: true,
-      message: "Worker registered successfully!",
+      message: 'Worker registered successfully!',
       data: response.data || response,
       errors: {},
     };
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       const errors = {};
       error.inner.forEach((err) => {
         errors[err.path] = err.message;
@@ -52,7 +60,7 @@ export const submitWorkerData = async (prevState, formData) => {
 
       return {
         success: false,
-        message: "Please submit form with all fields",
+        message: 'Please submit form with all fields',
         errors: errors,
         data: null,
       };
@@ -70,15 +78,15 @@ export const submitWorkerData = async (prevState, formData) => {
 };
 export async function updateWorkerData(prevState, formData) {
   try {
-    const id = formData.get("id");
-    const serviceTypeArray = formData.getAll("service_type[]");
+    const id = formData.get('id');
+    const serviceTypeArray = formData.getAll('service_type[]');
     const values = Object.fromEntries(formData);
 
     if (!id) {
       return {
         success: false,
-        message: "Worker ID is required",
-        errors: { id: "Worker ID is required" },
+        message: 'Worker ID is required',
+        errors: { id: 'Worker ID is required' },
         data: null,
       };
     }
@@ -92,12 +100,12 @@ export async function updateWorkerData(prevState, formData) {
       }
     });
 
-    console.log("Submitting data:", {
+    console.log('Submitting data:', {
       id,
       service_type: serviceTypeArray,
       serviceRatings,
 
-      is_active: values.is_active === "on" || values.is_active === true,
+      is_active: values.is_active === 'on' || values.is_active === true,
     });
 
     await workerValidationSchema.validate(
@@ -114,7 +122,7 @@ export async function updateWorkerData(prevState, formData) {
 
       feedback: values.feedback,
       image: values.imageUrl || null,
-      is_active: values.is_active === "on" || values.is_active === true,
+      is_active: values.is_active === 'on' || values.is_active === true,
       expertise_of_service: serviceRatings,
       service_type: serviceTypeArray,
     };
@@ -123,12 +131,12 @@ export async function updateWorkerData(prevState, formData) {
 
     return {
       success: true,
-      message: "Worker updated successfully!",
+      message: 'Worker updated successfully!',
       data: response.data || response,
       errors: {},
     };
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       const errors = {};
       error.inner.forEach((err) => {
         errors[err.path] = err.message;
@@ -136,7 +144,7 @@ export async function updateWorkerData(prevState, formData) {
 
       return {
         success: false,
-        message: "Please submit form with all fields",
+        message: 'Please submit form with all fields',
         errors: errors,
         data: null,
       };
@@ -155,13 +163,13 @@ export async function updateWorkerData(prevState, formData) {
 
 export async function createServiceAction(prevState, formData) {
   try {
-    const name = formData.get("name")?.trim();
+    const name = formData.get('name')?.trim();
 
     if (!name) {
       return {
         success: false,
-        message: "Service name is required",
-        errors: { name: "Service name is required" },
+        message: 'Service name is required',
+        errors: { name: 'Service name is required' },
         data: null,
       };
     }
@@ -170,14 +178,14 @@ export async function createServiceAction(prevState, formData) {
 
     return {
       success: true,
-      message: "Service created successfully!",
+      message: 'Service created successfully!',
       errors: {},
       data: response.data,
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message || "Failed to create service",
+      message: error.message || 'Failed to create service',
       errors: {},
       data: null,
     };
@@ -186,14 +194,14 @@ export async function createServiceAction(prevState, formData) {
 
 export async function updateServiceAction(prevState, formData) {
   try {
-    const id = formData.get("id");
-    const name = formData.get("name")?.trim();
+    const id = formData.get('id');
+    const name = formData.get('name')?.trim();
 
     if (!name) {
       return {
         success: false,
-        message: "Service name is required",
-        errors: { name: "Service name is required" },
+        message: 'Service name is required',
+        errors: { name: 'Service name is required' },
         data: null,
       };
     }
@@ -201,8 +209,8 @@ export async function updateServiceAction(prevState, formData) {
     if (!id) {
       return {
         success: false,
-        message: "Service ID is required",
-        errors: { id: "Service ID is required" },
+        message: 'Service ID is required',
+        errors: { id: 'Service ID is required' },
         data: null,
       };
     }
@@ -211,14 +219,14 @@ export async function updateServiceAction(prevState, formData) {
 
     return {
       success: true,
-      message: "Service updated successfully!",
+      message: 'Service updated successfully!',
       errors: {},
       data: response.data,
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message || "Failed to update service",
+      message: error.message || 'Failed to update service',
       errors: {},
       data: null,
     };
