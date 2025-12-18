@@ -6,20 +6,41 @@ import colors from '../ui/color';
 
 function SingleWorkerCard({ workerData }) {
   const navigate = useNavigate();
-  const parseServiceType = (serviceType) => {
-    try {
-      return JSON.parse(serviceType);
-    } catch (error) {
-      console.log(error);
+
+  // Get services from the new relationship structure
+  const getServices = (worker) => {
+    // New structure: worker.services is an array from the relationship
+    if (worker.services && Array.isArray(worker.services)) {
+      return worker.services;
     }
+
+    // Fallback for old structure (if any old data exists)
+    if (worker.service_type) {
+      if (Array.isArray(worker.service_type)) {
+        return worker.service_type.map((name, index) => ({ id: index, name }));
+      }
+
+      if (typeof worker.service_type === 'string') {
+        try {
+          const parsed = JSON.parse(worker.service_type);
+          if (Array.isArray(parsed)) {
+            return parsed.map((name, index) => ({ id: index, name }));
+          }
+        } catch (error) {
+          console.error('Error parsing service_type:', error);
+        }
+      }
+    }
+
+    return [];
   };
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 bg-gray-50'>
       {workerData?.map((worker) => {
-        const services = parseServiceType(worker.service_type);
+        const services = getServices(worker);
         const averageRating = calculateAverageRating(
-          worker.expertise_of_service
+          worker.expertise_of_service || []
         );
         const shiftColors = getShiftColor(worker.shift);
 
@@ -47,29 +68,31 @@ function SingleWorkerCard({ workerData }) {
                     <div
                       className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium mt-0.5'
                       style={{
-                        backgroundColor: shiftColors.background,
-                        color: shiftColors.text,
+                        backgroundColor: shiftColors?.background || '#EFF6FF',
+                        color: shiftColors?.text || '#2563EB',
                       }}>
                       <Briefcase size={10} />
-                      <span className='text-xs'>{worker.shift}</span>
+                      <span className='text-xs'>{worker.shift || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
                 <div className='flex items-center gap-0.5 text-green-500 shrink-0'>
                   <Star size={12} fill='currentColor' />
-                  <span className='font-bold text-xs'>{averageRating}</span>
+                  <span className='font-bold text-xs'>
+                    {averageRating > 0 ? averageRating.toFixed(1) : '0'}
+                  </span>
                 </div>
               </div>
 
               {/* Services */}
               <div>
                 <div className='flex flex-wrap gap-1'>
-                  {services.length > 0 ? (
-                    services.map((service, index) => (
+                  {services && services.length > 0 ? (
+                    services.map((service) => (
                       <span
-                        key={index}
+                        key={service.id}
                         className='px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700'>
-                        {service}
+                        {service.name}
                       </span>
                     ))
                   ) : (
@@ -100,7 +123,8 @@ function SingleWorkerCard({ workerData }) {
                   Hire
                 </button>
                 <button
-                  className='flex-1 py-0.5 px-1.5 rounded text-xs font-medium  transition-colors'
+                  className='flex-1 py-0.5 px-1.5 rounded text-xs font-medium transition-colors'
+                  onClick={() => navigate(`/worker/${worker.id}`)}
                   style={{
                     backgroundColor: colors.primary[100],
                     color: colors.primary[700],

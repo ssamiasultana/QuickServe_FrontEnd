@@ -6,11 +6,12 @@ import {
   User,
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useGetSingleWorker } from '../../hooks/useWorker';
 
 function HirePage() {
   const params = useParams();
+  const navigate = useNavigate();
   const id = params.id;
 
   const {
@@ -24,13 +25,30 @@ function HirePage() {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
 
-  const handleServiceSelection = (service, isChecked) => {
+  const handleServiceSelection = (serviceId, isChecked) => {
     if (isChecked) {
-      setSelectedServices([...selectedServices, service]);
+      setSelectedServices([...selectedServices, serviceId]);
     } else {
-      setSelectedServices(selectedServices.filter((s) => s !== service));
+      setSelectedServices(selectedServices.filter((id) => id !== serviceId));
     }
   };
+
+  // Get services from the new relationship structure
+  const getServices = () => {
+    if (!worker || !worker.services) return [];
+    return Array.isArray(worker.services) ? worker.services : [];
+  };
+
+  // Get expertise ratings
+  const getExpertiseRatings = () => {
+    if (!worker || !worker.expertise_of_service) return [];
+    return Array.isArray(worker.expertise_of_service)
+      ? worker.expertise_of_service
+      : [];
+  };
+
+  const services = getServices();
+  const expertiseRatings = getExpertiseRatings();
 
   const timeSlots = [
     '9:00 AM',
@@ -62,7 +80,7 @@ function HirePage() {
     );
   }
 
-  if (isError) {
+  if (isError || !worker) {
     return (
       <div className='min-h-screen bg-gray-50 p-6 flex items-center justify-center'>
         <div className='text-center'>
@@ -82,7 +100,9 @@ function HirePage() {
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
         <div className='mb-8'>
-          <button className='flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors'>
+          <button
+            onClick={() => navigate(-1)}
+            className='flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors'>
             <ArrowLeft className='w-5 h-5' />
             Back to Workers
           </button>
@@ -93,7 +113,7 @@ function HirePage() {
         </div>
 
         {/* Service Selection and Service Details */}
-        <div className='grid grid-cols-2 gap-6 mb-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
           {/* Service Selection */}
           <div className='bg-white rounded-lg shadow-sm p-6'>
             <div className='flex items-center gap-3 mb-4'>
@@ -109,32 +129,42 @@ function HirePage() {
                 Choose one or more services you need:
               </p>
               <div className='space-y-3'>
-                {worker.service_type &&
-                  worker.service_type.map((service, index) => (
-                    <label
-                      key={index}
-                      className='flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all'>
-                      <input
-                        type='checkbox'
-                        className='w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500'
-                        value={service}
-                        checked={selectedServices.includes(service)}
-                        onChange={(e) =>
-                          handleServiceSelection(service, e.target.checked)
-                        }
-                      />
-                      <div className='flex-1'>
-                        <div className='flex items-center justify-between'>
-                          <span className='font-medium text-gray-900'>
-                            {service}
-                          </span>
-                          <span className='text-sm font-semibold text-purple-600'>
-                            Expertise: {worker.expertise_of_service[service]}/10
-                          </span>
+                {services.length > 0 ? (
+                  services.map((service, index) => {
+                    const rating = expertiseRatings[index];
+                    return (
+                      <label
+                        key={service.id}
+                        className='flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all'>
+                        <input
+                          type='checkbox'
+                          className='w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500'
+                          value={service.id}
+                          checked={selectedServices.includes(service.id)}
+                          onChange={(e) =>
+                            handleServiceSelection(service.id, e.target.checked)
+                          }
+                        />
+                        <div className='flex-1'>
+                          <div className='flex items-center justify-between'>
+                            <span className='font-medium text-gray-900'>
+                              {service.name}
+                            </span>
+                            {rating !== undefined && (
+                              <span className='text-sm font-semibold text-purple-600'>
+                                Expertise: {rating}/5
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </label>
-                  ))}
+                      </label>
+                    );
+                  })
+                ) : (
+                  <p className='text-sm text-gray-500 text-center py-4'>
+                    No services available
+                  </p>
+                )}
               </div>
 
               {/* Selected Services Summary */}
@@ -144,13 +174,16 @@ function HirePage() {
                 </h4>
                 <div className='flex flex-wrap gap-2'>
                   {selectedServices.length > 0 ? (
-                    selectedServices.map((service, idx) => (
-                      <span
-                        key={idx}
-                        className='px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium'>
-                        {service}
-                      </span>
-                    ))
+                    selectedServices.map((serviceId) => {
+                      const service = services.find((s) => s.id === serviceId);
+                      return service ? (
+                        <span
+                          key={serviceId}
+                          className='px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium'>
+                          {service.name}
+                        </span>
+                      ) : null;
+                    })
                   ) : (
                     <span className='text-sm text-gray-500'>
                       No services selected yet
@@ -220,7 +253,9 @@ function HirePage() {
                 <h3 className='text-lg font-semibold text-gray-900'>
                   {worker.name}
                 </h3>
-                <p className='text-sm text-gray-600'>{worker.shift} Shift</p>
+                <p className='text-sm text-gray-600 capitalize'>
+                  {worker.shift} Shift
+                </p>
                 <div className='flex items-center gap-2 mt-1'>
                   <span className='text-sm text-gray-600'>
                     Age: {worker.age}
@@ -229,27 +264,34 @@ function HirePage() {
               </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div>
                 <h4 className='text-sm font-semibold text-gray-900 mb-2'>
                   Contact Information
                 </h4>
                 <p className='text-sm text-gray-600'>Email: {worker.email}</p>
-                <p className='text-sm text-gray-600'>Phone: {worker.phone}</p>
+                <p className='text-sm text-gray-600'>
+                  Phone: {worker.phone || 'N/A'}
+                </p>
               </div>
               <div>
                 <h4 className='text-sm font-semibold text-gray-900 mb-2'>
                   Service Types
                 </h4>
                 <div className='flex flex-wrap gap-2'>
-                  {worker.service_type &&
-                    worker.service_type.map((service, index) => (
+                  {services.length > 0 ? (
+                    services.map((service) => (
                       <span
-                        key={index}
+                        key={service.id}
                         className='px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full'>
-                        {service}
+                        {service.name}
                       </span>
-                    ))}
+                    ))
+                  ) : (
+                    <span className='text-sm text-gray-500'>
+                      No services listed
+                    </span>
+                  )}
                 </div>
               </div>
               <div>
@@ -278,7 +320,7 @@ function HirePage() {
         </div>
 
         {/* Schedule Time and Submit Details */}
-        <div className='grid grid-cols-2 gap-6 mb-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
           {/* Schedule Time */}
           <div className='bg-white rounded-lg shadow-sm p-6'>
             <div className='flex items-center gap-3 mb-4'>
@@ -306,7 +348,7 @@ function HirePage() {
                 <label className='block text-sm font-medium text-gray-700 mb-2'>
                   Select Time Slot
                 </label>
-                <div className='grid grid-cols-3 gap-2'>
+                <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
                   {timeSlots.map((time) => (
                     <button
                       key={time}
@@ -424,7 +466,11 @@ function HirePage() {
               </label>
             </div>
 
-            <button className='w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm'>
+            <button
+              className='w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-sm'
+              disabled={
+                selectedServices.length === 0 || !selectedDate || !selectedTime
+              }>
               Confirm Booking
             </button>
           </div>

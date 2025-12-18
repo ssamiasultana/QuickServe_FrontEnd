@@ -19,6 +19,7 @@ const WorkerTable = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  console.log(paginatedWorkers);
   const { mutate: deleteWorker, isPending: isDeleting } = useDeleteWorker();
   const { mutate: updateWorker, isPending: isUpdating } = useUpdateWorker();
   const queryClient = useQueryClient();

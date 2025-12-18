@@ -14,6 +14,7 @@ function SingleWorker() {
     isError,
     error: queryError,
   } = useGetSingleWorker(id);
+
   const [averageRating, setAverageRating] = useState(0);
 
   useEffect(() => {
@@ -26,37 +27,44 @@ function SingleWorker() {
   const error =
     queryError?.message || (isError ? 'Failed to load worker details' : null);
 
-  // Parse service data
-  const getServiceData = () => {
-    if (!worker) return { serviceTypes: [], serviceRatings: {} };
+  // Get services array from the relationship
+  const getServices = () => {
+    if (!worker) return [];
 
-    let serviceTypes = [];
-    let serviceRatings = {};
-
-    if (typeof worker.service_type === 'string') {
-      try {
-        serviceTypes = JSON.parse(worker.service_type);
-      } catch {
-        serviceTypes = worker.service_type ? [worker.service_type] : [];
-      }
-    } else if (Array.isArray(worker.service_type)) {
-      serviceTypes = worker.service_type;
+    // Services come from the relationship
+    if (Array.isArray(worker.services)) {
+      return worker.services;
     }
 
-    if (typeof worker.expertise_of_service === 'string') {
-      try {
-        serviceRatings = JSON.parse(worker.expertise_of_service);
-      } catch {
-        serviceRatings = {};
-      }
-    } else if (typeof worker.expertise_of_service === 'object') {
-      serviceRatings = worker.expertise_of_service || {};
-    }
-
-    return { serviceTypes, serviceRatings };
+    return [];
   };
 
-  const { serviceTypes, serviceRatings } = getServiceData();
+  // Get expertise ratings array
+  const getExpertiseRatings = () => {
+    if (!worker) return [];
+
+    const expertise = worker.expertise_of_service;
+
+    // Already an array (from model cast)
+    if (Array.isArray(expertise)) {
+      return expertise;
+    }
+
+    // Fallback for string (shouldn't happen with proper model cast)
+    if (typeof expertise === 'string') {
+      try {
+        const parsed = JSON.parse(expertise);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  };
+
+  const services = getServices();
+  const expertiseRatings = getExpertiseRatings();
 
   // Show loading state
   if (loading) {
@@ -101,6 +109,7 @@ function SingleWorker() {
         </div>
       </div>
 
+      {/* Basic Information */}
       <div className='bg-white rounded-lg border border-gray-200 p-6 mb-6'>
         <h2 className='text-lg font-semibold text-gray-900 mb-4'>
           Basic Information
@@ -132,7 +141,7 @@ function SingleWorker() {
           </div>
 
           <div>
-            <p className='font-medium text-gray-900'>{worker.phone}</p>
+            <p className='font-medium text-gray-900'>{worker.phone || 'N/A'}</p>
             <p className='text-sm text-gray-500'>Phone</p>
           </div>
 
@@ -143,6 +152,7 @@ function SingleWorker() {
         </div>
       </div>
 
+      {/* Status, Shift, and Rating Cards */}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
         <div className='bg-white rounded-lg border border-gray-200 p-6'>
           <h3 className='font-semibold text-gray-900 mb-3'>Status</h3>
@@ -158,7 +168,9 @@ function SingleWorker() {
 
         <div className='bg-white rounded-lg border border-gray-200 p-6'>
           <h3 className='font-semibold text-gray-900 mb-3'>Shift</h3>
-          <p className='text-gray-900'>{worker.shift || 'Not specified'}</p>
+          <p className='text-gray-900 capitalize'>
+            {worker.shift || 'Not specified'}
+          </p>
         </div>
 
         <div className='bg-white rounded-lg border border-gray-200 p-6'>
@@ -166,54 +178,81 @@ function SingleWorker() {
           <div className='flex items-center gap-2'>
             <Star className='w-5 h-5 text-yellow-400 fill-current' />
             <span className='font-semibold text-gray-900'>
-              {averageRating}/5
+              {averageRating > 0 ? averageRating.toFixed(1) : '0'}/5
             </span>
           </div>
         </div>
       </div>
 
+      {/* Services & Ratings */}
       <div className='bg-white rounded-lg border border-gray-200 p-6 mb-6'>
         <h2 className='text-lg font-semibold text-gray-900 mb-4'>
-          Services & Ratings
+          Services & Expertise Ratings
         </h2>
         <div className='space-y-3'>
-          {serviceTypes.length > 0 ? (
-            serviceTypes.map((service) => (
-              <div
-                key={service}
-                className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
-                <span className='font-medium text-gray-900'>{service}</span>
-                {serviceRatings[service] ? (
-                  <div className='flex items-center gap-2'>
-                    <div className='flex items-center gap-1'>
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < serviceRatings[service]
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
+          {services && services.length > 0 ? (
+            services.map((service, index) => {
+              // Get the rating for this service
+              const rating = expertiseRatings[index];
+
+              return (
+                <div
+                  key={service.id}
+                  className='flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'>
+                  <div className='flex items-center gap-3'>
+                    <div className='w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center'>
+                      <span className='font-semibold text-blue-600 text-sm'>
+                        {service.name?.charAt(0).toUpperCase() || 'S'}
+                      </span>
                     </div>
-                    <span className='text-sm font-medium text-gray-700'>
-                      ({serviceRatings[service]}/5)
+                    <span className='font-medium text-gray-900'>
+                      {service.name}
                     </span>
                   </div>
-                ) : (
-                  <span className='text-sm text-gray-500'>No rating</span>
-                )}
-              </div>
-            ))
+
+                  {rating !== undefined && rating !== null ? (
+                    <div className='flex items-center gap-2'>
+                      <div className='flex items-center gap-1'>
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < rating
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className='text-sm font-medium text-gray-700'>
+                        ({rating}/5)
+                      </span>
+                    </div>
+                  ) : (
+                    <span className='text-sm text-gray-500'>No rating</span>
+                  )}
+                </div>
+              );
+            })
           ) : (
-            <p className='text-gray-500 text-center py-4'>
-              No services assigned
-            </p>
+            <div className='text-center py-8'>
+              <p className='text-gray-500'>No services assigned</p>
+            </div>
           )}
         </div>
       </div>
 
+      {/* Address */}
+      {worker.address && (
+        <div className='bg-white rounded-lg border border-gray-200 p-6 mb-6'>
+          <h2 className='text-lg font-semibold text-gray-900 mb-4'>Address</h2>
+          <p className='text-gray-700 bg-gray-50 p-4 rounded-lg'>
+            {worker.address}
+          </p>
+        </div>
+      )}
+
+      {/* Feedback */}
       {worker.feedback && (
         <div className='bg-white rounded-lg border border-gray-200 p-6'>
           <h2 className='text-lg font-semibold text-gray-900 mb-4'>
