@@ -14,23 +14,22 @@ function SingleWorkerCard({ workerData }) {
       return worker.services;
     }
 
-    // Fallback for old structure (if any old data exists)
-    if (worker.service_type) {
-      if (Array.isArray(worker.service_type)) {
-        return worker.service_type.map((name, index) => ({ id: index, name }));
-      }
+    // if (worker.service_type) {
+    //   if (Array.isArray(worker.service_type)) {
+    //     return worker.service_type.map((name, index) => ({ id: index, name }));
+    //   }
 
-      if (typeof worker.service_type === 'string') {
-        try {
-          const parsed = JSON.parse(worker.service_type);
-          if (Array.isArray(parsed)) {
-            return parsed.map((name, index) => ({ id: index, name }));
-          }
-        } catch (error) {
-          console.error('Error parsing service_type:', error);
-        }
-      }
-    }
+    //   if (typeof worker.service_type === 'string') {
+    //     try {
+    //       const parsed = JSON.parse(worker.service_type);
+    //       if (Array.isArray(parsed)) {
+    //         return parsed.map((name, index) => ({ id: index, name }));
+    //       }
+    //     } catch (error) {
+    //       console.error('Error parsing service_type:', error);
+    //     }
+    //   }
+    // }
 
     return [];
   };

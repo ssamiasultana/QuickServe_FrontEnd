@@ -83,7 +83,7 @@ class WorkerService {
     return this.request(
       `${API_CONFIG.endpoints.workers.updateWorker(workerId)}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(workerData),
       }
     );

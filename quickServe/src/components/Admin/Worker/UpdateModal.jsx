@@ -23,11 +23,11 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
     email: '',
     phone: '',
     age: '',
-    shift: 'morning',
+    shift: '',
     rating: 0,
     feedback: '',
     imageUrl: '',
-    is_active: true,
+    is_active: '',
   });
 
   const [state, formAction, isPending] = useActionState(updateWorkerData, {
@@ -36,7 +36,8 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
     errors: {},
     data: null,
   });
-  const lastSuccessRef = useRef(false);
+  const toastShownRef = useRef(false);
+  const previousStateRef = useRef(null);
 
   useEffect(() => {
     if (editModal.open && editModal.worker) {
@@ -45,10 +46,8 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
       let serviceIds = [];
       let expertiseOfService = [];
       if (worker.services && Array.isArray(worker.services)) {
-        // Worker has services relationship loaded
         serviceIds = worker.services.map((service) => service.id);
 
-        // Get expertise ratings - need to map service_ids to ratings
         if (worker.expertise_of_service) {
           try {
             const ratings =
@@ -57,7 +56,6 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
                 : worker.expertise_of_service;
 
             if (Array.isArray(ratings)) {
-              // If it's an array, assume same order as service_ids
               expertiseOfService = ratings;
             }
           } catch (error) {
@@ -65,6 +63,7 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
           }
         }
       }
+
       setFormData({
         name: worker.name || '',
         email: worker.email || '',
@@ -74,7 +73,7 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
         rating: worker.rating || 0,
         feedback: worker.feedback || '',
         imageUrl: worker.image || '',
-        is_active: worker.is_active ?? true,
+        is_active: Boolean(worker.is_active), // Ensure boolean
       });
 
       setSelectedServices(serviceIds);
@@ -84,13 +83,38 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
       });
       setServiceRatings(ratingsObj);
 
-      lastSuccessRef.current = false;
+      // Reset toast tracking when modal opens
+      toastShownRef.current = false;
+      previousStateRef.current = null;
     }
   }, [editModal.open, editModal.worker]);
 
   useEffect(() => {
-    if (state?.success && !lastSuccessRef.current) {
-      lastSuccessRef.current = true;
+    // Only process if we have state data
+    if (!state) return;
+
+    // Create a unique identifier for this state update
+    const stateIdentifier = JSON.stringify({
+      success: state.success,
+      message: state.message,
+    });
+
+    // Skip if we've already processed this exact state
+    if (previousStateRef.current === stateIdentifier) {
+      return;
+    }
+
+    // Skip if toast was already shown for a success state
+    if (state.success && toastShownRef.current) {
+      return;
+    }
+
+    // Mark this state as processed
+    previousStateRef.current = stateIdentifier;
+
+    if (state.success) {
+      // Mark toast as shown before displaying it
+      toastShownRef.current = true;
 
       toast.success(state.message || 'Worker updated successfully!');
       setEditModal({ open: false, worker: null });
@@ -98,14 +122,14 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
       if (onWorkerUpdate) {
         onWorkerUpdate();
       }
-    }
-
-    if (state?.message && !state?.success) {
+    } else if (state.message && !state.success) {
       toast.error(state.message);
     }
-  }, [state?.success, state?.message, setEditModal, onWorkerUpdate]);
+  }, [state, setEditModal, onWorkerUpdate]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log('Input change:', { name, value, type, checked });
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -141,6 +165,13 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
         <input type='hidden' name='id' value={editModal.worker?.id || ''} />
         <input type='hidden' name='imageUrl' value={formData.imageUrl || ''} />
         <input type='hidden' name='rating' value={formData.rating || 0} />
+
+        {/* Always send is_active value - critical for preventing unwanted changes */}
+        <input
+          type='hidden'
+          name='is_active'
+          value={formData.is_active ? 1 : 0}
+        />
 
         {/* Send service_ids */}
         {selectedServices.map((serviceId) => (
@@ -360,6 +391,7 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
               placeholder='https://example.com/image.jpg'
             />
 
+            {/* Active Worker Checkbox */}
             <FormCheckboxGroup
               label='Active Worker'
               name='is_active'

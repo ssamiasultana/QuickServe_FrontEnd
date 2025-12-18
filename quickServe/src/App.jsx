@@ -1,22 +1,22 @@
-import { Toaster } from "react-hot-toast";
-import { Outlet } from "react-router";
-import AdminSideBar from "./components/Admin/AdminSideBar";
-import colors from "./components/ui/color";
+import { Toaster } from 'react-hot-toast';
+import { Outlet } from 'react-router';
+import AdminSideBar from './components/Admin/AdminSideBar';
+import colors from './components/ui/color';
 
 function App() {
   return (
-    <div className="flex h-screen" style={{ background: colors.neutral[50] }}>
+    <div className='flex h-screen' style={{ background: colors.neutral[50] }}>
       <AdminSideBar />
-      <main className="flex-1 p-6 overflow-auto">
+      <main className='flex-1 p-6 overflow-auto'>
         <Toaster
-          position="top-right"
+          position='top-right'
           reverseOrder={false}
           toastOptions={{
             success: { duration: 3000 },
             error: { duration: 5000 },
           }}
         />
-        <div className="max-w-7xl mx-auto">
+        <div className='max-w-7xl mx-auto'>
           <Outlet />
         </div>
       </main>

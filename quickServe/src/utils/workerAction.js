@@ -98,11 +98,21 @@ export async function updateWorkerData(prevState, formData) {
       };
     }
 
+    // Handle is_active: can be '1', 1, 'on', true, or boolean
+    const isActiveValue = values.is_active;
+    const isActive =
+      isActiveValue === '1' ||
+      isActiveValue === 1 ||
+      isActiveValue === 'on' ||
+      isActiveValue === true ||
+      isActiveValue === 'true';
+
     console.log('Submitting data:', {
       id,
       service_ids: serviceIds,
       expertise_of_service: expertiseRatings,
-      is_active: values.is_active === 'on' || values.is_active === true,
+      is_active: isActive,
+      raw_is_active: values.is_active,
     });
 
     await workerValidationSchema.validate(
@@ -122,7 +132,7 @@ export async function updateWorkerData(prevState, formData) {
       shift: values.shift,
       feedback: values.feedback,
       image: values.imageUrl || null,
-      is_active: values.is_active === 'on' || values.is_active === true,
+      is_active: isActive,
       // Send as arrays matching backend expectations
       service_ids: serviceIds,
       expertise_of_service: expertiseRatings,
