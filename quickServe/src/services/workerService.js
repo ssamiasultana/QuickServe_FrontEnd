@@ -132,7 +132,7 @@ class WorkerService {
   }
   async getServicecategoryById(serviceId) {
     return this.request(
-      `${API_CONFIG.endpoints.services.getSubServices}/${serviceId}`,
+      `${API_CONFIG.endpoints.services.getSubServices(serviceId)}`,
       {
         method: 'GET',
       }
