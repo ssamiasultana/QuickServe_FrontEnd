@@ -8,15 +8,21 @@ class WorkerService {
     return Cookies.get('auth_token');
   }
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    const { params = {}, ...restOptions } = options;
+
+    const queryString = Object.keys(params).length
+      ? '?' + new URLSearchParams(params).toString()
+      : '';
+
+    const url = `${this.baseURL}${endpoint}${queryString}`;
     const token = this.getToken();
     const config = {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        ...options.headers,
+        ...restOptions.headers,
       },
-      ...options,
+      ...restOptions,
     };
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -50,10 +56,10 @@ class WorkerService {
       method: 'GET',
     });
   }
-  async getPaginatedWorkers(page, limit) {
+  async getPaginatedWorkers(page, perPage) {
     return this.request(API_CONFIG.endpoints.workers.getPaginatedWorkers, {
       method: 'GET',
-      query: { page, limit },
+      params: { page, per_page: perPage },
     });
   }
 

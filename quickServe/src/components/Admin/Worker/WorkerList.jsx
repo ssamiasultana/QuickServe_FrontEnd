@@ -3,20 +3,30 @@ import { usePaginatedWorkers } from '../../../hooks/useWorker';
 import WorkerTable from './WorkerTable';
 
 const WorkerList = () => {
-  const ITEMS_PER_PAGE_OPTIONS = [10, 20];
+  const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50];
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const {
-    data: paginatedWorkers,
+    data: response,
     isLoading,
     error,
+    isFetching,
   } = usePaginatedWorkers(currentPage, itemsPerPage);
-  console.log('paginated data', paginatedWorkers);
 
-  const totalItems = paginatedWorkers?.total || 0;
-  const totalPages =
-    paginatedWorkers?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  console.log('=== WorkerList State ===');
+  console.log('currentPage:', currentPage);
+  console.log('itemsPerPage:', itemsPerPage);
+  console.log('isLoading:', isLoading);
+  console.log('isFetching:', isFetching);
+  console.log('response:', response);
+
+  // Extract data and pagination from response
+  const workers = response?.data || [];
+  const pagination = response?.pagination || {};
+
+  const totalItems = pagination.total || 0;
+  const totalPages = pagination.last_page || 1;
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -25,7 +35,7 @@ const WorkerList = () => {
 
   const handlePageSizeChange = (newPageSize) => {
     setItemsPerPage(newPageSize);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   return (
@@ -50,7 +60,7 @@ const WorkerList = () => {
 
       {!isLoading && !error && (
         <WorkerTable
-          paginatedWorkers={paginatedWorkers}
+          paginatedWorkers={workers}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           totalItems={totalItems}

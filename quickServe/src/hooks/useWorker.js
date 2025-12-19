@@ -16,8 +16,10 @@ export const usePaginatedWorkers = (page, limit) => {
   return useQuery({
     queryKey: ['workers', 'paginated', page, limit],
     queryFn: async () => {
+      console.log('Fetching page:', page, 'limit:', limit); // Debug log
       const response = await workerService.getPaginatedWorkers(page, limit);
-      return response.data || response;
+      console.log('Response received:', response); // Debug log
+      return response;
     },
   });
 };
