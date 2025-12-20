@@ -4,11 +4,12 @@ import {
   Shield,
   UserCircle,
   UserPlus,
-} from "lucide-react";
-import { use } from "react";
+  Wrench,
+} from 'lucide-react';
+import { use } from 'react';
 // import { useLocation, useNavigate } from "react-router";
-import { AuthContext } from "../Context/AuthContext";
-import Sidebar from "../ui/SideBar";
+import { AuthContext } from '../Context/AuthContext';
+import Sidebar from '../ui/SideBar';
 
 const AdminSideBar = () => {
   // const [isCollapsed, setIsCollapsed] = useState(false);
@@ -18,50 +19,56 @@ const AdminSideBar = () => {
   // const [subMenuExpand, setSubMenuExpand] = useState({});
 
   const menuItems = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", link: "/" },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', link: '/' },
     {
-      id: "workers",
+      id: 'workers',
       icon: Briefcase,
-      label: "Workers",
-      link: "/workers",
+      label: 'Workers',
+      link: '/workers',
       hasSubmenu: true,
       subMenu: [
-        { id: "create-worker", label: "Add Worker", link: "/add" },
+        { id: 'create-worker', label: 'Add Worker', link: '/add' },
         {
-          id: "manage-workers",
-          label: "Manage Workers",
-          link: "/manage",
+          id: 'manage-workers',
+          label: 'Manage Workers',
+          link: '/manage',
         },
       ],
     },
     {
-      id: "customers",
+      id: 'customers',
       icon: UserCircle,
-      label: "Customers",
-      link: "/customers",
+      label: 'Customers',
+      link: '/customers',
     },
     {
-      id: "moderators",
+      id: 'moderators',
       icon: Shield,
-      label: "Moderators",
-      link: "/moderators",
+      label: 'Moderators',
+      link: '/moderators',
     },
     {
-      id: "user-signup",
+      id: 'user-signup',
       icon: UserPlus,
-      label: "Create Worker/Moderator",
-      link: "/user-signup",
+      label: 'Create Worker/Moderator',
+      link: '/user-signup',
+    },
+    {
+      id: 'Services',
+      icon: Wrench,
+      label: 'Services',
+      link: '/services',
     },
   ];
 
   return (
-    <div className="flex">
+    <div className='flex'>
       <Sidebar
         user={user}
         menuItems={menuItems}
         onLogout={logout}
         brandName={user.name}
-        activeColor="blue"
+        activeColor='blue'
       />
     </div>
   );

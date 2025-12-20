@@ -4,11 +4,17 @@ import { useDeleteService } from '../../hooks/useWorker';
 import { updateServiceAction } from '../../utils/workerAction';
 import Modal from '../ui/Modal';
 
-function ServiceList({ servicesData, onRefresh }) {
+function ServiceList({
+  servicesData,
+  onRefresh,
+  selectedService,
+  onServiceSelect,
+}) {
   const services = Array.isArray(servicesData)
     ? { data: servicesData }
     : servicesData || { data: [] };
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedServiceForAction, setSelectedServiceForAction] =
+    useState(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -20,64 +26,86 @@ function ServiceList({ servicesData, onRefresh }) {
   );
   const lastUpdateSuccessRef = useRef(false);
 
-  const handleDelete = (service) => {
-    setSelectedService(service);
+  const handleDelete = (e, service) => {
+    e.stopPropagation(); // Prevent triggering filter
+    setSelectedServiceForAction(service);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
-    if (!selectedService) return;
+    if (!selectedServiceForAction) return;
 
     setShowDeleteModal(false);
 
     try {
-      await deleteServiceMutation.mutateAsync(selectedService.id);
-      setSelectedService(null);
+      await deleteServiceMutation.mutateAsync(selectedServiceForAction.id);
+      setSelectedServiceForAction(null);
       onRefresh();
     } catch (error) {
       // Error is handled by the hook
     }
   };
 
-  const handleEdit = (service) => {
-    setSelectedService(service);
+  const handleEdit = (e, service) => {
+    e.stopPropagation(); // Prevent triggering filter
+    setSelectedServiceForAction(service);
     setShowEditModal(true);
     lastUpdateSuccessRef.current = false;
   };
 
   useEffect(() => {
-    // Only refresh once per successful update
     if (updateState?.success && !lastUpdateSuccessRef.current) {
       lastUpdateSuccessRef.current = true;
       setShowEditModal(false);
-      setSelectedService(null);
+      setSelectedServiceForAction(null);
       onRefresh();
     } else if (!updateState?.success) {
       lastUpdateSuccessRef.current = false;
     }
   }, [updateState?.success, onRefresh]);
+
   return (
     <>
       <div className='flex flex-row gap-3 flex-wrap'>
         {services.data?.map((service) => (
           <div
             key={service.id}
-            className='group relative bg-white border border-gray-200 rounded-lg px-4 py-3 
-                     hover:border-blue-400 hover:shadow-md transition-all duration-200'>
+            onClick={() => onServiceSelect(service.id)}
+            className={`group relative border rounded-lg px-4 py-3 cursor-pointer
+                     hover:border-blue-400 hover:shadow-md transition-all duration-200 ${
+                       selectedService === service.id
+                         ? 'bg-blue-600 border-blue-600 text-white'
+                         : 'bg-white border-gray-200'
+                     }`}>
             <div className='flex items-center justify-between gap-3'>
-              <span className='text-gray-800 font-medium'>{service.name}</span>
+              <span
+                className={`font-medium ${
+                  selectedService === service.id
+                    ? 'text-white'
+                    : 'text-gray-800'
+                }`}>
+                {service.name}
+              </span>
 
               <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all'>
                 <button
-                  onClick={() => handleEdit(service)}
+                  onClick={(e) => handleEdit(e, service)}
                   disabled={deleteServiceMutation.isPending || isUpdating}
-                  className='text-gray-400 hover:text-blue-500 transition-all p-1 disabled:opacity-50'>
+                  className={`transition-all p-1 disabled:opacity-50 ${
+                    selectedService === service.id
+                      ? 'text-white hover:text-blue-100'
+                      : 'text-gray-400 hover:text-blue-500'
+                  }`}>
                   <Pencil className='w-4 h-4' />
                 </button>
                 <button
-                  onClick={() => handleDelete(service)}
+                  onClick={(e) => handleDelete(e, service)}
                   disabled={deleteServiceMutation.isPending || isUpdating}
-                  className='text-gray-400 hover:text-red-500 transition-all p-1 disabled:opacity-50'>
+                  className={`transition-all p-1 disabled:opacity-50 ${
+                    selectedService === service.id
+                      ? 'text-white hover:text-red-200'
+                      : 'text-gray-400 hover:text-red-500'
+                  }`}>
                   <X className='w-4 h-4' />
                 </button>
               </div>
@@ -112,7 +140,10 @@ function ServiceList({ servicesData, onRefresh }) {
         }>
         <p className='text-gray-600'>
           Delete{' '}
-          <strong className='text-gray-900'>{selectedService?.name}</strong>?
+          <strong className='text-gray-900'>
+            {selectedServiceForAction?.name}
+          </strong>
+          ?
         </p>
       </Modal>
 
@@ -143,12 +174,12 @@ function ServiceList({ servicesData, onRefresh }) {
           </>
         }>
         <form id='edit-service-form' action={updateAction}>
-          <input type='hidden' name='id' value={selectedService?.id} />
+          <input type='hidden' name='id' value={selectedServiceForAction?.id} />
           <label className='block text-sm font-medium mb-2'>Service Name</label>
           <input
             type='text'
             name='name'
-            defaultValue={selectedService?.name}
+            defaultValue={selectedServiceForAction?.name}
             disabled={isUpdating}
             required
             className='w-full px-4 py-2 border rounded-lg'

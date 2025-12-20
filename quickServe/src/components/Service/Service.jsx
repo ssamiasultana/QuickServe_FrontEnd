@@ -5,7 +5,7 @@ import { createServiceAction } from '../../utils/workerAction';
 import { FormInput } from '../ui/FormInput';
 import ServiceList from './ServiceList';
 
-function Service() {
+function Service({ selectedService, onServiceSelect }) {
   const { data: servicesData, refetch } = useGetServices();
 
   const [state, formAction, isPending] = useActionState(
@@ -15,11 +15,10 @@ function Service() {
   const lastSuccessRef = useRef(false);
 
   useEffect(() => {
-    // Only refresh if this is a NEW success (not a re-render of the same success state)
     if (state?.success && !lastSuccessRef.current) {
       lastSuccessRef.current = true;
       refetch();
-      setShowForm(false); // Close form on success
+      setShowForm(false);
     } else if (!state?.success) {
       lastSuccessRef.current = false;
     }
@@ -88,7 +87,12 @@ function Service() {
         )}
 
         <div>
-          <ServiceList servicesData={servicesData} onRefresh={refetch} />
+          <ServiceList
+            servicesData={servicesData}
+            onRefresh={refetch}
+            selectedService={selectedService}
+            onServiceSelect={onServiceSelect}
+          />
         </div>
       </div>
     </div>

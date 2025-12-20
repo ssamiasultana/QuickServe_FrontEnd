@@ -8,6 +8,7 @@ import Dashboard from '../components/Admin/Dashboard.jsx';
 import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
 import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
+import Services from '../components/Admin/Services/Services.jsx';
 import SingleWorker from '../components/Admin/Worker/SingleWorker.jsx';
 import WorkerList from '../components/Admin/Worker/WorkerList.jsx';
 import ForgotPassword from '../components/auth/ForgotPassword.jsx';
@@ -38,6 +39,7 @@ const routes = createBrowserRouter([
       { path: '/workers/:id', Component: SingleWorker },
       { path: 'user-signup', Component: Register },
       { path: '/customers', Component: CustomerList },
+      { path: '/services', Component: Services },
     ],
   },
   {

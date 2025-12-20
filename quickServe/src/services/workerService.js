@@ -138,7 +138,7 @@ class WorkerService {
   }
   async getServicecategoryById(serviceId) {
     return this.request(
-      `${API_CONFIG.endpoints.services.getSubServices(serviceId)}`,
+      `${API_CONFIG.endpoints.services.getServicecategoryById(serviceId)}`,
       {
         method: 'GET',
       }
@@ -151,6 +151,17 @@ class WorkerService {
         method: 'GET',
       }
     );
+  }
+  async getSubServices() {
+    return this.request(API_CONFIG.endpoints.services.getSubServices, {
+      method: 'GET',
+    });
+  }
+  async postSubServices(subServiceData) {
+    return this.request(API_CONFIG.endpoints.services.postSubServices, {
+      method: 'POST',
+      body: JSON.stringify(subServiceData),
+    });
   }
 }
 

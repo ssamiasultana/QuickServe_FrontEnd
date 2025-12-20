@@ -7,7 +7,6 @@ import {
   Users,
 } from 'lucide-react';
 import { useWorkers } from '../../hooks/useWorker';
-import Service from '../Service/Service';
 import Card from '../ui/Card';
 function Dashboard() {
   const { data: workersData, isLoading } = useWorkers();
@@ -94,8 +93,6 @@ function Dashboard() {
             </div>
           </Card>
         </div>
-
-        <Service />
       </div>
     </div>
   );

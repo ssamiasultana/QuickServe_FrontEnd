@@ -18,7 +18,10 @@ const API_CONFIG = {
       createService: '/services',
       updateService: '/services',
       deleteService: '/services',
-      getSubServices: (serviceId) => `/service-subcategories/${serviceId}`,
+      getServicecategoryById: (serviceId) =>
+        `/service-subcategories/${serviceId}`,
+      getSubServices: '/service-subcategories',
+      postSubServices: '/service-subcategories',
     },
     auth: {
       signUp: '/signup',
