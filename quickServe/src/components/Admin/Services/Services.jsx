@@ -35,34 +35,8 @@ function Services() {
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      {/* Service Component Section */}
-      <div className='bg-white'>
-        <div className='max-w-7xl mx-auto px-6 py-6'>
-          <Service
-            selectedService={selectedService}
-            onServiceSelect={handleServiceClick}
-          />
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className='h-px bg-gray-200'></div>
-
-      {/* Filter Section */}
       <div className='bg-white border-b border-gray-200'>
         <div className='max-w-7xl mx-auto px-6 py-4'>
-          {/* Header with Add Button */}
-          <div className='flex items-center justify-between mb-4'>
-            <h2 className='text-2xl font-bold text-gray-900'>Sub Services</h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm'>
-              <Plus size={20} />
-              <span>Add Sub Service</span>
-            </button>
-          </div>
-
-          {/* Service Filter Chips */}
           <div className='flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide mb-3'>
             <span className='text-sm text-gray-600 font-medium whitespace-nowrap'>
               Filter:
@@ -139,9 +113,29 @@ function Services() {
           </div>
         </div>
       </div>
+      <div className='bg-white'>
+        <div className='max-w-7xl mx-auto px-6 py-6'>
+          <Service
+            selectedService={selectedService}
+            onServiceSelect={handleServiceClick}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className='h-px bg-gray-200'></div>
 
       {/* Sub Services Cards Section */}
       <div className='max-w-7xl mx-auto px-6 py-6'>
+        <div className='flex items-center justify-between mb-4'>
+          <h2 className='text-2xl font-bold text-gray-900'>Sub Services</h2>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm'>
+            <Plus size={20} />
+            <span>Add Sub Service</span>
+          </button>
+        </div>
         {filteredSubservices.length > 0 ? (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
             {filteredSubservices.map((subservice) => (

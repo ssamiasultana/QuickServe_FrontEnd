@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -9,6 +9,16 @@ export default defineConfig({
         plugins: [['babel-plugin-react-compiler']],
       },
     }),
-    tailwindcss(),
+    tailwindcss({
+      theme: {
+        extend: {
+          opacity: {
+            15: '0.15',
+            35: '0.35',
+            65: '0.65',
+          },
+        },
+      },
+    }),
   ],
-})
+});
