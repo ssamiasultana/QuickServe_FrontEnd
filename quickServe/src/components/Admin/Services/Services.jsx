@@ -1,13 +1,20 @@
-import { Clock, DollarSign, Filter, Tag, X } from 'lucide-react';
+import { Clock, DollarSign, Filter, Plus, Tag, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useGetSubServices } from '../../../hooks/useServiceCategory';
+import { useGetServices } from '../../../hooks/useWorker';
 import Service from '../../Service/Service';
+import AddSubService from './AddSubService';
 
 function Services() {
   const [selectedService, setSelectedService] = useState(null);
   const [priceFilter, setPriceFilter] = useState('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: subserviceData = [] } = useGetSubServices();
+  const { data: servicesData } = useGetServices();
+  const services = Array.isArray(servicesData)
+    ? servicesData
+    : servicesData?.data || [];
 
   const filteredSubservices = subserviceData.filter((sub) => {
     const matchesService =
@@ -28,9 +35,34 @@ function Services() {
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      <div className='bg-white border-b border-gray-200'></div>
+      {/* Service Component Section */}
       <div className='bg-white'>
         <div className='max-w-7xl mx-auto px-6 py-6'>
+          <Service
+            selectedService={selectedService}
+            onServiceSelect={handleServiceClick}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className='h-px bg-gray-200'></div>
+
+      {/* Filter Section */}
+      <div className='bg-white border-b border-gray-200'>
+        <div className='max-w-7xl mx-auto px-6 py-4'>
+          {/* Header with Add Button */}
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-2xl font-bold text-gray-900'>Sub Services</h2>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm'>
+              <Plus size={20} />
+              <span>Add Sub Service</span>
+            </button>
+          </div>
+
+          {/* Service Filter Chips */}
           <div className='flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide mb-3'>
             <span className='text-sm text-gray-600 font-medium whitespace-nowrap'>
               Filter:
@@ -45,55 +77,71 @@ function Services() {
               All Services
             </button>
           </div>
-          <Service
-            selectedService={selectedService}
-            onServiceSelect={handleServiceClick}
-          />
+
+          {/* Price Type Filter */}
+          <div className='flex items-center gap-2'>
+            <Filter size={16} className='text-gray-500' />
+            <span className='text-sm text-gray-600 font-medium'>
+              Price Type:
+            </span>
+            <div className='flex gap-2'>
+              <button
+                onClick={() => setPriceFilter('all')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  priceFilter === 'all'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}>
+                All
+              </button>
+              <button
+                onClick={() => setPriceFilter('fixed')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  priceFilter === 'fixed'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-white text-green-700 border border-green-300 hover:bg-green-50'
+                }`}>
+                Fixed
+              </button>
+              <button
+                onClick={() => setPriceFilter('hourly')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  priceFilter === 'hourly'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-purple-700 border border-purple-300 hover:bg-purple-50'
+                }`}>
+                Hourly
+              </button>
+            </div>
+            {(selectedService || priceFilter !== 'all') && (
+              <button
+                onClick={clearFilters}
+                className='ml-auto flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900'>
+                <X size={14} />
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {/* Results Count */}
+          <div className='mt-4'>
+            <p className='text-sm text-gray-600'>
+              Showing{' '}
+              <span className='font-semibold text-gray-900'>
+                {filteredSubservices.length}
+              </span>{' '}
+              of{' '}
+              <span className='font-semibold text-gray-900'>
+                {subserviceData.length}
+              </span>{' '}
+              sub services
+            </p>
+          </div>
         </div>
       </div>
 
+      {/* Sub Services Cards Section */}
       <div className='max-w-7xl mx-auto px-6 py-6'>
-        <div className='flex items-center gap-2'>
-          <Filter size={16} className='text-gray-500' />
-          <span className='text-sm text-gray-600 font-medium'>Price Type:</span>
-          <div className='flex gap-2'>
-            <button
-              onClick={() => setPriceFilter('all')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                priceFilter === 'all'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}>
-              All
-            </button>
-            <button
-              onClick={() => setPriceFilter('fixed')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                priceFilter === 'fixed'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-green-700 border border-green-300 hover:bg-green-50'
-              }`}>
-              Fixed
-            </button>
-            <button
-              onClick={() => setPriceFilter('hourly')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                priceFilter === 'hourly'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white text-purple-700 border border-purple-300 hover:bg-purple-50'
-              }`}>
-              Hourly
-            </button>
-          </div>
-          {(selectedService || priceFilter !== 'all') && (
-            <button
-              onClick={clearFilters}
-              className='ml-auto flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900'>
-              <X size={14} />
-              Clear filters
-            </button>
-          )}
-        </div>
         {filteredSubservices.length > 0 ? (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
             {filteredSubservices.map((subservice) => (
@@ -170,6 +218,12 @@ function Services() {
           </div>
         )}
       </div>
+
+      <AddSubService
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        services={services}
+      />
     </div>
   );
 }
