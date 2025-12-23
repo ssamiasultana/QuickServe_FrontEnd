@@ -31,6 +31,12 @@ const API_CONFIG = {
     customers: {
       getAll: '/customers',
     },
+    booking: {
+      createBooking: '/booking',
+      // Get all bookings for a specific customer
+      getCustomerBookings: (customerID) => `/booking/customer/${customerID}`,
+      batchBooking: '/booking/batch',
+    },
   },
   timeout: 10000,
 };

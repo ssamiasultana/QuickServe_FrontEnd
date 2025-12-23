@@ -61,6 +61,7 @@ const CustomerDashboard = () => {
 
   const handleConditionalClick = () => {
     if (isAuthenticated) {
+      is;
       navigate('/customer/manage-workers');
     } else {
       setShowModal(true);
@@ -163,7 +164,7 @@ const CustomerDashboard = () => {
                 Find Workers Now
               </button>
               <button
-                onClick={() => {}}
+                onClick={navigate('/customer/my-booking')}
                 className='px-8 py-4 rounded-lg font-semibold transition-all duration-300 border transform hover:scale-105'
                 style={{
                   borderColor: colors.accent[600],

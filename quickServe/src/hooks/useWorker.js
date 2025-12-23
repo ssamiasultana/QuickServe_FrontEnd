@@ -62,7 +62,7 @@ export const useUpdateWorker = () => {
     mutationFn: ({ id, data }) => workerService.updateWorker(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workers'] });
-      toast.success('Worker updated successfully!');
+      // toast.success('Worker updated successfully!');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update worker');
