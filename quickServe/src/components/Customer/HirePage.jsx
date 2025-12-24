@@ -601,7 +601,7 @@ function HirePage() {
       </div>
 
       {showPaymentModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
           <div className='bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
             <div className='sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center'>
               <div className='flex items-center gap-3'>
@@ -731,34 +731,6 @@ function HirePage() {
                     <input
                       type='radio'
                       name='payment'
-                      value='bkash'
-                      checked={paymentMethod === 'bkash'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className='w-4 h-4 text-blue-600'
-                    />
-                    <div className='flex-1'>
-                      <p className='font-medium text-gray-900'>bKash</p>
-                      <p className='text-xs text-gray-500'>Mobile payment</p>
-                    </div>
-                  </label>
-                  <label className='flex items-center gap-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors'>
-                    <input
-                      type='radio'
-                      name='payment'
-                      value='nagad'
-                      checked={paymentMethod === 'nagad'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className='w-4 h-4 text-blue-600'
-                    />
-                    <div className='flex-1'>
-                      <p className='font-medium text-gray-900'>Nagad</p>
-                      <p className='text-xs text-gray-500'>Mobile payment</p>
-                    </div>
-                  </label>
-                  <label className='flex items-center gap-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors'>
-                    <input
-                      type='radio'
-                      name='payment'
                       value='cash'
                       checked={paymentMethod === 'cash'}
                       onChange={(e) => setPaymentMethod(e.target.value)}
@@ -793,7 +765,7 @@ function HirePage() {
                       Processing...
                     </>
                   ) : (
-                    'Proceed to Payment'
+                    'Confirm'
                   )}
                 </button>
               </div>

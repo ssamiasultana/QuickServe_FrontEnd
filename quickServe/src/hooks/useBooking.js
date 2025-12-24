@@ -10,12 +10,6 @@ export const useCreateBooking = () => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       toast.success('Booking request has been sent successfully');
-
-      if (response?.data?.total_bookings) {
-        toast.success(
-          `${response.data.total_bookings} service(s) booked successfully!`
-        );
-      }
     },
     onError: (error) => {
       toast.error(error?.message || 'Failed to create booking');
