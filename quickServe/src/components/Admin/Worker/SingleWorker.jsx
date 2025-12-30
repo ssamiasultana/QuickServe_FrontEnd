@@ -1,8 +1,16 @@
-import { ArrowLeft, Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle,
+  ShieldCheck,
+  Star,
+} from 'lucide-react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { AuthContext } from '../../../components/Context/AuthContext';
 import { useGetSingleWorker } from '../../../hooks/useWorker';
 import { calculateAverageRating } from '../../../utils/util';
+import NIDVerificationModal from './NIDVerificationModal';
 
 function SingleWorker() {
   const params = useParams();
@@ -16,6 +24,11 @@ function SingleWorker() {
   } = useGetSingleWorker(id);
 
   const [averageRating, setAverageRating] = useState(0);
+  const [nidVerificationModal, setNidVerificationModal] = useState({
+    open: false,
+  });
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === 'Admin';
 
   useEffect(() => {
     if (worker && worker.expertise_of_service) {
@@ -262,6 +275,127 @@ function SingleWorker() {
             {worker.feedback}
           </p>
         </div>
+      )}
+
+      {/* NID Verification Section */}
+      {worker.nid && (
+        <div className='bg-white rounded-lg border border-gray-200 p-6'>
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-lg font-semibold text-gray-900 flex items-center gap-2'>
+              <ShieldCheck className='w-5 h-5 text-blue-600' />
+              National ID Verification
+            </h2>
+            {isAdmin && (
+              <button
+                onClick={() => setNidVerificationModal({ open: true })}
+                className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2'>
+                <ShieldCheck className='w-4 h-4' />
+                {worker.nid_verified ? 'Update Verification' : 'Verify NID'}
+              </button>
+            )}
+          </div>
+
+          <div className='space-y-4'>
+            {/* NID Number */}
+            <div>
+              <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                NID Number
+              </label>
+              <div className='p-3 bg-gray-50 rounded-lg border border-gray-200'>
+                <p className='text-lg font-mono font-semibold text-gray-900'>
+                  {worker.nid}
+                </p>
+              </div>
+            </div>
+
+            {/* Verification Status */}
+            <div>
+              <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                Verification Status
+              </label>
+              <div
+                className={`p-3 rounded-lg flex items-center gap-2 ${
+                  worker.nid_verified
+                    ? 'bg-green-50 border border-green-200'
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}>
+                {worker.nid_verified ? (
+                  <>
+                    <CheckCircle className='w-5 h-5 text-green-600' />
+                    <span className='font-medium text-green-800'>
+                      Verified
+                      {worker.nid_verified_at && (
+                        <span className='ml-2 text-sm text-green-600'>
+                          on{' '}
+                          {new Date(
+                            worker.nid_verified_at
+                          ).toLocaleDateString()}
+                        </span>
+                      )}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className='w-5 h-5 text-yellow-600' />
+                    <span className='font-medium text-yellow-800'>
+                      Pending Verification
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* NID Images */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                  NID Front Image
+                </label>
+                {worker.nid_front_image ? (
+                  <div className='border border-gray-200 rounded-lg overflow-hidden'>
+                    <img
+                      src={worker.nid_front_image}
+                      alt='NID Front'
+                      className='w-full h-64 object-contain bg-gray-50'
+                    />
+                  </div>
+                ) : (
+                  <div className='border border-gray-200 rounded-lg p-8 text-center bg-gray-50'>
+                    <p className='text-sm text-gray-500'>No image provided</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                  NID Back Image
+                </label>
+                {worker.nid_back_image ? (
+                  <div className='border border-gray-200 rounded-lg overflow-hidden'>
+                    <img
+                      src={worker.nid_back_image}
+                      alt='NID Back'
+                      className='w-full h-64 object-contain bg-gray-50'
+                    />
+                  </div>
+                ) : (
+                  <div className='border border-gray-200 rounded-lg p-8 text-center bg-gray-50'>
+                    <p className='text-sm text-gray-500'>No image provided</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NID Verification Modal */}
+      {isAdmin && (
+        <NIDVerificationModal
+          isOpen={nidVerificationModal.open}
+          onClose={() => setNidVerificationModal({ open: false })}
+          worker={worker}
+        />
       )}
     </div>
   );

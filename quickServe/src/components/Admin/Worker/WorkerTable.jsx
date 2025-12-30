@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useDeleteWorker, useUpdateWorker } from '../../../hooks/useWorker';
@@ -7,6 +7,7 @@ import { getShiftColor } from '../../../utils/util';
 import colors from '../../ui/color';
 import Modal from '../../ui/Modal';
 import Table from '../../ui/table';
+import NIDVerificationModal from './NIDVerificationModal';
 import UpdateModal from './UpdateModal';
 
 const WorkerTable = ({
@@ -27,6 +28,10 @@ const WorkerTable = ({
 
   const [editModal, setEditModal] = useState({ open: false, worker: null });
   const [deleteModal, setDeleteModal] = useState({ open: false, worker: null });
+  const [nidVerificationModal, setNidVerificationModal] = useState({
+    open: false,
+    worker: null,
+  });
   const lastDeleteSuccessRef = useRef(false);
 
   const handlePageSizeChange = (e) => {
@@ -128,7 +133,7 @@ const WorkerTable = ({
               backgroundColor: isActive ? colors.success[50] : colors.error[50],
               color: isActive ? colors.success[500] : colors.error[500],
               border: `1px solid ${
-                isActive ? colors.success[200] : colors.error[500]
+                isActive ? colors.success[500] : colors.error[500]
               }`,
             }}>
             {isActive ? 'Active' : 'Inactive'}
@@ -136,7 +141,52 @@ const WorkerTable = ({
         );
       },
     },
+    {
+      header: 'NID Verification',
+      accessor: (item) => {
+        if (!item.nid) {
+          return (
+            <span
+              className='px-2.5 py-1 rounded-md text-xs font-medium inline-block'
+              style={{
+                backgroundColor: colors.neutral[100],
+                color: colors.neutral[600],
+                border: `1px solid ${colors.neutral[300]}`,
+              }}>
+              No NID
+            </span>
+          );
+        }
 
+        const isVerified = item.nid_verified;
+        return (
+          <div className='flex items-center gap-2'>
+            <span
+              className='px-2.5 py-1 rounded-md text-xs font-medium inline-block'
+              style={{
+                backgroundColor: isVerified
+                  ? colors.success[50]
+                  : colors.warning[50],
+                color: isVerified ? colors.success[500] : colors.warning[500],
+                border: `1px solid ${
+                  isVerified ? colors.success[500] : colors.warning[500]
+                }`,
+              }}>
+              {isVerified ? 'Verified' : 'Pending'}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setNidVerificationModal({ open: true, worker: item });
+              }}
+              className='p-1 rounded hover:bg-gray-100 transition-colors'
+              title='Verify NID'>
+              <ShieldCheck className='w-4 h-4 text-gray-600 cursor-pointer' />
+            </button>
+          </div>
+        );
+      },
+    },
     {
       header: 'Shift',
       accessor: (item) => {
@@ -212,6 +262,12 @@ const WorkerTable = ({
         setEditModal={setEditModal}
         onWorkerUpdate={handleWorkerUpdate}
         isUpdating={isUpdating}
+      />
+
+      <NIDVerificationModal
+        isOpen={nidVerificationModal.open}
+        onClose={() => setNidVerificationModal({ open: false, worker: null })}
+        worker={nidVerificationModal.worker}
       />
 
       <Modal
