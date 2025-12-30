@@ -2,6 +2,7 @@ import { Edit } from 'lucide-react';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useGetServices } from '../../../hooks/useWorker';
+import { uploadImageToCloudinary } from '../../../utils/cloudinaryUpload';
 import { SHIFT_OPTIONS } from '../../../utils/constants';
 import { updateWorkerData } from '../../../utils/workerAction';
 import { FormCheckboxGroup } from '../../ui/FormCheckbox';
@@ -18,16 +19,27 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
   const [selectedServices, setSelectedServices] = useState([]);
   const [serviceRatings, setServiceRatings] = useState({});
 
+  // NID image upload states
+  const [nidFrontPreview, setNidFrontPreview] = useState(null);
+  const [nidBackPreview, setNidBackPreview] = useState(null);
+  const [nidFrontUrl, setNidFrontUrl] = useState(null);
+  const [nidBackUrl, setNidBackUrl] = useState(null);
+  const [uploadingNidFront, setUploadingNidFront] = useState(false);
+  const [uploadingNidBack, setUploadingNidBack] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     age: '',
+    nid: '',
     shift: '',
     rating: 0,
     feedback: '',
     imageUrl: '',
     is_active: '',
+    nid_front_image: '',
+    nid_back_image: '',
   });
 
   const [state, formAction, isPending] = useActionState(updateWorkerData, {
@@ -69,12 +81,25 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
         email: worker.email || '',
         phone: worker.phone || '',
         age: worker.age || '',
+        nid: worker.nid || '',
         shift: worker.shift || '',
         rating: worker.rating || 0,
         feedback: worker.feedback || '',
         imageUrl: worker.image || '',
-        is_active: Boolean(worker.is_active), // Ensure boolean
+        is_active: Boolean(worker.is_active),
+        nid_front_image: worker.nid_front_image || '',
+        nid_back_image: worker.nid_back_image || '',
       });
+
+      // Set NID image previews
+      if (worker.nid_front_image) {
+        setNidFrontPreview(worker.nid_front_image);
+        setNidFrontUrl(worker.nid_front_image);
+      }
+      if (worker.nid_back_image) {
+        setNidBackPreview(worker.nid_back_image);
+        setNidBackUrl(worker.nid_back_image);
+      }
 
       setSelectedServices(serviceIds);
       const ratingsObj = {};
@@ -136,6 +161,75 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
     }));
   };
 
+  const handleNidImageChange = async (event, side) => {
+    const file = event.currentTarget.files[0];
+    if (file) {
+      const validateTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/jpg',
+        'image/gif',
+        'image/webp',
+      ];
+      if (!validateTypes.includes(file.type)) {
+        toast.error('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+        event.target.value = '';
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image size should be less than 2MB');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (side === 'front') {
+          setNidFrontPreview(reader.result);
+        } else {
+          setNidBackPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+
+      if (side === 'front') {
+        setUploadingNidFront(true);
+      } else {
+        setUploadingNidBack(true);
+      }
+
+      try {
+        const url = await uploadImageToCloudinary(file);
+        if (side === 'front') {
+          setNidFrontUrl(url);
+          setFormData((prev) => ({ ...prev, nid_front_image: url }));
+        } else {
+          setNidBackUrl(url);
+          setFormData((prev) => ({ ...prev, nid_back_image: url }));
+        }
+        toast.success(`NID ${side} image uploaded successfully`);
+      } catch (error) {
+        toast.error(`Failed to upload NID ${side} image: ${error.message}`);
+        event.target.value = '';
+        if (side === 'front') {
+          setNidFrontPreview(null);
+          setNidFrontUrl(null);
+          setFormData((prev) => ({ ...prev, nid_front_image: '' }));
+        } else {
+          setNidBackPreview(null);
+          setNidBackUrl(null);
+          setFormData((prev) => ({ ...prev, nid_back_image: '' }));
+        }
+      } finally {
+        if (side === 'front') {
+          setUploadingNidFront(false);
+        } else {
+          setUploadingNidBack(false);
+        }
+      }
+    }
+  };
+
   const handleServiceChange = (serviceId, isChecked) => {
     if (isChecked) {
       setSelectedServices([...selectedServices, serviceId]);
@@ -165,6 +259,8 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
         <input type='hidden' name='id' value={editModal.worker?.id || ''} />
         <input type='hidden' name='imageUrl' value={formData.imageUrl || ''} />
         <input type='hidden' name='rating' value={formData.rating || 0} />
+        <input type='hidden' name='nid_front_image' value={nidFrontUrl || ''} />
+        <input type='hidden' name='nid_back_image' value={nidBackUrl || ''} />
 
         {/* Always send is_active value - critical for preventing unwanted changes */}
         <input
@@ -206,7 +302,7 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
       onClose={handleClose}
       title='Edit Worker'
       icon={Edit}
-      size='lg'
+      size='2xl'
       className='max-h-[90vh]'
       footer={
         <>
@@ -275,6 +371,105 @@ function UpdateModal({ editModal, setEditModal, onWorkerUpdate }) {
               required
               error={state.errors?.age}
             />
+          </div>
+        </div>
+
+        {/* National ID Verification Section */}
+        <div>
+          <h3 className='text-md font-semibold text-slate-800 mb-4 pb-2 border-b border-purple-100'>
+            National ID Verification
+          </h3>
+
+          <div className='mb-4'>
+            <FormInput
+              label='NID Number'
+              name='nid'
+              value={formData.nid}
+              onChange={handleInputChange}
+              placeholder='Enter 10, 13, or 17 digit NID'
+              required
+              error={state.errors?.nid}
+            />
+            <p className='mt-1 text-xs text-gray-500'>
+              Supported formats: 10-digit (old) or 13/17-digit (new) Bangladesh
+              NID
+            </p>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
+            <div>
+              <label className='block text-sm mb-2 text-gray-600 font-semibold'>
+                NID Front Image
+              </label>
+              <input
+                type='file'
+                accept='image/*'
+                onChange={(e) => handleNidImageChange(e, 'front')}
+                disabled={uploadingNidFront}
+                className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
+              />
+              {uploadingNidFront && (
+                <p className='mt-2 text-sm text-purple-600'>
+                  Uploading NID front image...
+                </p>
+              )}
+              {nidFrontUrl && (
+                <p className='mt-2 text-sm text-green-600'>
+                  NID front image ready for update
+                </p>
+              )}
+              {nidFrontPreview && (
+                <div className='mt-3'>
+                  <img
+                    src={nidFrontPreview}
+                    alt='NID Front Preview'
+                    className='w-full h-32 object-contain rounded-lg border border-gray-200 bg-gray-50'
+                  />
+                </div>
+              )}
+              {state.errors?.nid_front_image && (
+                <p className='text-sm mt-2 text-red-500'>
+                  {state.errors.nid_front_image}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className='block text-sm mb-2 text-gray-600 font-semibold'>
+                NID Back Image
+              </label>
+              <input
+                type='file'
+                accept='image/*'
+                onChange={(e) => handleNidImageChange(e, 'back')}
+                disabled={uploadingNidBack}
+                className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
+              />
+              {uploadingNidBack && (
+                <p className='mt-2 text-sm text-purple-600'>
+                  Uploading NID back image...
+                </p>
+              )}
+              {nidBackUrl && (
+                <p className='mt-2 text-sm text-green-600'>
+                  NID back image ready for update
+                </p>
+              )}
+              {nidBackPreview && (
+                <div className='mt-3'>
+                  <img
+                    src={nidBackPreview}
+                    alt='NID Back Preview'
+                    className='w-full h-32 object-contain rounded-lg border border-gray-200 bg-gray-50'
+                  />
+                </div>
+              )}
+              {state.errors?.nid_back_image && (
+                <p className='text-sm mt-2 text-red-500'>
+                  {state.errors.nid_back_image}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
