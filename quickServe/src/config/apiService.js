@@ -12,6 +12,8 @@ const API_CONFIG = {
       getPaginatedWorkers: '/workers/paginated',
       searchWorkers: '/workers/search',
       getWorkersByService: (serviceId) => `/workers/${serviceId}`,
+      verifyNid: (id) => `/workers/${id}/verify-nid`,
+      checkNid: '/workers/check-nid',
     },
     services: {
       getServices: '/getServices',

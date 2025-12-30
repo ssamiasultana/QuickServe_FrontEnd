@@ -3,8 +3,6 @@ import { workerValidationSchema } from '../validation/workerValidation';
 
 export const submitWorkerData = async (prevState, formData) => {
   try {
-    // const serviceTypeArray = formData.getAll("service_type[]");
-
     const serviceIds = formData
       .getAll('service_ids[]')
       .map((id) => parseInt(id));
@@ -13,17 +11,16 @@ export const submitWorkerData = async (prevState, formData) => {
       .map((rating) => parseInt(rating));
 
     const values = Object.fromEntries(formData);
-    console.log({ values });
-    const imageUrl = values.imageUrl || '';
-    // const serviceRatings = {};
-    // serviceTypeArray.forEach((serviceName) => {
-    //   const ratingKey = `service_rating_${serviceName}`;
-    //   const rating = formData.get(ratingKey);
-    //   if (rating) {
-    //     serviceRatings[serviceName] = parseInt(rating);
-    //   }
-    // });
+    console.log('Form values:', { values });
 
+    // Ensure age is properly parsed
+    const ageValue = values.age;
+    const parsedAge = ageValue ? parseInt(ageValue, 10) : null;
+    console.log('Age parsing:', { ageValue, parsedAge });
+
+    const imageUrl = values.imageUrl || '';
+    const nidFrontImage = values.nid_front_image || '';
+    const nidBackImage = values.nid_back_image || '';
     await workerValidationSchema.validate(
       { ...values, service_type: serviceIds },
       { abortEarly: false }
@@ -34,8 +31,10 @@ export const submitWorkerData = async (prevState, formData) => {
       name: values.name,
       email: values.email,
       phone: values.phone,
-      age: values.age ? parseInt(values.age) : null,
-
+      age: parsedAge,
+      nid: values.nid,
+      nid_front_image: nidFrontImage || null,
+      nid_back_image: nidBackImage || null,
       shift: values.shift,
       feedback: values.feedback,
       service_ids: serviceIds,
@@ -47,7 +46,7 @@ export const submitWorkerData = async (prevState, formData) => {
 
     return {
       success: true,
-      message: 'Worker registered successfully!',
+      message: 'Worker registered successfully! NID verification pending.',
       data: response.data || response,
       errors: {},
     };
@@ -130,6 +129,9 @@ export async function updateWorkerData(prevState, formData) {
       phone: values.phone,
       age: values.age ? parseInt(values.age) : null,
       shift: values.shift,
+      nid: values.nid,
+      nid_front_image: values.nid_front_image || null,
+      nid_back_image: values.nid_back_image || null,
       feedback: values.feedback,
       image: values.imageUrl || null,
       is_active: isActive,
@@ -253,6 +255,45 @@ export async function updateServiceAction(prevState, formData) {
       message: error.message || 'Failed to update service',
       errors: {},
       data: null,
+    };
+  }
+}
+
+export async function verifyWorkerNID(workerId, verified, notes = '') {
+  try {
+    const response = await workerService.verifyNID(workerId, verified, notes);
+
+    return {
+      success: true,
+      message: verified
+        ? 'NID verified successfully'
+        : 'NID verification revoked',
+      data: response.data || response,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || 'Failed to verify NID',
+    };
+  }
+}
+export async function checkNIDAvailability(nid, excludeWorkerId = null) {
+  try {
+    const response = await workerService.checkNIDAvailability(
+      nid,
+      excludeWorkerId
+    );
+
+    return {
+      success: true,
+      available: response.available,
+      message: response.message,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      available: false,
+      message: error.message || 'Failed to check NID availability',
     };
   }
 }

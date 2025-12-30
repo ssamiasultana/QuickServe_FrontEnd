@@ -105,6 +105,26 @@ class WorkerService {
       method: 'GET',
     });
   }
+  async verifyNID(workerId, verified, notes = '') {
+    return this.request(`/workers/${workerId}/verify-nid`, {
+      method: 'POST',
+      body: JSON.stringify({
+        verified,
+        notes,
+      }),
+    });
+  }
+
+  // Check NID availability
+  async checkNIDAvailability(nid, excludeWorkerId = null) {
+    return this.request('/workers/check-nid', {
+      method: 'POST',
+      data: {
+        nid,
+        exclude_worker_id: excludeWorkerId,
+      },
+    });
+  }
 
   async getServices() {
     return this.request(API_CONFIG.endpoints.services.getServices, {

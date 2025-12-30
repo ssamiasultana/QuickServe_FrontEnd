@@ -16,6 +16,13 @@ export default function AddWorker({ isAdminMode = false }) {
   const [uploading, setUploading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState();
 
+  const [nidFrontPreview, setNidFrontPreview] = useState(null);
+  const [nidBackPreview, setNidBackPreview] = useState(null);
+  const [nidFrontUrl, setNidFrontUrl] = useState(null);
+  const [nidBackUrl, setNidBackUrl] = useState(null);
+  const [uploadingNidFront, setUploadingNidFront] = useState(false);
+  const [uploadingNidBack, setUploadingNidBack] = useState(false);
+
   const { data: usersData } = useGetAllUsers();
   const users = usersData || [];
 
@@ -24,6 +31,7 @@ export default function AddWorker({ isAdminMode = false }) {
     name: '',
     email: '',
     age: '',
+    nid: '',
     phone: '',
     shift: '',
     rating: '',
@@ -51,6 +59,7 @@ export default function AddWorker({ isAdminMode = false }) {
         email: '',
         age: '',
         phone: '',
+        nid: '',
         shift: '',
         rating: '',
         feedback: '',
@@ -60,6 +69,10 @@ export default function AddWorker({ isAdminMode = false }) {
       setServiceRatings({});
       setPreview(null);
       setImageUrl(null);
+      setNidFrontPreview(null);
+      setNidBackPreview(null);
+      setNidFrontUrl(null);
+      setNidBackUrl(null);
       setSelectedUserId('');
 
       const fileInput = document.querySelector('input[type="file"]');
@@ -133,6 +146,72 @@ export default function AddWorker({ isAdminMode = false }) {
       setImageUrl(null);
     }
   };
+
+  const handleNidImageChange = async (event, side) => {
+    const file = event.currentTarget.files[0];
+    if (file) {
+      const validateTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/jpg',
+        'image/gif',
+        'image/webp',
+      ];
+      if (!validateTypes.includes(file.type)) {
+        toast.error('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+        event.target.value = '';
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image size should be less than 2MB');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (side === 'front') {
+          setNidFrontPreview(reader.result);
+        } else {
+          setNidBackPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+
+      if (side === 'front') {
+        setUploadingNidFront(true);
+      } else {
+        setUploadingNidBack(true);
+      }
+
+      try {
+        const url = await uploadImageToCloudinary(file);
+        if (side === 'front') {
+          setNidFrontUrl(url);
+        } else {
+          setNidBackUrl(url);
+        }
+        toast.success(`NID ${side} image uploaded successfully`);
+      } catch (error) {
+        toast.error(`Failed to upload NID ${side} image: ${error.message}`);
+        event.target.value = '';
+        if (side === 'front') {
+          setNidFrontPreview(null);
+          setNidFrontUrl(null);
+        } else {
+          setNidBackPreview(null);
+          setNidBackUrl(null);
+        }
+      } finally {
+        if (side === 'front') {
+          setUploadingNidFront(false);
+        } else {
+          setUploadingNidBack(false);
+        }
+      }
+    }
+  };
+
   const handleServiceChange = (serviceId, isChecked) => {
     if (isChecked) {
       setSelectedServices([...selectedServices, serviceId]);
@@ -325,6 +404,95 @@ export default function AddWorker({ isAdminMode = false }) {
             </div>
           </div>
 
+          <div className='mb-8'>
+            <h3 className='text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-purple-100'>
+              National ID Verification
+            </h3>
+
+            <div className='mb-6'>
+              <FormInput
+                label='NID Number'
+                name='nid'
+                value={formData.nid}
+                onChange={handleInputChange}
+                placeholder='Enter 10, 13, or 17 digit NID'
+                required
+                error={state.errors?.nid}
+              />
+              <p className='mt-1 text-xs text-gray-500'>
+                Supported formats: 10-digit (old) or 13/17-digit (new)
+                Bangladesh NID
+              </p>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div>
+                <label className='block text-sm mb-2 text-gray-600 font-semibold'>
+                  NID Front Image *
+                </label>
+                <input
+                  type='file'
+                  name='nid_front'
+                  accept='image/*'
+                  onChange={(e) => handleNidImageChange(e, 'front')}
+                  disabled={uploadingNidFront}
+                  className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                />
+                {uploadingNidFront && (
+                  <p className='mt-2 text-sm text-purple-600'>
+                    Uploading NID front image...
+                  </p>
+                )}
+                {nidFrontUrl && (
+                  <p className='mt-2 text-sm text-green-600'>
+                    NID front uploaded!
+                  </p>
+                )}
+                {nidFrontPreview && (
+                  <div className='mt-3'>
+                    <img
+                      src={nidFrontPreview}
+                      alt='NID Front'
+                      className='w-full h-32 object-cover rounded-lg border border-gray-200'
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className='block text-sm mb-2 text-gray-600 font-semibold'>
+                  NID Back Image *
+                </label>
+                <input
+                  type='file'
+                  name='nid_back'
+                  accept='image/*'
+                  onChange={(e) => handleNidImageChange(e, 'back')}
+                  disabled={uploadingNidBack}
+                  className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                />
+                {uploadingNidBack && (
+                  <p className='mt-2 text-sm text-purple-600'>
+                    Uploading NID back image...
+                  </p>
+                )}
+                {nidBackUrl && (
+                  <p className='mt-2 text-sm text-green-600'>
+                    NID back uploaded!
+                  </p>
+                )}
+                {nidBackPreview && (
+                  <div className='mt-3'>
+                    <img
+                      src={nidBackPreview}
+                      alt='NID Back'
+                      className='w-full h-32 object-cover rounded-lg border border-gray-200'
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <div className='mb-6'>
             <h3 className='text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-green-100'>
               Service Information
