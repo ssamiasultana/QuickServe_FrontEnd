@@ -252,6 +252,8 @@ export default function AddWorker({ isAdminMode = false }) {
             value={rating}
           />
         ))}
+        <input type='hidden' name='nid_front_image' value={nidFrontUrl || ''} />
+        <input type='hidden' name='nid_back_image' value={nidBackUrl || ''} />
       </>
     );
   };

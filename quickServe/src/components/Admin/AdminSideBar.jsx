@@ -1,5 +1,6 @@
 import {
   Briefcase,
+  CalendarClock,
   LayoutDashboard,
   Shield,
   UserCircle,
@@ -58,6 +59,12 @@ const AdminSideBar = () => {
       icon: Wrench,
       label: 'Services',
       link: '/services',
+    },
+    {
+      id: 'bookings',
+      icon: CalendarClock, // or CalendarCheck, CalendarClock
+      label: 'Bookings',
+      link: '/bookings',
     },
   ];
 
