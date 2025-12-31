@@ -49,7 +49,7 @@ const NIDVerificationModal = ({ isOpen, onClose, worker }) => {
           <h3 className='font-semibold text-gray-900 mb-3'>
             Worker Information
           </h3>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-3 text-sm'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-3 text-sm'>
             <div>
               <span className='text-gray-600'>Name:</span>
               <span className='ml-2 font-medium text-gray-900'>
@@ -57,8 +57,14 @@ const NIDVerificationModal = ({ isOpen, onClose, worker }) => {
               </span>
             </div>
             <div>
-              <span className='text-gray-600'>Email:</span>
+              <span className='text-gray-600'>Age:</span>
               <span className='ml-2 font-medium text-gray-900'>
+                {worker.age || 'N/A'}
+              </span>
+            </div>
+            <div>
+              <span className='text-gray-600'>Email:</span>
+              <span className='ml-2 font-medium text-gray-900 break-all'>
                 {worker.email}
               </span>
             </div>
@@ -66,12 +72,6 @@ const NIDVerificationModal = ({ isOpen, onClose, worker }) => {
               <span className='text-gray-600'>Phone:</span>
               <span className='ml-2 font-medium text-gray-900'>
                 {worker.phone || 'N/A'}
-              </span>
-            </div>
-            <div>
-              <span className='text-gray-600'>Age:</span>
-              <span className='ml-2 font-medium text-gray-900'>
-                {worker.age || 'N/A'}
               </span>
             </div>
           </div>
