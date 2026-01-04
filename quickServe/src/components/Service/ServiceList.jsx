@@ -5,6 +5,7 @@ import { updateServiceAction } from '../../utils/workerAction';
 import Modal from '../ui/Modal';
 
 function ServiceList({
+  isAdmin,
   servicesData,
   onRefresh,
   selectedService,
@@ -88,26 +89,30 @@ function ServiceList({
               </span>
 
               <div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all'>
-                <button
-                  onClick={(e) => handleEdit(e, service)}
-                  disabled={deleteServiceMutation.isPending || isUpdating}
-                  className={`transition-all p-1 disabled:opacity-50 ${
-                    selectedService === service.id
-                      ? 'text-white hover:text-blue-100'
-                      : 'text-gray-400 hover:text-blue-500'
-                  }`}>
-                  <Pencil className='w-4 h-4' />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(e, service)}
-                  disabled={deleteServiceMutation.isPending || isUpdating}
-                  className={`transition-all p-1 disabled:opacity-50 ${
-                    selectedService === service.id
-                      ? 'text-white hover:text-red-200'
-                      : 'text-gray-400 hover:text-red-500'
-                  }`}>
-                  <X className='w-4 h-4' />
-                </button>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={(e) => handleEdit(e, service)}
+                      disabled={deleteServiceMutation.isPending || isUpdating}
+                      className={`transition-all p-1 disabled:opacity-50 ${
+                        selectedService === service.id
+                          ? 'text-white hover:text-blue-100'
+                          : 'text-gray-400 hover:text-blue-500'
+                      }`}>
+                      <Pencil className='w-4 h-4' />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(e, service)}
+                      disabled={deleteServiceMutation.isPending || isUpdating}
+                      className={`transition-all p-1 disabled:opacity-50 ${
+                        selectedService === service.id
+                          ? 'text-white hover:text-red-200'
+                          : 'text-gray-400 hover:text-red-500'
+                      }`}>
+                      <X className='w-4 h-4' />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

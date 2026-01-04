@@ -5,7 +5,7 @@ import { createServiceAction } from '../../utils/workerAction';
 import { FormInput } from '../ui/FormInput';
 import ServiceList from './ServiceList';
 
-function Service({ selectedService, onServiceSelect }) {
+function Service({ selectedService, onServiceSelect, isAdmin }) {
   const { data: servicesData, refetch } = useGetServices();
 
   const [state, formAction, isPending] = useActionState(
@@ -36,12 +36,14 @@ function Service({ selectedService, onServiceSelect }) {
           <div className='flex items-center gap-3'>
             <div className='flex flex-row items-center gap-2'>
               <p className='text-2xl font-bold text-gray-900 '>Services</p>
-              <button
-                onClick={handleFormToggle}
-                disabled={isPending}
-                className='flex items-center gap-2 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
-                <CirclePlus className='w-6 h-6' />
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={handleFormToggle}
+                  disabled={isPending}
+                  className='flex items-center gap-2 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+                  <CirclePlus className='w-6 h-6' />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -88,6 +90,7 @@ function Service({ selectedService, onServiceSelect }) {
 
         <div>
           <ServiceList
+            isAdmin={isAdmin}
             servicesData={servicesData}
             onRefresh={refetch}
             selectedService={selectedService}

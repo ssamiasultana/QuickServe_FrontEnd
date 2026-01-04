@@ -2,7 +2,6 @@ import colors from '../../ui/color';
 import Table from '../../ui/table';
 
 const CustomerTable = ({ customerData }) => {
-  console.log('customer data', customerData);
   const CustomerColumn = [
     { header: 'Id', accessor: 'id' },
     {
