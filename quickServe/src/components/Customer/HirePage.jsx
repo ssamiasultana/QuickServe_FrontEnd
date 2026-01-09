@@ -8,7 +8,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router';
 import { useCreateBooking } from '../../hooks/useBooking';
@@ -100,7 +100,7 @@ function HirePage() {
     .filter((query) => query.data)
     .map((query) => query.data);
 
-  // Get worker shift with validation (DB currently stores day|night; treat flexible as day to avoid enum truncation)
+  // Get worker shift with validation (DB currently stores day|night|flexible)
   const getWorkerShift = () => {
     if (!worker) return 'day';
     const shift = (
@@ -112,8 +112,9 @@ function HirePage() {
       .toString()
       .toLowerCase();
     if (shift === 'night') return 'night';
-    // Map flexible/other values to day to satisfy current DB enum
-    return 'day'; // default to day
+    if (shift === 'flexible') return 'flexible';
+    // Default to day for other values
+    return 'day';
   };
 
   const workerShift = getWorkerShift();
@@ -238,7 +239,8 @@ function HirePage() {
     return `${hours}:${minutes}:00`;
   };
 
-  const timeSlots = [
+  // Define time slots for day and night shifts
+  const dayTimeSlots = [
     '9:00 AM',
     '10:00 AM',
     '11:00 AM',
@@ -248,6 +250,35 @@ function HirePage() {
     '4:00 PM',
     '5:00 PM',
   ];
+
+  const nightTimeSlots = [
+    '6:00 PM',
+    '7:00 PM',
+    '8:00 PM',
+    '9:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+    '12:00 AM',
+    '1:00 AM',
+  ];
+
+  // Filter time slots based on worker shift
+  const timeSlots = useMemo(() => {
+    if (workerShift === 'night') {
+      return nightTimeSlots;
+    } else if (workerShift === 'flexible') {
+      // Flexible shift workers can work both day and night
+      return [...dayTimeSlots, ...nightTimeSlots];
+    }
+    return dayTimeSlots;
+  }, [workerShift]);
+
+  // Clear selected time if it's not available for the current shift
+  useEffect(() => {
+    if (selectedTime && !timeSlots.includes(selectedTime)) {
+      setSelectedTime('');
+    }
+  }, [timeSlots, selectedTime]);
 
   // Add loading state for booking creation
   const isCreatingBooking = createBookingMutation.isPending;
@@ -568,20 +599,35 @@ function HirePage() {
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
                 Select Time Slot
+                <span className='ml-2 text-xs text-gray-500'>
+                  (
+                  {workerShift === 'night'
+                    ? 'Night'
+                    : workerShift === 'flexible'
+                    ? 'Flexible'
+                    : 'Day'}{' '}
+                  shift available)
+                </span>
               </label>
               <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                      selectedTime === time
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500'
-                    }`}>
-                    {time}
-                  </button>
-                ))}
+                {timeSlots.length > 0 ? (
+                  timeSlots.map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => setSelectedTime(time)}
+                      className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                        selectedTime === time
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500'
+                      }`}>
+                      {time}
+                    </button>
+                  ))
+                ) : (
+                  <p className='text-sm text-gray-500 col-span-full'>
+                    No time slots available for {workerShift} shift
+                  </p>
+                )}
               </div>
             </div>
           </div>
