@@ -30,3 +30,16 @@ export const useGetCustomerBookings = (customerId, options = {}) => {
     ...options,
   });
 };
+
+export const useGetAllBookings = (options = {}) => {
+  return useQuery({
+    queryKey: ['bookings'],
+    queryFn: async () => {
+      const response = await bookingService.getAllBookings();
+      return response.data || response;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    ...options,
+  });
+};

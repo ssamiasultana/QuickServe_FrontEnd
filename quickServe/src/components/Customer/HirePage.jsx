@@ -118,13 +118,14 @@ function HirePage() {
 
   const workerShift = getWorkerShift();
 
-  // Fix: Calculate pricing based on backend logic (sum of unit prices only)
+  // Calculate pricing with quantity multiplied
   const calculatePricing = useMemo(() => {
     let sumOfUnitPrices = 0;
 
     selectedSubcategories.forEach((sub) => {
       const price = parseFloat(sub.base_price) || 0;
-      sumOfUnitPrices += price; // Only unit price, not multiplied by quantity
+      const qty = quantities[sub.id] || 1;
+      sumOfUnitPrices += price * qty; // Price multiplied by quantity
     });
 
     // Shift charge calculation
@@ -138,7 +139,7 @@ function HirePage() {
       shiftCharge: shiftCharge.toFixed(2),
       total: totalAmount.toFixed(2),
     };
-  }, [selectedSubcategories, workerShift]);
+  }, [selectedSubcategories, quantities, workerShift]);
 
   const handleConfirmBooking = () => {
     if (!customerId) {
@@ -403,6 +404,7 @@ function HirePage() {
                     {selectedSubcategories.map((sub) => {
                       const qty = quantities[sub.id] || 1;
                       const price = parseFloat(sub.base_price) || 0;
+                      const itemTotal = price * qty;
                       return (
                         <div
                           key={sub.id}
@@ -416,7 +418,7 @@ function HirePage() {
                             </p>
                           </div>
                           <p className='text-sm font-semibold text-gray-900'>
-                            ৳{price.toFixed(2)}
+                            ৳{itemTotal.toFixed(2)}
                           </p>
                         </div>
                       );
@@ -667,6 +669,7 @@ function HirePage() {
                   {selectedSubcategories.map((sub) => {
                     const qty = quantities[sub.id] || 1;
                     const price = parseFloat(sub.base_price) || 0;
+                    const itemTotal = price * qty;
                     return (
                       <div
                         key={sub.id}
@@ -683,7 +686,7 @@ function HirePage() {
                           </p>
                         </div>
                         <p className='font-semibold text-gray-900'>
-                          ৳{price.toFixed(2)}
+                          ৳{itemTotal.toFixed(2)}
                         </p>
                       </div>
                     );

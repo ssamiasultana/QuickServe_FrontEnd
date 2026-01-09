@@ -55,6 +55,11 @@ class BookingService {
       }
     );
   }
+  async getAllBookings() {
+    return this.request(API_CONFIG.endpoints.booking.getAllBookings, {
+      method: 'GET',
+    });
+  }
 }
 
 export default new BookingService();
