@@ -19,6 +19,7 @@ import ResetPassword from '../components/auth/ResetPassword.jsx';
 import CustomerPage from '../components/Customer/CustomerPage.jsx';
 import HirePage from '../components/Customer/HirePage.jsx';
 import MyBooking from '../components/Customer/MyBooking.jsx';
+import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationPage.jsx';
 import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleBasedRoute from './RoleBasedRoute.jsx';
@@ -89,6 +90,10 @@ const routes = createBrowserRouter([
       { path: 'dashboard', Component: CustomerDashboard },
       { path: 'manage-workers', Component: CustomerPage },
       { path: 'hire-worker/:id', Component: HirePage },
+      {
+        path: 'payment-confirmation',
+        Component: PaymentConfirmationPage,
+      },
       {
         path: 'my-booking',
         Component: MyBooking,
