@@ -7,6 +7,7 @@ import WorkerLayout from '../components/Layout/WorkerLayout.jsx';
 import Dashboard from '../components/Admin/Dashboard.jsx';
 import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
+import BookingList from '../components/Admin/Booking/BookingList.jsx';
 import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
 import Services from '../components/Admin/Services/Services.jsx';
 import SingleWorker from '../components/Admin/Worker/SingleWorker.jsx';
@@ -41,6 +42,7 @@ const routes = createBrowserRouter([
       { path: 'user-signup', Component: Register },
       { path: '/customers', Component: CustomerList },
       { path: '/services', Component: Services },
+      { path: '/bookings', Component: BookingList },
     ],
   },
   {
@@ -91,6 +93,7 @@ const routes = createBrowserRouter([
         path: 'my-booking',
         Component: MyBooking,
       },
+      { path: 'service-page', Component: Services },
     ],
   },
 ]);

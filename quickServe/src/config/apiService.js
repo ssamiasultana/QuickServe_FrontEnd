@@ -24,6 +24,8 @@ const API_CONFIG = {
         `/service-subcategories/${serviceId}`,
       getSubServices: '/service-subcategories',
       postSubServices: '/service-subcategories',
+      getServicesWithSubcategories:
+        '/service-subcategories/services-with-subcategories',
     },
     auth: {
       signUp: '/signup',
@@ -38,6 +40,7 @@ const API_CONFIG = {
       // Get all bookings for a specific customer
       getCustomerBookings: (customerID) => `/booking/customer/${customerID}`,
       batchBooking: '/booking/batch',
+      getAllBookings: '/bookings',
     },
   },
   timeout: 10000,
