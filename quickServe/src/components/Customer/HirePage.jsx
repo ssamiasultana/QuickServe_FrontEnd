@@ -204,15 +204,29 @@ function HirePage() {
     }
 
     // Prepare booking data for navigation
+    // Check if all selected services have the same quantity
     const selectedQuantities = selectedSubcategories.map(
       (sub) => quantities[sub.id] || 1
     );
     const uniqueQuantities = new Set(selectedQuantities);
+
+    // If quantities differ, automatically sync them to the first quantity
+    let bookingQuantity;
     if (uniqueQuantities.size > 1) {
-      toast.error('Use the same quantity for all selected services');
-      return;
+      const firstQuantity = selectedQuantities[0] || 1;
+      // Sync all quantities to the first one
+      const syncedQuantities = { ...quantities };
+      selectedSubcategories.forEach((sub) => {
+        syncedQuantities[sub.id] = firstQuantity;
+      });
+      setQuantities(syncedQuantities);
+      toast.success(
+        `All quantities synced to ${firstQuantity}. You can proceed with booking.`
+      );
+      bookingQuantity = firstQuantity;
+    } else {
+      bookingQuantity = selectedQuantities[0] || 1;
     }
-    const bookingQuantity = selectedQuantities[0] || 1;
 
     const servicesData = selectedSubcategories.map((sub) => ({
       service_id: sub.service_id || getServiceIdForSubcategory(sub.id),
