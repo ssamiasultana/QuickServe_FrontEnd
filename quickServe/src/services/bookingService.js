@@ -72,6 +72,7 @@ class BookingService {
   }
 
   // Get all bookings for the authenticated worker
+  // Backend automatically uses the authenticated worker's ID from JWT token
   async getWorkerBookings() {
     return this.request(API_CONFIG.endpoints.booking.getWorkerBookings, {
       method: 'GET',

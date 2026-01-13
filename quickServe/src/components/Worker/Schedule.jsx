@@ -1,10 +1,12 @@
 import { Calendar, Clock, MapPin, Package, User } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
+import { AuthContext } from '../Context/AuthContext';
 import Card from '../ui/Card';
 
 export default function Schedule() {
+  const { user } = useContext(AuthContext);
   const {
     data: profileData,
     isLoading: profileLoading,
@@ -16,14 +18,16 @@ export default function Schedule() {
     isLoading: bookingsLoading,
     isError: bookingsError,
     error: bookingsErrorData,
-  } = useGetWorkerBookings();
+  } = useGetWorkerBookings(user?.id);
 
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Normalize bookings data
+  // Normalize bookings data (backend already filters by worker_id)
   const bookings = useMemo(() => {
     if (!bookingsResponse) return [];
-    return Array.isArray(bookingsResponse) ? bookingsResponse : bookingsResponse?.data || [];
+    return Array.isArray(bookingsResponse)
+      ? bookingsResponse
+      : bookingsResponse?.data || [];
   }, [bookingsResponse]);
 
   // Group bookings by date
@@ -112,8 +116,14 @@ export default function Schedule() {
     return {
       total: bookings.length,
       today: bookingsByDate[todayKey]?.length || 0,
-      upcoming: upcomingDates.reduce((sum, date) => sum + bookingsByDate[date].length, 0),
-      completed: pastDates.reduce((sum, date) => sum + bookingsByDate[date].length, 0),
+      upcoming: upcomingDates.reduce(
+        (sum, date) => sum + bookingsByDate[date].length,
+        0
+      ),
+      completed: pastDates.reduce(
+        (sum, date) => sum + bookingsByDate[date].length,
+        0
+      ),
     };
   }, [bookings, bookingsByDate, upcomingDates, pastDates]);
 
@@ -277,7 +287,9 @@ export default function Schedule() {
                   {/* Bookings for this date */}
                   <div className='divide-y divide-gray-200'>
                     {dateBookings.map((booking) => (
-                      <div key={booking.id} className='p-6 hover:bg-gray-50 transition-colors'>
+                      <div
+                        key={booking.id}
+                        className='p-6 hover:bg-gray-50 transition-colors'>
                         <div className='flex items-start justify-between gap-4'>
                           <div className='flex-1'>
                             <div className='flex items-center gap-3 mb-2'>
@@ -325,8 +337,10 @@ export default function Schedule() {
                               <div className='flex items-center gap-2 text-sm text-gray-600'>
                                 <Package className='w-4 h-4 text-gray-400' />
                                 <span>
-                                  <span className='font-medium'>Amount:</span>{' '}
-                                  ৳{parseFloat(booking.total_amount || 0).toFixed(2)}
+                                  <span className='font-medium'>Amount:</span> ৳
+                                  {parseFloat(
+                                    booking.total_amount || 0
+                                  ).toFixed(2)}
                                 </span>
                               </div>
                             </div>

@@ -9,7 +9,6 @@ export const useCreateBooking = () => {
     mutationFn: (bookingData) => bookingService.createBooking(bookingData),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      toast.success('Booking request has been sent successfully');
     },
     onError: (error) => {
       toast.error(error?.message || 'Failed to create booking');
@@ -45,15 +44,17 @@ export const useGetAllBookings = (options = {}) => {
 };
 
 // Get all bookings for the authenticated worker
-export const useGetWorkerBookings = (options = {}) => {
+// Backend automatically filters by the authenticated worker's ID from JWT token
+export const useGetWorkerBookings = (userId = null, options = {}) => {
   return useQuery({
-    queryKey: ['workerBookings'],
+    queryKey: ['workerBookings', userId], // Include userId in query key for proper cache isolation
     queryFn: async () => {
       const response = await bookingService.getWorkerBookings();
       return response.data || response;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000,
+    enabled: !!userId, // Only fetch when userId is available
+    staleTime: 0, // Always refetch to ensure fresh data for each user
+    gcTime: 0, // Don't cache between different users
     ...options,
   });
 };

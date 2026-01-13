@@ -1,10 +1,12 @@
 import { Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
+import { AuthContext } from '../Context/AuthContext';
 import Card from '../ui/Card';
 
 export default function Earnings() {
+  const { user } = useContext(AuthContext);
   const {
     data: profileData,
     isLoading: profileLoading,
@@ -16,19 +18,21 @@ export default function Earnings() {
     isLoading: bookingsLoading,
     isError: bookingsError,
     error: bookingsErrorData,
-  } = useGetWorkerBookings();
+  } = useGetWorkerBookings(user?.id);
 
-  // Normalize bookings data
+  // Normalize bookings data (backend already filters by worker_id)
   const bookings = useMemo(() => {
     if (!bookingsResponse) return [];
-    return Array.isArray(bookingsResponse) ? bookingsResponse : bookingsResponse?.data || [];
+    return Array.isArray(bookingsResponse)
+      ? bookingsResponse
+      : bookingsResponse?.data || [];
   }, [bookingsResponse]);
 
   // Calculate earnings statistics
   const earningsStats = useMemo(() => {
     const paidBookings = bookings.filter((b) => b.status === 'paid');
     const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
-    
+
     // Calculate total earnings from paid bookings
     const totalEarnings = paidBookings.reduce((sum, booking) => {
       return sum + parseFloat(booking.total_amount || 0);
@@ -43,7 +47,7 @@ export default function Earnings() {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    
+
     const monthlyEarnings = paidBookings
       .filter((booking) => {
         if (!booking.scheduled_at) return false;
@@ -58,16 +62,17 @@ export default function Earnings() {
       }, 0);
 
     // Calculate average per booking
-    const averageEarning = paidBookings.length > 0 
-      ? totalEarnings / paidBookings.length 
-      : 0;
+    const averageEarning =
+      paidBookings.length > 0 ? totalEarnings / paidBookings.length : 0;
 
     // Get earnings by month (last 6 months)
     const monthlyBreakdown = {};
     paidBookings.forEach((booking) => {
       if (booking.scheduled_at) {
         const date = new Date(booking.scheduled_at);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthKey = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, '0')}`;
         if (!monthlyBreakdown[monthKey]) {
           monthlyBreakdown[monthKey] = 0;
         }
@@ -229,7 +234,8 @@ export default function Earnings() {
                   </span>
                   <span className='text-xl font-bold text-blue-600'>
                     {formatCurrency(
-                      earningsStats.totalEarnings + earningsStats.pendingEarnings
+                      earningsStats.totalEarnings +
+                        earningsStats.pendingEarnings
                     )}
                   </span>
                 </div>
@@ -262,19 +268,20 @@ export default function Earnings() {
         )}
 
         {/* Empty State */}
-        {earningsStats.totalPaidJobs === 0 && earningsStats.totalPendingJobs === 0 && (
-          <div className='bg-white rounded-lg shadow-sm p-12 text-center'>
-            <div className='w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <DollarSign className='w-10 h-10 text-gray-400' />
+        {earningsStats.totalPaidJobs === 0 &&
+          earningsStats.totalPendingJobs === 0 && (
+            <div className='bg-white rounded-lg shadow-sm p-12 text-center'>
+              <div className='w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                <DollarSign className='w-10 h-10 text-gray-400' />
+              </div>
+              <h3 className='text-xl font-semibold text-gray-900 mb-2'>
+                No earnings yet
+              </h3>
+              <p className='text-gray-600'>
+                Your earnings will appear here once you complete paid jobs
+              </p>
             </div>
-            <h3 className='text-xl font-semibold text-gray-900 mb-2'>
-              No earnings yet
-            </h3>
-            <p className='text-gray-600'>
-              Your earnings will appear here once you complete paid jobs
-            </p>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

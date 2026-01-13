@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Calendar,
   CheckCircle,
   ChevronDown,
@@ -13,6 +14,7 @@ import {
 import React, { useMemo, useState } from 'react';
 import { useUpdateBookingStatus } from '../../hooks/useBooking';
 import Card from '../ui/Card';
+import Modal from '../ui/Modal';
 
 /**
  * Reusable BookingList Component
@@ -29,6 +31,7 @@ import Card from '../ui/Card';
  * @param {string} props.emptyActionText - Text for empty state action button
  * @param {string} props.totalLabel - Label for total bookings (e.g., "Total Bookings" or "Total Jobs")
  * @param {string} props.viewType - 'customer' or 'worker' - determines which fields to show
+ * @param {number|null} props.workerId - Worker ID to filter bookings (only show bookings assigned to this worker)
  */
 export default function BookingList({
   bookings = [],
@@ -42,9 +45,16 @@ export default function BookingList({
   emptyActionText = 'Show All Bookings',
   totalLabel = 'Total Bookings',
   viewType = 'customer', // 'customer' or 'worker'
+  workerId = null, // Worker ID to filter bookings
 }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedBooking, setExpandedBooking] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    bookingId: null,
+    status: null,
+    bookingDetails: null,
+  });
   const updateStatusMutation = useUpdateBookingStatus();
 
   // Normalize bookings data
@@ -52,8 +62,9 @@ export default function BookingList({
     ? bookings
     : bookings?.data || [];
 
-  // Filter bookings by status
+  // Filter bookings by status (backend already filters by worker_id)
   const filteredBookings = useMemo(() => {
+    // Backend already filters bookings by worker_id, so we just filter by status here
     if (statusFilter === 'all') return normalizedBookings;
     return normalizedBookings.filter(
       (booking) => booking.status === statusFilter
@@ -110,11 +121,40 @@ export default function BookingList({
     setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
   };
 
-  // Handle status update
-  const handleStatusUpdate = (bookingId, status) => {
-    if (window.confirm(`Are you sure you want to ${status} this booking?`)) {
-      updateStatusMutation.mutate({ bookingId, status });
+  // Open confirmation modal
+  const handleStatusUpdateClick = (bookingId, status, bookingDetails) => {
+    setConfirmModal({
+      isOpen: true,
+      bookingId,
+      status,
+      bookingDetails,
+    });
+  };
+
+  // Handle confirmed status update
+  const handleConfirmStatusUpdate = () => {
+    if (confirmModal.bookingId && confirmModal.status) {
+      updateStatusMutation.mutate({
+        bookingId: confirmModal.bookingId,
+        status: confirmModal.status,
+      });
+      setConfirmModal({
+        isOpen: false,
+        bookingId: null,
+        status: null,
+        bookingDetails: null,
+      });
     }
+  };
+
+  // Close confirmation modal
+  const handleCloseModal = () => {
+    setConfirmModal({
+      isOpen: false,
+      bookingId: null,
+      status: null,
+      bookingDetails: null,
+    });
   };
 
   // Check if booking can be confirmed (only pending bookings)
@@ -122,9 +162,9 @@ export default function BookingList({
     return booking.status === 'pending';
   };
 
-  // Check if booking can be cancelled (pending or confirmed bookings)
+  // Check if booking can be cancelled (only pending bookings)
   const canCancel = (booking) => {
-    return ['pending', 'confirmed'].includes(booking.status);
+    return booking.status === 'pending';
   };
 
   if (isLoading) {
@@ -469,7 +509,11 @@ export default function BookingList({
                             {canConfirm(booking) && (
                               <button
                                 onClick={() =>
-                                  handleStatusUpdate(booking.id, 'confirmed')
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'confirmed',
+                                    booking
+                                  )
                                 }
                                 disabled={updateStatusMutation.isPending}
                                 className='px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
@@ -480,7 +524,11 @@ export default function BookingList({
                             {canCancel(booking) && (
                               <button
                                 onClick={() =>
-                                  handleStatusUpdate(booking.id, 'cancelled')
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'cancelled',
+                                    booking
+                                  )
                                 }
                                 disabled={updateStatusMutation.isPending}
                                 className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
@@ -509,6 +557,117 @@ export default function BookingList({
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={confirmModal.isOpen}
+        onClose={handleCloseModal}
+        title={
+          confirmModal.status === 'confirmed'
+            ? 'Confirm Booking'
+            : 'Cancel Booking'
+        }
+        icon={confirmModal.status === 'confirmed' ? CheckCircle : AlertTriangle}
+        iconBgColor={
+          confirmModal.status === 'confirmed' ? 'bg-green-100' : 'bg-red-100'
+        }
+        iconColor={
+          confirmModal.status === 'confirmed'
+            ? 'text-green-600'
+            : 'text-red-600'
+        }
+        size='md'
+        showCloseButton={!updateStatusMutation.isPending}
+        footerAlignment='right'
+        footer={
+          <>
+            <button
+              onClick={handleCloseModal}
+              disabled={updateStatusMutation.isPending}
+              className='px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium'>
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmStatusUpdate}
+              disabled={updateStatusMutation.isPending}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                confirmModal.status === 'confirmed'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+              }`}>
+              {updateStatusMutation.isPending ? (
+                <>
+                  <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+                  Processing...
+                </>
+              ) : confirmModal.status === 'confirmed' ? (
+                <>
+                  <CheckCircle className='w-4 h-4' />
+                  Confirm Booking
+                </>
+              ) : (
+                <>
+                  <X className='w-4 h-4' />
+                  Cancel Booking
+                </>
+              )}
+            </button>
+          </>
+        }>
+        <div className='space-y-4'>
+          <p className='text-gray-700'>
+            {confirmModal.status === 'confirmed' ? (
+              <>
+                Are you sure you want to <strong>confirm</strong> this booking?
+                Once confirmed, you will not be able to cancel it.
+              </>
+            ) : (
+              <>
+                Are you sure you want to <strong>cancel</strong> this booking?
+                This action cannot be undone.
+              </>
+            )}
+          </p>
+
+          {confirmModal.bookingDetails && (
+            <div className='bg-gray-50 rounded-lg p-4 space-y-2'>
+              <div className='flex items-center justify-between'>
+                <span className='text-sm text-gray-600'>Booking ID:</span>
+                <span className='text-sm font-semibold text-gray-900'>
+                  #{confirmModal.bookingDetails.id}
+                </span>
+              </div>
+              <div className='flex items-center justify-between'>
+                <span className='text-sm text-gray-600'>Service:</span>
+                <span className='text-sm font-semibold text-gray-900'>
+                  {confirmModal.bookingDetails.service_subcategory?.name ||
+                    confirmModal.bookingDetails.service?.name ||
+                    'N/A'}
+                </span>
+              </div>
+              {viewType === 'worker' && (
+                <div className='flex items-center justify-between'>
+                  <span className='text-sm text-gray-600'>Customer:</span>
+                  <span className='text-sm font-semibold text-gray-900'>
+                    {confirmModal.bookingDetails.customer_name ||
+                      confirmModal.bookingDetails.customer?.name ||
+                      'N/A'}
+                  </span>
+                </div>
+              )}
+              <div className='flex items-center justify-between'>
+                <span className='text-sm text-gray-600'>Amount:</span>
+                <span className='text-sm font-semibold text-gray-900'>
+                  ৳
+                  {parseFloat(
+                    confirmModal.bookingDetails.total_amount || 0
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
+import { AuthContext } from '../Context/AuthContext';
 import BookingList from '../shared/BookingList';
 
 export default function WorkerPortal() {
+  const { user } = useContext(AuthContext);
   const {
     data: profileData,
     isLoading: profileLoading,
@@ -14,7 +16,7 @@ export default function WorkerPortal() {
     isLoading: bookingsLoading,
     isError: bookingsError,
     error: bookingsErrorData,
-  } = useGetWorkerBookings();
+  } = useGetWorkerBookings(user?.id);
 
   if (profileLoading || bookingsLoading) {
     return (

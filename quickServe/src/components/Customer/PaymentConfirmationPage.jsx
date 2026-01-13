@@ -45,6 +45,7 @@ const PaymentConfirmationPage = () => {
     try {
       const bookingPayload = {
         user_id: customerId,
+        worker_id: worker?.id || null, // Include worker ID if available
         customer_name: customerName.trim(),
         customer_email: customerEmail.trim(),
         customer_phone: customerPhone.trim(),
