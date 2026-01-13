@@ -1,3 +1,4 @@
+import Cookies from 'js-cookie';
 import API_CONFIG from '../config/apiService';
 
 class BookingService {
@@ -5,8 +6,13 @@ class BookingService {
     this.baseURL = API_CONFIG.baseURL;
   }
 
+  getToken() {
+    return Cookies.get('auth_token');
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
     const config = {
       method: options.method || 'GET',
       headers: {
@@ -17,6 +23,10 @@ class BookingService {
       ...options,
       body: options.body,
     };
+
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
 
     try {
       const response = await fetch(url, config);
@@ -59,6 +69,24 @@ class BookingService {
     return this.request(API_CONFIG.endpoints.booking.getAllBookings, {
       method: 'GET',
     });
+  }
+
+  // Get all bookings for the authenticated worker
+  async getWorkerBookings() {
+    return this.request(API_CONFIG.endpoints.booking.getWorkerBookings, {
+      method: 'GET',
+    });
+  }
+
+  // Update booking status (confirm or cancel)
+  async updateBookingStatus(bookingId, status) {
+    return this.request(
+      API_CONFIG.endpoints.booking.updateBookingStatus(bookingId),
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }
+    );
   }
 }
 

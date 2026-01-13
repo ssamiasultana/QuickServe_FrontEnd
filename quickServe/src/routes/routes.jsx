@@ -20,6 +20,8 @@ import CustomerPage from '../components/Customer/CustomerPage.jsx';
 import HirePage from '../components/Customer/HirePage.jsx';
 import MyBooking from '../components/Customer/MyBooking.jsx';
 import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationPage.jsx';
+import Earnings from '../components/Worker/Earnings.jsx';
+import Schedule from '../components/Worker/Schedule.jsx';
 import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleBasedRoute from './RoleBasedRoute.jsx';
@@ -78,6 +80,8 @@ const routes = createBrowserRouter([
         element: <Navigate to='/worker/jobs' replace />,
       },
       { path: 'jobs', Component: WorkerPortal },
+      { path: 'schedule', Component: Schedule },
+      { path: 'earnings', Component: Earnings },
       { path: 'info', Component: AddWorker },
     ],
   },

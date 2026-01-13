@@ -41,6 +41,10 @@ const API_CONFIG = {
       getCustomerBookings: (customerID) => `/booking/customer/${customerID}`,
       batchBooking: '/booking/batch',
       getAllBookings: '/bookings',
+      // Get all bookings for the authenticated worker
+      getWorkerBookings: '/booking/worker/jobs',
+      // Update booking status (confirm/cancel)
+      updateBookingStatus: (bookingId) => `/booking/${bookingId}/status`,
     },
   },
   timeout: 10000,

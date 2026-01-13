@@ -43,3 +43,40 @@ export const useGetAllBookings = (options = {}) => {
     ...options,
   });
 };
+
+// Get all bookings for the authenticated worker
+export const useGetWorkerBookings = (options = {}) => {
+  return useQuery({
+    queryKey: ['workerBookings'],
+    queryFn: async () => {
+      const response = await bookingService.getWorkerBookings();
+      return response.data || response;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000,
+    ...options,
+  });
+};
+
+// Update booking status (confirm or cancel) - for workers
+export const useUpdateBookingStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ bookingId, status }) =>
+      bookingService.updateBookingStatus(bookingId, status),
+    onSuccess: (response, variables) => {
+      // Invalidate all booking queries to refresh data
+      // This will refresh worker bookings, customer bookings, and all bookings
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['workerBookings'] });
+
+      const statusText =
+        variables.status === 'confirmed' ? 'confirmed' : 'cancelled';
+      toast.success(`Booking ${statusText} successfully`);
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Failed to update booking status');
+    },
+  });
+};
