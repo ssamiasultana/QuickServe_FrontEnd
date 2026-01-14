@@ -113,13 +113,26 @@ export default function Schedule() {
     today.setHours(0, 0, 0, 0);
     const todayKey = today.toISOString().split('T')[0];
 
+    // Filter out cancelled bookings for upcoming count
+    const upcomingBookings = upcomingDates.reduce((acc, date) => {
+      const dateBookings = bookingsByDate[date] || [];
+      // Only count non-cancelled bookings (pending, confirmed, paid)
+      const activeBookings = dateBookings.filter(
+        (booking) => booking.status !== 'cancelled'
+      );
+      return acc + activeBookings.length;
+    }, 0);
+
+    // Filter out cancelled bookings for today count
+    const todayBookings = bookingsByDate[todayKey] || [];
+    const todayActiveBookings = todayBookings.filter(
+      (booking) => booking.status !== 'cancelled'
+    );
+
     return {
       total: bookings.length,
-      today: bookingsByDate[todayKey]?.length || 0,
-      upcoming: upcomingDates.reduce(
-        (sum, date) => sum + bookingsByDate[date].length,
-        0
-      ),
+      today: todayActiveBookings.length,
+      upcoming: upcomingBookings,
       completed: pastDates.reduce(
         (sum, date) => sum + bookingsByDate[date].length,
         0
