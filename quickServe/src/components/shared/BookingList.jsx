@@ -87,22 +87,34 @@ export default function BookingList({
   // Format date helper
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Dhaka', // Adjust to your timezone
+      });
+    } catch (error) {
+      return 'N/A';
+    }
   };
 
   // Format time helper
   const formatTime = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Dhaka', // Adjust to your timezone
+      });
+    } catch (error) {
+      return 'N/A';
+    }
   };
 
   // Get status badge styling
@@ -387,7 +399,13 @@ export default function BookingList({
                             <Package className='w-4 h-4 text-gray-400' />
                             <span>
                               <span className='font-medium'>Amount:</span> ৳
-                              {parseFloat(booking.total_amount || 0).toFixed(2)}
+                              {typeof booking.total_amount === 'string'
+                                ? parseFloat(booking.total_amount || 0).toFixed(
+                                    2
+                                  )
+                                : (Number(booking.total_amount) || 0).toFixed(
+                                    2
+                                  )}
                             </span>
                           </div>
                         </div>

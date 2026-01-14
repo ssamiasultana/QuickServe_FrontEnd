@@ -148,21 +148,75 @@ function HirePage() {
   const convertTo24Hour = (time12h) => {
     if (!time12h) return '09:00:00';
 
-    const [time, period] = time12h.split(' ');
-    let [hours, minutes] = time.split(':');
+    // Handle different time formats
+    // Expected format: "9:00 AM" or "09:00 AM"
+    const trimmed = time12h.trim().toUpperCase();
+    
+    // Extract AM/PM
+    const periodMatch = trimmed.match(/\s*(AM|PM)\s*$/);
+    if (!periodMatch) {
+      console.warn('Invalid time format:', time12h);
+      return '09:00:00';
+    }
+    
+    const period = periodMatch[1];
+    const timePart = trimmed.replace(/\s*(AM|PM)\s*$/, '').trim();
+    
+    // Split hours and minutes
+    const [hoursStr, minutesStr = '00'] = timePart.split(':');
+    let hours = parseInt(hoursStr, 10);
+    const minutes = minutesStr || '00';
 
-    if (period === 'PM' && hours !== '12') {
-      hours = parseInt(hours) + 12;
-    } else if (period === 'AM' && hours === '12') {
-      hours = '00';
+    // Validate hours
+    if (isNaN(hours) || hours < 1 || hours > 12) {
+      console.warn('Invalid hours in time:', time12h);
+      return '09:00:00';
     }
 
-    hours = hours.toString().padStart(2, '0');
-    return `${hours}:${minutes}:00`;
+    // Convert to 24-hour format
+    if (period === 'PM') {
+      if (hours !== 12) {
+        hours = hours + 12;
+      }
+      // 12 PM stays as 12 (noon)
+    } else if (period === 'AM') {
+      if (hours === 12) {
+        hours = 0; // 12 AM becomes 00 (midnight)
+      }
+      // Other AM times stay as-is
+    }
+
+    // Format with leading zeros
+    const formattedHours = hours.toString().padStart(2, '0');
+    const formattedMinutes = minutes.padStart(2, '0');
+    
+    return `${formattedHours}:${formattedMinutes}:00`;
   };
 
-  const buildScheduledAt = () =>
-    `${selectedDate}T${convertTo24Hour(selectedTime)}`;
+  const buildScheduledAt = () => {
+    if (!selectedDate || !selectedTime) return null;
+    
+    // Ensure date is in YYYY-MM-DD format
+    let dateStr = selectedDate;
+    if (dateStr.includes('T')) {
+      dateStr = dateStr.split('T')[0];
+    }
+    
+    // Convert time to 24-hour format
+    const timeStr = convertTo24Hour(selectedTime);
+    
+    // Debug log to verify conversion (can be removed after testing)
+    console.log('Time conversion debug:', {
+      selectedTime,
+      convertedTime: timeStr,
+      dateStr,
+      final: `${dateStr}T${timeStr}`
+    });
+    
+    // Format: YYYY-MM-DDTHH:mm:ss (ISO 8601 format without timezone)
+    // Laravel will handle timezone conversion
+    return `${dateStr}T${timeStr}`;
+  };
 
   const handleConfirmBooking = () => {
     if (!customerId) {

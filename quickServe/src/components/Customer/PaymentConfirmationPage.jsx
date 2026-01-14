@@ -43,6 +43,25 @@ const PaymentConfirmationPage = () => {
   const handlePayment = async () => {
     setIsProcessing(true);
     try {
+      // Include quantity for each service
+      const servicesWithQuantity = servicesData.map((service) => {
+        const subcategory = selectedSubcategories.find(
+          (sub) => sub.id === service.service_subcategory_id
+        );
+        return {
+          ...service,
+          quantity: subcategory ? (quantities[subcategory.id] || bookingQuantity || 1) : (bookingQuantity || 1),
+        };
+      });
+
+      // Ensure scheduled_at is properly formatted with timezone
+      let formattedScheduledAt = scheduledAtString;
+      if (scheduledAtString && !scheduledAtString.includes('Z') && !scheduledAtString.includes('+')) {
+        // Add timezone offset if not present (assuming UTC or local timezone)
+        // Format: YYYY-MM-DDTHH:mm:ss
+        formattedScheduledAt = scheduledAtString;
+      }
+
       const bookingPayload = {
         user_id: customerId,
         worker_id: worker?.id || null, // Include worker ID if available
@@ -51,10 +70,10 @@ const PaymentConfirmationPage = () => {
         customer_phone: customerPhone.trim(),
         service_address: customerAddress.trim(),
         special_instructions: specialInstructions.trim() || null,
-        services: servicesData,
+        services: servicesWithQuantity,
         shift_type: workerShift,
-        scheduled_at: scheduledAtString,
-        quantity: bookingQuantity,
+        scheduled_at: formattedScheduledAt,
+        quantity: bookingQuantity, // Keep for backward compatibility
       };
 
       await createBookingMutation.mutateAsync(bookingPayload);

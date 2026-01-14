@@ -67,10 +67,40 @@ export const useUpdateBookingStatus = () => {
     mutationFn: ({ bookingId, status }) =>
       bookingService.updateBookingStatus(bookingId, status),
     onSuccess: (response, variables) => {
-      // Invalidate all booking queries to refresh data
-      // This will refresh worker bookings, customer bookings, and all bookings
+      // Update the booking in cache if response contains updated booking data
+      if (response?.data) {
+        const updatedBooking = response.data;
+
+        // Update all workerBookings queries
+        queryClient.setQueriesData(
+          { queryKey: ['workerBookings'], exact: false },
+          (oldData) => {
+            if (!oldData) return oldData;
+
+            // Handle both array and object with data property
+            const bookings = Array.isArray(oldData)
+              ? oldData
+              : oldData.data || [];
+
+            // Update the booking in the list
+            const updatedBookings = bookings.map((booking) =>
+              booking.id === updatedBooking.id ? updatedBooking : booking
+            );
+
+            // Return in the same format as received
+            return Array.isArray(oldData)
+              ? updatedBookings
+              : { ...oldData, data: updatedBookings };
+          }
+        );
+      }
+
+      // Invalidate and refetch all booking queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['workerBookings'] });
+      queryClient.invalidateQueries({
+        queryKey: ['workerBookings'],
+        exact: false, // Match all queries that start with ['workerBookings']
+      });
 
       const statusText =
         variables.status === 'confirmed' ? 'confirmed' : 'cancelled';
