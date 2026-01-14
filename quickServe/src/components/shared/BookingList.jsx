@@ -368,7 +368,7 @@ export default function BookingList({
                           )}
 
                         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4'>
-                          {/* Show customer info for workers, service info for customers */}
+                          {/* Show customer info for workers, worker info for customers */}
                           {viewType === 'worker' && (
                             <div className='flex items-center gap-2 text-sm text-gray-600'>
                               <User className='w-4 h-4 text-gray-400' />
@@ -377,6 +377,15 @@ export default function BookingList({
                                 {booking.customer_name ||
                                   booking.customer?.name ||
                                   'N/A'}
+                              </span>
+                            </div>
+                          )}
+                          {viewType === 'customer' && (
+                            <div className='flex items-center gap-2 text-sm text-gray-600'>
+                              <User className='w-4 h-4 text-gray-400' />
+                              <span>
+                                <span className='font-medium'>Worker:</span>{' '}
+                                {booking.worker?.name || 'Not Assigned'}
                               </span>
                             </div>
                           )}
@@ -438,6 +447,56 @@ export default function BookingList({
                                     </p>
                                   </div>
                                 </>
+                              )}
+
+                              {/* Worker details for customers */}
+                              {viewType === 'customer' && booking.worker && (
+                                <>
+                                  <div>
+                                    <p className='text-sm font-medium text-gray-700 mb-1'>
+                                      Worker Name:
+                                    </p>
+                                    <p className='text-sm text-gray-600'>
+                                      {booking.worker.name || 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className='text-sm font-medium text-gray-700 mb-1'>
+                                      Worker Email:
+                                    </p>
+                                    <p className='text-sm text-gray-600'>
+                                      {booking.worker.email || 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className='text-sm font-medium text-gray-700 mb-1'>
+                                      Worker Phone:
+                                    </p>
+                                    <p className='text-sm text-gray-600'>
+                                      {booking.worker.phone || 'N/A'}
+                                    </p>
+                                  </div>
+                                  {booking.worker.shift && (
+                                    <div>
+                                      <p className='text-sm font-medium text-gray-700 mb-1'>
+                                        Worker Shift:
+                                      </p>
+                                      <p className='text-sm text-gray-600 capitalize'>
+                                        {booking.worker.shift}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                              {viewType === 'customer' && !booking.worker && (
+                                <div className='md:col-span-2'>
+                                  <p className='text-sm font-medium text-gray-700 mb-1'>
+                                    Worker:
+                                  </p>
+                                  <p className='text-sm text-gray-500 italic'>
+                                    No worker assigned yet
+                                  </p>
+                                </div>
                               )}
 
                               {/* Service address */}
