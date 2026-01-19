@@ -151,17 +151,17 @@ function HirePage() {
     // Handle different time formats
     // Expected format: "9:00 AM" or "09:00 AM"
     const trimmed = time12h.trim().toUpperCase();
-    
+
     // Extract AM/PM
     const periodMatch = trimmed.match(/\s*(AM|PM)\s*$/);
     if (!periodMatch) {
       console.warn('Invalid time format:', time12h);
       return '09:00:00';
     }
-    
+
     const period = periodMatch[1];
     const timePart = trimmed.replace(/\s*(AM|PM)\s*$/, '').trim();
-    
+
     // Split hours and minutes
     const [hoursStr, minutesStr = '00'] = timePart.split(':');
     let hours = parseInt(hoursStr, 10);
@@ -189,32 +189,22 @@ function HirePage() {
     // Format with leading zeros
     const formattedHours = hours.toString().padStart(2, '0');
     const formattedMinutes = minutes.padStart(2, '0');
-    
+
     return `${formattedHours}:${formattedMinutes}:00`;
   };
 
   const buildScheduledAt = () => {
     if (!selectedDate || !selectedTime) return null;
-    
+
     // Ensure date is in YYYY-MM-DD format
     let dateStr = selectedDate;
     if (dateStr.includes('T')) {
       dateStr = dateStr.split('T')[0];
     }
-    
+
     // Convert time to 24-hour format
     const timeStr = convertTo24Hour(selectedTime);
-    
-    // Debug log to verify conversion (can be removed after testing)
-    console.log('Time conversion debug:', {
-      selectedTime,
-      convertedTime: timeStr,
-      dateStr,
-      final: `${dateStr}T${timeStr}`
-    });
-    
-    // Format: YYYY-MM-DDTHH:mm:ss (ISO 8601 format without timezone)
-    // Laravel will handle timezone conversion
+
     return `${dateStr}T${timeStr}`;
   };
 

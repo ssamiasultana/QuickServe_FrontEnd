@@ -2,6 +2,7 @@ import {
   AlertCircle,
   Calendar,
   CheckCircle,
+  Flame,
   Quote,
   Search,
   Snowflake,
@@ -22,36 +23,34 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
-  console.log(user);
-
   const popularServices = [
     {
       id: 1,
       name: 'Plumbing',
       description: 'Fix leaks, installations, and plumbing emergencies',
       icon: Wrench,
-      path: '/workers?service=plumbing',
+      path: '/customer/manage-workers?service=plumbing',
     },
     {
       id: 2,
       name: 'Electrical',
       description: 'Wiring, repairs, and electrical installations',
       icon: Zap,
-      path: '/workers?service=electrical',
+      path: '/customer/manage-workers?service=electrical',
     },
     {
       id: 3,
       name: 'Cleaning',
       description: 'Home, office, and deep cleaning services',
       icon: Sparkles,
-      path: '/workers?service=cleaning',
+      path: '/customer/manage-workers?service=cleaning',
     },
     {
       id: 4,
       name: 'AC Repair',
       description: 'AC servicing, repairs, and maintenance',
       icon: Snowflake,
-      path: '/workers?service=ac-repair',
+      path: '/customer/manage-workers?service=ac-repair',
     },
   ];
 
@@ -183,6 +182,37 @@ const CustomerDashboard = () => {
           </div>
 
           <div className='space-y-6'>
+            <div className='mb-6'>
+              <div className='flex items-center gap-3 mb-3'>
+                <div
+                  className='p-2 rounded-lg'
+                  style={{
+                    backgroundColor: colors.accent[50],
+                    color: colors.accent[600],
+                  }}>
+                  <Flame size={24} />
+                </div>
+                <h2
+                  className='text-2xl md:text-3xl font-bold'
+                  style={{ color: colors.primary[900] }}>
+                  Popular Services
+                </h2>
+                <span
+                  className='px-3 py-1 rounded-full text-xs font-semibold'
+                  style={{
+                    backgroundColor: colors.accent[100],
+                    color: colors.accent[700],
+                  }}>
+                  Most Requested
+                </span>
+              </div>
+              <p
+                className='text-base md:text-lg leading-relaxed ml-14'
+                style={{ color: colors.primary[600] }}>
+                Explore our most requested services trusted by thousands of
+                customers. Click on any service to find qualified professionals.
+              </p>
+            </div>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               {popularServices.map((service) => {
                 const IconComponent = service.icon;
@@ -193,7 +223,7 @@ const CustomerDashboard = () => {
                     className='p-6 rounded-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-lg '
                     style={{
                       backgroundColor: colors.white,
-                      borderColor: colors.primary[200],
+                      border: `1px solid ${colors.primary[200]}`,
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = colors.accent[200];
@@ -219,27 +249,10 @@ const CustomerDashboard = () => {
                           {service.name}
                         </h3>
                         <p
-                          className='text-sm mb-3 leading-relaxed'
+                          className='text-sm leading-relaxed'
                           style={{ color: colors.primary[600] }}>
                           {service.description}
                         </p>
-                        <div
-                          className='flex items-center text-sm font-semibold'
-                          style={{ color: colors.accent[600] }}>
-                          <span>Book Now</span>
-                          <svg
-                            className='w-4 h-4 ml-2'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'>
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M9 5l7 7-7 7'
-                            />
-                          </svg>
-                        </div>
                       </div>
                     </div>
                   </div>

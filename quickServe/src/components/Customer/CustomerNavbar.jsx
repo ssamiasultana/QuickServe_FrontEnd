@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { use } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import logo from '../../assets/logo.png';
@@ -67,12 +67,47 @@ const CustomerNavbar = () => {
             </h2>
           </div>
           {isAuthenticated ? (
-            <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-3'>
               <span
                 className='font-medium'
                 style={{ color: colors.primary[700] }}>
                 Welcome, {user?.name || user?.email}
               </span>
+              <button
+                onClick={() => navigate('/customer/profile')}
+                className='p-2.5 rounded-lg transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md'
+                style={{
+                  color: isActivePath('/customer/profile')
+                    ? colors.white
+                    : colors.primary[700],
+                  backgroundColor: isActivePath('/customer/profile')
+                    ? colors.accent[600]
+                    : colors.white,
+                  border: `2px solid ${
+                    isActivePath('/customer/profile')
+                      ? colors.accent[600]
+                      : colors.primary[300]
+                  }`,
+                  minWidth: '40px',
+                  minHeight: '40px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActivePath('/customer/profile')) {
+                    e.target.style.backgroundColor = colors.accent[50];
+                    e.target.style.borderColor = colors.accent[400];
+                    e.target.style.color = colors.accent[600];
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActivePath('/customer/profile')) {
+                    e.target.style.backgroundColor = colors.white;
+                    e.target.style.borderColor = colors.primary[300];
+                    e.target.style.color = colors.primary[700];
+                  }
+                }}
+                title='Profile'>
+                <User size={22} strokeWidth={2.5} />
+              </button>
               <button
                 className='px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2'
                 style={{ color: colors.error[500], border: 'none' }}
@@ -148,33 +183,6 @@ const CustomerNavbar = () => {
               }}>
               {item.label}
             </button>
-          ))}
-        </div>
-        
-        {/* Desktop Navigation */}
-        <div className='hidden md:flex space-x-4 pb-4 pt-2' style={{ borderTop: `1px solid ${colors.primary[200]}` }}>
-          {navItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.path}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                isActivePath(item.path) ? 'shadow-sm' : 'hover:shadow-md'
-              }`}
-              style={{
-                backgroundColor: isActivePath(item.path)
-                  ? colors.accent[500]
-                  : colors.white,
-                color: isActivePath(item.path)
-                  ? colors.white
-                  : colors.primary[700],
-                border: `1px solid ${
-                  isActivePath(item.path)
-                    ? colors.accent[500]
-                    : colors.primary[200]
-                }`,
-              }}>
-              {item.label}
-            </Link>
           ))}
         </div>
       </div>
