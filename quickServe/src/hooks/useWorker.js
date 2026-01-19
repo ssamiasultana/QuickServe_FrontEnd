@@ -62,6 +62,7 @@ export const useUpdateWorker = () => {
     mutationFn: ({ id, data }) => workerService.updateWorker(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workers'] });
+      queryClient.invalidateQueries({ queryKey: ['workers', 'profile', 'check'] });
       // toast.success('Worker updated successfully!');
     },
     onError: (error) => {
@@ -113,6 +114,38 @@ export const useCheckWorkerProfile = (options = {}) => {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     ...options,
+  });
+};
+
+// Get worker profile
+export const useGetProfile = (options = {}) => {
+  return useQuery({
+    queryKey: ['workers', 'profile'],
+    queryFn: async () => {
+      const response = await workerService.getProfile();
+      return response.data || response;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    ...options,
+  });
+};
+
+// Update worker profile
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => workerService.updateProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workers', 'profile'] });
+      queryClient.invalidateQueries({ queryKey: ['workers', 'profile', 'check'] });
+      queryClient.invalidateQueries({ queryKey: ['workers'] });
+      toast.success('Profile updated successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    },
   });
 };
 

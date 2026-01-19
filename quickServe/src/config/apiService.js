@@ -9,6 +9,8 @@ const API_CONFIG = {
       deleteWorker: (id) => `/workers/${id}`,
       getSingleWorker: (id) => `/workers/${id}`,
       checkWorkerProfile: '/worker/check-profile',
+      getProfile: '/worker/profile',
+      updateProfile: '/worker/profile',
       getPaginatedWorkers: '/workers/paginated',
       searchWorkers: '/workers/search',
       getWorkersByService: (serviceId) => `/workers/${serviceId}`,
@@ -31,6 +33,8 @@ const API_CONFIG = {
       signUp: '/signup',
       login: '/login',
       getAll: '/users',
+      getProfile: '/user/profile',
+      updateProfile: '/user/profile',
     },
     customers: {
       getAll: '/customers',

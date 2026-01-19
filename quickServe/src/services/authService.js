@@ -58,6 +58,19 @@ class AuthService {
       method: "GET",
     });
   }
+
+  async getProfile() {
+    return this.request(API_CONFIG.endpoints.auth.getProfile, {
+      method: "GET",
+    });
+  }
+
+  async updateProfile(profileData) {
+    return this.request(API_CONFIG.endpoints.auth.updateProfile, {
+      method: "PATCH",
+      body: JSON.stringify(profileData),
+    });
+  }
 }
 
 export default new AuthService();

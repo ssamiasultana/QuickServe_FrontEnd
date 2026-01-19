@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import authService from '../services/authService';
 
@@ -45,5 +45,35 @@ export const useGetAllUsers = (options = {}) => {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     ...options,
+  });
+};
+
+// Get user profile
+export const useGetUserProfile = (options = {}) => {
+  return useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: async () => {
+      const response = await authService.getProfile();
+      return response.data || response;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    ...options,
+  });
+};
+
+// Update user profile
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => authService.updateProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
+      toast.success('Profile updated successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    },
   });
 };

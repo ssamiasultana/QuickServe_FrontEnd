@@ -6,6 +6,7 @@ import {
   UserCircle,
   UserPlus,
   Wrench,
+  User,
 } from 'lucide-react';
 import { use } from 'react';
 // import { useLocation, useNavigate } from "react-router";
@@ -65,6 +66,12 @@ const AdminSideBar = () => {
       icon: CalendarClock, // or CalendarCheck, CalendarClock
       label: 'Bookings',
       link: '/bookings',
+    },
+    {
+      id: 'profile',
+      icon: User,
+      label: 'Profile',
+      link: '/profile',
     },
   ];
 

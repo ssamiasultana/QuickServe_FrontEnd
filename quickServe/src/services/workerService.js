@@ -105,6 +105,19 @@ class WorkerService {
       method: 'GET',
     });
   }
+
+  async getProfile() {
+    return this.request(API_CONFIG.endpoints.workers.getProfile, {
+      method: 'GET',
+    });
+  }
+
+  async updateProfile(workerData) {
+    return this.request(API_CONFIG.endpoints.workers.updateProfile, {
+      method: 'PATCH',
+      body: JSON.stringify(workerData),
+    });
+  }
   async verifyNID(workerId, verified, notes = '') {
     return this.request(`/workers/${workerId}/verify-nid`, {
       method: 'POST',

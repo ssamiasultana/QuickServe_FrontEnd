@@ -9,6 +9,7 @@ import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
 import BookingList from '../components/Admin/Booking/BookingList.jsx';
 import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
+import AdminProfile from '../components/Admin/Profile.jsx';
 import Services from '../components/Admin/Services/Services.jsx';
 import SingleWorker from '../components/Admin/Worker/SingleWorker.jsx';
 import WorkerList from '../components/Admin/Worker/WorkerList.jsx';
@@ -20,7 +21,9 @@ import CustomerPage from '../components/Customer/CustomerPage.jsx';
 import HirePage from '../components/Customer/HirePage.jsx';
 import MyBooking from '../components/Customer/MyBooking.jsx';
 import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationPage.jsx';
+import CustomerProfile from '../components/Customer/Profile.jsx';
 import Earnings from '../components/Worker/Earnings.jsx';
+import Profile from '../components/Worker/Profile.jsx';
 import Schedule from '../components/Worker/Schedule.jsx';
 import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
@@ -46,6 +49,7 @@ const routes = createBrowserRouter([
       { path: '/customers', Component: CustomerList },
       { path: '/services', Component: Services },
       { path: '/bookings', Component: BookingList },
+      { path: '/profile', Component: AdminProfile },
     ],
   },
   {
@@ -82,6 +86,7 @@ const routes = createBrowserRouter([
       { path: 'jobs', Component: WorkerPortal },
       { path: 'schedule', Component: Schedule },
       { path: 'earnings', Component: Earnings },
+      { path: 'profile', Component: Profile },
       { path: 'info', Component: AddWorker },
     ],
   },
@@ -103,6 +108,7 @@ const routes = createBrowserRouter([
         Component: MyBooking,
       },
       { path: 'service-page', Component: Services },
+      { path: 'profile', Component: CustomerProfile },
     ],
   },
 ]);

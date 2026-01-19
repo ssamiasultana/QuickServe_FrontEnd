@@ -16,8 +16,9 @@ const CustomerNavbar = () => {
   };
 
   const navItems = [
-    { id: 'workers', label: 'Find Workers', path: '/workers' },
-    { id: 'bookings', label: 'My Bookings', path: '/bookings' },
+    { id: 'workers', label: 'Find Workers', path: '/customer/manage-workers' },
+    { id: 'bookings', label: 'My Bookings', path: '/customer/my-booking' },
+    { id: 'profile', label: 'Profile', path: '/customer/profile' },
   ];
 
   const isActivePath = (path) => {
@@ -147,6 +148,33 @@ const CustomerNavbar = () => {
               }}>
               {item.label}
             </button>
+          ))}
+        </div>
+        
+        {/* Desktop Navigation */}
+        <div className='hidden md:flex space-x-4 pb-4 pt-2' style={{ borderTop: `1px solid ${colors.primary[200]}` }}>
+          {navItems.map((item) => (
+            <Link
+              key={item.id}
+              to={item.path}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                isActivePath(item.path) ? 'shadow-sm' : 'hover:shadow-md'
+              }`}
+              style={{
+                backgroundColor: isActivePath(item.path)
+                  ? colors.accent[500]
+                  : colors.white,
+                color: isActivePath(item.path)
+                  ? colors.white
+                  : colors.primary[700],
+                border: `1px solid ${
+                  isActivePath(item.path)
+                    ? colors.accent[500]
+                    : colors.primary[200]
+                }`,
+              }}>
+              {item.label}
+            </Link>
           ))}
         </div>
       </div>
