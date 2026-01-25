@@ -60,8 +60,8 @@ const CustomerDashboard = () => {
 
   const handleConditionalClick = () => {
     if (isAuthenticated) {
-      is;
-      navigate('/customer/manage-workers');
+
+      navigate('/customer/my-booking')
     } else {
       setShowModal(true);
     }
@@ -113,7 +113,7 @@ const CustomerDashboard = () => {
             </>
           }>
           <p className='text-gray-600'>
-            Please sign up or log in to hire workers and access this feature.
+            Please sign up or log in to view your bookings.
           </p>
         </Modal>
       )}
@@ -148,7 +148,7 @@ const CustomerDashboard = () => {
 
             <div className='flex flex-col sm:flex-row gap-4'>
               <button
-                onClick={handleConditionalClick}
+                onClick={() => navigate('/customer/manage-workers')}
                 className='px-8 py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg'
                 style={{
                   backgroundColor: colors.accent[600],
@@ -163,7 +163,7 @@ const CustomerDashboard = () => {
                 Find Workers Now
               </button>
               <button
-                onClick={() => navigate('/customer/my-booking')}
+                onClick={handleConditionalClick}
                 className='px-8 py-4 rounded-lg font-semibold transition-all duration-300 border transform hover:scale-105'
                 style={{
                   borderColor: colors.accent[600],
@@ -220,19 +220,12 @@ const CustomerDashboard = () => {
                   <div
                     key={service.id}
                     onClick={() => handleServiceClick(service.path)}
-                    className='p-6 rounded-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 hover:shadow-lg '
+                    className='p-6 rounded-xl transition-all duration-300  transform hover:-translate-y-1 hover:shadow-lg '
                     style={{
-                      backgroundColor: colors.white,
-                      border: `1px solid ${colors.primary[200]}`,
+                      backgroundColor: colors.accent[50],
+                      border: `1px solid ${colors.accent[200]}`,
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = colors.accent[200];
-                      e.currentTarget.style.backgroundColor = colors.accent[50];
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = colors.primary[200];
-                      e.currentTarget.style.backgroundColor = colors.white;
-                    }}>
+                  >
                     <div className='flex items-start space-x-4'>
                       <div
                         className='w-12 h-12 rounded-lg flex items-center justify-center shrink-0'
@@ -290,11 +283,10 @@ const CustomerDashboard = () => {
                     {worker.avatar}
                   </div>
                   <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      worker.isAvailable
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${worker.isAvailable
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
                     {worker.isAvailable ? 'Available' : 'Busy'}
                   </div>
                 </div>
