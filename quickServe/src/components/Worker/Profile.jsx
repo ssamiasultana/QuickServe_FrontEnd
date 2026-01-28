@@ -304,144 +304,157 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Profile Image */}
-        <Card className='mb-6' bgColor='bg-white' borderColor='border-gray-200'>
-          <div className='flex flex-col items-center py-6'>
-            <div className='relative mb-4'>
-              {preview ? (
-                <img
-                  src={preview}
-                  alt='Profile'
-                  className='w-32 h-32 rounded-full object-cover border-4 border-purple-200'
-                />
-              ) : (
-                <div className='w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center border-4 border-purple-200'>
-                  <User className='w-16 h-16 text-purple-400' />
+        {/* Main profile layout */}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
+          {/* Profile Image & summary */}
+          <div className='lg:col-span-1'>
+            <Card bgColor='bg-white' borderColor='border-gray-200'>
+              <div className='flex flex-col items-center py-6'>
+                <div className='relative mb-4'>
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt='Profile'
+                      className='w-32 h-32 rounded-full object-cover border-4 border-purple-200'
+                    />
+                  ) : (
+                    <div className='w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center border-4 border-purple-200'>
+                      <User className='w-16 h-16 text-purple-400' />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            {isEditing && (
-              <div>
-                <label className='cursor-pointer inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'>
-                  {uploading ? 'Uploading...' : 'Change Photo'}
-                  <input
-                    type='file'
-                    accept='image/*'
-                    onChange={handleImageChange}
-                    disabled={uploading}
-                    className='hidden'
-                  />
-                </label>
+                <h2 className='text-xl font-semibold text-gray-900'>{worker.name}</h2>
+                <p className='text-gray-500'>{worker.email}</p>
+                {worker.shift && (
+                  <span className='mt-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium capitalize'>
+                    {worker.shift} shift
+                  </span>
+                )}
+                {isEditing && (
+                  <div className='mt-4'>
+                    <label className='cursor-pointer inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'>
+                      {uploading ? 'Uploading...' : 'Change Photo'}
+                      <input
+                        type='file'
+                        accept='image/*'
+                        onChange={handleImageChange}
+                        disabled={uploading}
+                        className='hidden'
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
-            )}
+            </Card>
           </div>
-        </Card>
 
-        {/* Personal Information */}
-        <Card
-          title='Personal Information'
-          className='mb-6'
-          bgColor='bg-white'
-          borderColor='border-gray-200'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            <div className='flex items-start gap-3'>
-              <User className='w-5 h-5 text-purple-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Full Name
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='name'
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder='Full Name'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{worker.name || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+          {/* Personal Information */}
+          <div className='lg:col-span-2'>
+            <Card
+              title='Personal Information'
+              bgColor='bg-white'
+              borderColor='border-gray-200'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div className='flex items-start gap-3'>
+                  <User className='w-5 h-5 text-purple-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Full Name
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='name'
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder='Full Name'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{worker.name || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3'>
-              <Mail className='w-5 h-5 text-purple-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Email
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='email'
-                    type='email'
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder='Email Address'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{worker.email || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+                <div className='flex items-start gap-3'>
+                  <Mail className='w-5 h-5 text-purple-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Email
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='email'
+                        type='email'
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder='Email Address'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{worker.email || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3'>
-              <Phone className='w-5 h-5 text-purple-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Phone Number
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='phone'
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder='Phone Number'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{worker.phone || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+                <div className='flex items-start gap-3'>
+                  <Phone className='w-5 h-5 text-purple-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Phone Number
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='phone'
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder='Phone Number'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{worker.phone || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3'>
-              <Calendar className='w-5 h-5 text-purple-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Age
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='age'
-                    type='number'
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    placeholder='Age'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{worker.age || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+                <div className='flex items-start gap-3'>
+                  <Calendar className='w-5 h-5 text-purple-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Age
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='age'
+                        type='number'
+                        value={formData.age}
+                        onChange={handleInputChange}
+                        placeholder='Age'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{worker.age || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3 md:col-span-2'>
-              <MapPin className='w-5 h-5 text-purple-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Address
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='address'
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder='Address'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{worker.address || 'N/A'}</p>
-                )}
+                <div className='flex items-start gap-3 md:col-span-2'>
+                  <MapPin className='w-5 h-5 text-purple-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Address
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='address'
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder='Address'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{worker.address || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
-        </Card>
+        </div>
 
         {/* National ID Verification */}
         <Card

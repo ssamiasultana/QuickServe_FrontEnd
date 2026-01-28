@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Edit2, Save, X, User, Mail, Phone, Lock } from 'lucide-react';
+import { Edit2, Save, X, User, Mail, Phone, Lock, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../Context/AuthContext';
 import { useGetUserProfile, useUpdateUserProfile } from '../../hooks/useAuth';
@@ -24,6 +24,7 @@ export default function AdminProfile() {
     name: '',
     email: '',
     phone: '',
+    address: '',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -39,6 +40,7 @@ export default function AdminProfile() {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
+        address: user.address || '',
       });
     }
   }, [user, isEditing]);
@@ -114,6 +116,7 @@ export default function AdminProfile() {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
+        address: user.address || '',
       });
     }
   };
@@ -180,88 +183,113 @@ export default function AdminProfile() {
           )}
         </div>
 
-        {/* Profile Avatar */}
-        <Card className='mb-6' bgColor='bg-white' borderColor='border-gray-200'>
-          <div className='flex flex-col items-center py-6'>
-            <div className='relative mb-4'>
-              <div className='w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center border-4 border-blue-200'>
-                <User className='w-16 h-16 text-blue-400' />
+        {/* Main profile layout */}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
+          {/* Profile Avatar & summary */}
+          <div className='lg:col-span-1'>
+            <Card bgColor='bg-white' borderColor='border-gray-200'>
+              <div className='flex flex-col items-center py-6'>
+                <div className='relative mb-4'>
+                  <div className='w-32 h-32 rounded-full bg-blue-100 flex items-center justify-center border-4 border-blue-200'>
+                    <User className='w-16 h-16 text-blue-400' />
+                  </div>
+                </div>
+                <h2 className='text-xl font-semibold text-gray-900'>{user.name}</h2>
+                <p className='text-gray-500'>{user.email}</p>
+                <span className='mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium'>
+                  {user.role}
+                </span>
               </div>
-            </div>
-            <h2 className='text-xl font-semibold text-gray-900'>{user.name}</h2>
-            <p className='text-gray-500'>{user.email}</p>
-            <span className='mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium'>
-              {user.role}
-            </span>
+            </Card>
           </div>
-        </Card>
 
-        {/* Personal Information */}
-        <Card
-          title='Personal Information'
-          className='mb-6'
-          bgColor='bg-white'
-          borderColor='border-gray-200'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            <div className='flex items-start gap-3'>
-              <User className='w-5 h-5 text-blue-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Full Name
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='name'
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder='Full Name'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{user.name || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+          {/* Personal Information */}
+          <div className='lg:col-span-2'>
+            <Card
+              title='Personal Information'
+              bgColor='bg-white'
+              borderColor='border-gray-200'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div className='flex items-start gap-3'>
+                  <User className='w-5 h-5 text-blue-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Full Name
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='name'
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder='Full Name'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{user.name || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3'>
-              <Mail className='w-5 h-5 text-blue-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Email
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='email'
-                    type='email'
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder='Email Address'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{user.email || 'N/A'}</p>
-                )}
-              </div>
-            </div>
+                <div className='flex items-start gap-3'>
+                  <Mail className='w-5 h-5 text-blue-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Email
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='email'
+                        type='email'
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder='Email Address'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{user.email || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
 
-            <div className='flex items-start gap-3 md:col-span-2'>
-              <Phone className='w-5 h-5 text-blue-600 mt-1' />
-              <div className='flex-1'>
-                <label className='block text-sm font-medium text-gray-500 mb-1'>
-                  Phone Number
-                </label>
-                {isEditing ? (
-                  <FormInput
-                    name='phone'
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder='Phone Number'
-                  />
-                ) : (
-                  <p className='text-gray-900 font-medium'>{user.phone || 'N/A'}</p>
-                )}
+                <div className='flex items-start gap-3 md:col-span-2'>
+                  <Phone className='w-5 h-5 text-blue-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Phone Number
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='phone'
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder='Phone Number'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{user.phone || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className='flex items-start gap-3 md:col-span-2'>
+                  <MapPin className='w-5 h-5 text-blue-600 mt-1' />
+                  <div className='flex-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
+                      Address
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        name='address'
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder='Your address'
+                      />
+                    ) : (
+                      <p className='text-gray-900 font-medium'>{user.address || 'N/A'}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
-        </Card>
+        </div>
 
         {/* Password Change */}
         <Card
