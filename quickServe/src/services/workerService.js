@@ -178,12 +178,10 @@ class WorkerService {
     );
   }
   async getWorkersByService(serviceId) {
-    return this.request(
-      `${API_CONFIG.endpoints.workers.getWorkersByService}/${serviceId}`,
-      {
-        method: 'GET',
-      }
-    );
+    // Endpoint already includes the serviceId parameter
+    return this.request(API_CONFIG.endpoints.workers.getWorkersByService(serviceId), {
+      method: 'GET',
+    });
   }
   async getSubServices() {
     return this.request(API_CONFIG.endpoints.services.getSubServices, {

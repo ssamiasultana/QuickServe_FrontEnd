@@ -13,7 +13,8 @@ const API_CONFIG = {
       updateProfile: '/worker/profile',
       getPaginatedWorkers: '/workers/paginated',
       searchWorkers: '/workers/search',
-      getWorkersByService: (serviceId) => `/workers/${serviceId}`,
+      // Use a distinct path segment for workers-by-service to avoid clashing with other worker routes
+      getWorkersByService: (serviceId) => `/workers/service/${serviceId}`,
       verifyNid: (id) => `/workers/${id}/verify-nid`,
       checkNid: '/workers/check-nid',
     },
