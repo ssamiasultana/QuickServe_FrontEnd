@@ -8,8 +8,7 @@ import {
   Filter,
   MapPin,
   Package,
-  User,
-  X,
+  X
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useUpdateBookingStatus } from '../../hooks/useBooking';
@@ -274,11 +273,10 @@ export default function BookingList({
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
-                        statusFilter === status
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}>
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${statusFilter === status
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}>
                       {status === 'all' ? 'All' : status}
                       {status !== 'all' && (
                         <span className='ml-2 text-xs opacity-75'>
@@ -368,27 +366,14 @@ export default function BookingList({
                           )}
 
                         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4'>
-                          {/* Show customer info for workers, worker info for customers */}
-                          {viewType === 'worker' && (
-                            <div className='flex items-center gap-2 text-sm text-gray-600'>
-                              <User className='w-4 h-4 text-gray-400' />
-                              <span>
-                                <span className='font-medium'>Customer:</span>{' '}
-                                {booking.customer_name ||
-                                  booking.customer?.name ||
-                                  'N/A'}
-                              </span>
-                            </div>
-                          )}
-                          {viewType === 'customer' && (
-                            <div className='flex items-center gap-2 text-sm text-gray-600'>
-                              <User className='w-4 h-4 text-gray-400' />
-                              <span>
-                                <span className='font-medium'>Worker:</span>{' '}
-                                {booking.worker?.name || 'Not Assigned'}
-                              </span>
-                            </div>
-                          )}
+
+                          <div className='flex items-center gap-2 text-sm text-gray-600'>
+                            <MapPin className='w-4 h-4 text-gray-400' />
+                            <span>
+                              <span className='font-medium'>Service Address:</span>{' '}
+                              {booking.service_address || 'N/A'}
+                            </span>
+                          </div>
 
                           <div className='flex items-center gap-2 text-sm text-gray-600'>
                             <Calendar className='w-4 h-4 text-gray-400' />
@@ -410,11 +395,11 @@ export default function BookingList({
                               <span className='font-medium'>Amount:</span> ৳
                               {typeof booking.total_amount === 'string'
                                 ? parseFloat(booking.total_amount || 0).toFixed(
-                                    2
-                                  )
+                                  2
+                                )
                                 : (Number(booking.total_amount) || 0).toFixed(
-                                    2
-                                  )}
+                                  2
+                                )}
                             </span>
                           </div>
                         </div>
@@ -499,15 +484,30 @@ export default function BookingList({
                                 </div>
                               )}
 
-                              {/* Service address */}
+
                               <div className='md:col-span-2'>
-                                <p className='text-sm font-medium text-gray-700 mb-1 flex items-center gap-2'>
-                                  <MapPin className='w-4 h-4' />
-                                  Service Address:
-                                </p>
-                                <p className='text-sm text-gray-600'>
-                                  {booking.service_address || 'N/A'}
-                                </p>
+                                {viewType === 'worker' && (
+                                  <>
+                                    <p className='text-sm font-medium text-gray-700 mb-1'>
+                                      Customer Name:
+                                      {booking.customer?.name || 'N/A'}
+
+                                    </p>
+
+
+
+                                  </>
+
+                                )}
+                                {viewType === 'customer' && (
+                                  <p className='text-sm font-medium text-gray-700 mb-1'>
+                                    Worker Name:
+
+                                    {booking.worker?.name || 'Not Assigned'}
+                                  </p>
+
+                                )}
+
                               </div>
 
                               {/* Special instructions */}
@@ -667,11 +667,10 @@ export default function BookingList({
             <button
               onClick={handleConfirmStatusUpdate}
               disabled={updateStatusMutation.isPending}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
-                confirmModal.status === 'confirmed'
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-red-600 text-white hover:bg-red-700'
-              }`}>
+              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${confirmModal.status === 'confirmed'
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-red-600 text-white hover:bg-red-700'
+                }`}>
               {updateStatusMutation.isPending ? (
                 <>
                   <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
@@ -745,6 +744,6 @@ export default function BookingList({
           )}
         </div>
       </Modal>
-    </div>
+    </div >
   );
 }
