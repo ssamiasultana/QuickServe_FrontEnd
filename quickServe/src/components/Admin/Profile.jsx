@@ -1,8 +1,8 @@
+import { Edit2, Eye, EyeOff, Lock, Mail, MapPin, Phone, Save, User, X } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
-import { Edit2, Save, X, User, Mail, Phone, Lock, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { AuthContext } from '../Context/AuthContext';
 import { useGetUserProfile, useUpdateUserProfile } from '../../hooks/useAuth';
+import { AuthContext } from '../Context/AuthContext';
 import Card from '../ui/Card';
 import { FormInput } from '../ui/FormInput';
 
@@ -33,6 +33,12 @@ export default function AdminProfile() {
     password_confirmation: '',
   });
 
+  const [showPasswords, setShowPasswords] = useState({
+    current_password: false,
+    password: false,
+    password_confirmation: false,
+  });
+
   // Initialize form data when user data is loaded
   useEffect(() => {
     if (user && !isEditing) {
@@ -58,6 +64,13 @@ export default function AdminProfile() {
     setPasswordData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
     }));
   };
 
@@ -311,37 +324,76 @@ export default function AdminProfile() {
                   <label className='block text-sm font-medium text-gray-500 mb-1'>
                     Current Password
                   </label>
-                  <FormInput
-                    name='current_password'
-                    type='password'
-                    value={passwordData.current_password}
-                    onChange={handlePasswordChange}
-                    placeholder='Enter current password'
-                  />
+                  <div className='relative'>
+                    <FormInput
+                      name='current_password'
+                      type={showPasswords.current_password ? 'text' : 'password'}
+                      value={passwordData.current_password}
+                      onChange={handlePasswordChange}
+                      placeholder='Enter current password'
+                      className='pr-10'
+                    />
+                    <button
+                      type='button'
+                      onClick={() => togglePasswordVisibility('current_password')}
+                      className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                      {showPasswords.current_password ? (
+                        <EyeOff className='w-4 h-4' />
+                      ) : (
+                        <Eye className='w-4 h-4' />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className='block text-sm font-medium text-gray-500 mb-1'>
                     New Password
                   </label>
-                  <FormInput
-                    name='password'
-                    type='password'
-                    value={passwordData.password}
-                    onChange={handlePasswordChange}
-                    placeholder='Enter new password'
-                  />
+                  <div className='relative'>
+                    <FormInput
+                      name='password'
+                      type={showPasswords.password ? 'text' : 'password'}
+                      value={passwordData.password}
+                      onChange={handlePasswordChange}
+                      placeholder='Enter new password'
+                      className='pr-10'
+                    />
+                    <button
+                      type='button'
+                      onClick={() => togglePasswordVisibility('password')}
+                      className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                      {showPasswords.password ? (
+                        <EyeOff className='w-4 h-4' />
+                      ) : (
+                        <Eye className='w-4 h-4' />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className='block text-sm font-medium text-gray-500 mb-1'>
                     Confirm New Password
                   </label>
-                  <FormInput
-                    name='password_confirmation'
-                    type='password'
-                    value={passwordData.password_confirmation}
-                    onChange={handlePasswordChange}
-                    placeholder='Confirm new password'
-                  />
+                  <div className='relative'>
+                    <FormInput
+                      name='password_confirmation'
+                      type={showPasswords.password_confirmation ? 'text' : 'password'}
+                      value={passwordData.password_confirmation}
+                      onChange={handlePasswordChange}
+                      placeholder='Confirm new password'
+                      className='pr-10'
+                    />
+                    <button
+                      type='button'
+                      onClick={() => togglePasswordVisibility('password_confirmation')}
+                      className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                      {showPasswords.password_confirmation ? (
+                        <EyeOff className='w-4 h-4' />
+                      ) : (
+                        <Eye className='w-4 h-4' />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className='flex gap-2'>
                   <button

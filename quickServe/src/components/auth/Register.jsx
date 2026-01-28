@@ -1,5 +1,5 @@
-import { Lock, Mail, Phone, User } from "lucide-react";
-import { use, useActionState, useEffect } from "react";
+import { Eye, EyeOff, Lock, Mail, Phone, User } from "lucide-react";
+import { use, useActionState, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import logo from "../../assets/logo.png";
 import { signUpAction } from "../../utils/authAction";
@@ -17,14 +17,27 @@ const Register = () => {
 
   const roleOptions = isAdminCreating
     ? [
-        { value: "Worker", label: "Worker" },
+      { value: "Worker", label: "Worker" },
 
-        { value: "Moderator", label: "Moderator" },
-      ]
+      { value: "Moderator", label: "Moderator" },
+    ]
     : [
-        { value: "Worker", label: "Worker" },
-        { value: "Customer", label: "Customer" },
-      ];
+      { value: "Worker", label: "Worker" },
+      { value: "Customer", label: "Customer" },
+    ];
+
+  const [showPasswords, setShowPasswords] = useState({
+    current_password: false,
+    password: false,
+    password_confirmation: false,
+  });
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
   useEffect(() => {
     if (isAdminCreating) return;
     if (isAuthenticated && user) {
@@ -190,26 +203,48 @@ const Register = () => {
                 required
                 error={state.errors?.role}
               />
-
-              <FormInput
-                label="Password"
-                name="password"
-                type="password"
-                placeholder="Create a strong password"
-                required
-                error={state.errors?.password}
-                icon={Lock}
-              />
-
-              <FormInput
-                label="Confirm Password"
-                name="password_confirmation"
-                type="password"
-                placeholder="Re-enter your password"
-                required
-                error={state.errors?.password_confirmation}
-                icon={Lock}
-              />
+              <div className='relative'>
+                <FormInput
+                  label="Password"
+                  name="password"
+                  type={showPasswords.password ? 'text' : 'password'}
+                  placeholder="Create a strong password"
+                  required
+                  error={state.errors?.password}
+                  icon={Lock}
+                />
+                <button
+                  type='button'
+                  onClick={() => togglePasswordVisibility('password')}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                  {showPasswords.password ? (
+                    <EyeOff className='w-4 h-4' />
+                  ) : (
+                    <Eye className='w-4 h-4' />
+                  )}
+                </button>
+              </div>
+              <div className='relative'>
+                <FormInput
+                  label="Confirm Password"
+                  name="password_confirmation"
+                  type={showPasswords.password_confirmation ? 'text' : 'password'}
+                  placeholder="Re-enter your password"
+                  required
+                  error={state.errors?.password_confirmation}
+                  icon={Lock}
+                />
+                <button
+                  type='button'
+                  onClick={() => togglePasswordVisibility('password_confirmation')}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                  {showPasswords.password ? (
+                    <EyeOff className='w-4 h-4' />
+                  ) : (
+                    <Eye className='w-4 h-4' />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3 pt-2">

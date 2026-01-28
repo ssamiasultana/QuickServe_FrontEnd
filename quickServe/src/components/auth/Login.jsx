@@ -1,7 +1,7 @@
 // components/auth/Login.jsx
 import { useQueryClient } from '@tanstack/react-query';
-import { Lock, Mail } from 'lucide-react';
-import { use, useActionState, useEffect } from 'react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { use, useActionState, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import logo from '../../assets/logo.png';
 import { loginAction } from '../../utils/authAction';
@@ -11,6 +11,12 @@ import colors from '../ui/color';
 import { FormInput } from '../ui/FormInput';
 
 const Login = () => {
+  const [showPasswords, setShowPasswords] = useState({
+    current_password: false,
+    password: false,
+    password_confirmation: false,
+  });
+
   const { login, isAuthenticated, user } = use(AuthContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -71,6 +77,12 @@ const Login = () => {
       errors: {},
     }
   );
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
 
   return (
     <div className='h-screen flex flex-col lg:flex-row items-center justify-center p-4 lg:p-6'>
@@ -126,11 +138,10 @@ const Login = () => {
           formCard={true}>
           {state.message && (
             <div
-              className={`p-3 rounded-lg mb-4 text-sm ${
-                state.success
-                  ? 'bg-green-100 text-green-800 border border-green-200'
-                  : 'bg-red-100 text-red-800 border border-red-200'
-              }`}>
+              className={`p-3 rounded-lg mb-4 text-sm ${state.success
+                ? 'bg-green-100 text-green-800 border border-green-200'
+                : 'bg-red-100 text-red-800 border border-red-200'
+                }`}>
               {state.message}
             </div>
           )}
@@ -146,16 +157,27 @@ const Login = () => {
               icon={Mail}
             />
 
-            <div>
+            <div className='relative'>
               <FormInput
                 label='Password'
                 name='password'
-                type='password'
+                type={showPasswords.password ? 'text' : 'password'}
                 placeholder='Password'
                 required
                 error={state.errors?.password}
                 icon={Lock}
               />
+
+              <button
+                type='button'
+                onClick={() => togglePasswordVisibility('password')}
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'>
+                {showPasswords.password ? (
+                  <EyeOff className='w-4 h-4' />
+                ) : (
+                  <Eye className='w-4 h-4' />
+                )}
+              </button>
               <div className='text-right mt-2'>
                 <Link
                   to='/forgot-password'
