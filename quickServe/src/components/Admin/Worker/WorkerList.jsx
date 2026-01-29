@@ -14,13 +14,6 @@ const WorkerList = () => {
     isFetching,
   } = usePaginatedWorkers(currentPage, itemsPerPage);
 
-  console.log('=== WorkerList State ===');
-  console.log('currentPage:', currentPage);
-  console.log('itemsPerPage:', itemsPerPage);
-  console.log('isLoading:', isLoading);
-  console.log('isFetching:', isFetching);
-  console.log('response:', response);
-
   // Extract data and pagination from response
   const workers = response?.data || [];
   const pagination = response?.pagination || {};
@@ -46,29 +39,36 @@ const WorkerList = () => {
       </div>
 
       {isLoading && (
-        <div className='flex justify-center items-center py-12'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
-          <span className='ml-3 text-gray-600'>Loading workers...</span>
+        <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-12'>
+          <div className='flex justify-center items-center'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+            <span className='ml-3 text-gray-600'>Loading workers...</span>
+          </div>
         </div>
       )}
 
       {error && (
-        <div className='text-center py-12 text-red-500'>
-          Error loading workers: {error.message}
+        <div className='bg-white rounded-lg shadow-sm border border-red-200 p-12'>
+          <div className='text-center text-red-600'>
+            <p className='font-semibold mb-2'>Error loading workers</p>
+            <p className='text-sm text-red-500'>{error.message || 'Something went wrong. Please try again.'}</p>
+          </div>
         </div>
       )}
 
       {!isLoading && !error && (
-        <WorkerTable
-          paginatedWorkers={workers}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          totalPages={totalPages}
-          itemsPerPageOptions={ITEMS_PER_PAGE_OPTIONS}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
+        <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
+          <WorkerTable
+            paginatedWorkers={workers}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
+            totalPages={totalPages}
+            itemsPerPageOptions={ITEMS_PER_PAGE_OPTIONS}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </div>
       )}
     </div>
   );

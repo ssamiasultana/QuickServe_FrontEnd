@@ -44,10 +44,17 @@ function Services() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-gray-50 p-6'>
+      <div className='max-w-7xl mx-auto'>
+        {/* Header */}
+        <div className='mb-6'>
+          <h1 className='text-2xl font-bold text-gray-900'>Services Management</h1>
+          <p className='text-gray-600'>Manage services and sub-services</p>
+        </div>
+
       {/* Filters Section */}
-      <div className='bg-white border-b border-gray-200'>
-        <div className='max-w-7xl mx-auto px-6 py-4'>
+      <div className='bg-white rounded-lg shadow-sm border border-gray-200 mb-6'>
+        <div className='px-6 py-4'>
           {/* Service Filter */}
           <div className='flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide mb-3'>
             <span className='text-sm text-gray-600 font-medium whitespace-nowrap'>
@@ -127,8 +134,8 @@ function Services() {
       </div>
 
       {/* Service Selection Section */}
-      <div className='bg-white'>
-        <div className='max-w-7xl mx-auto px-6 py-6'>
+      <div className='bg-white rounded-lg shadow-sm border border-gray-200 mb-6'>
+        <div className='px-6 py-6'>
           <Service
             isAdmin={isAdmin}
             selectedService={selectedService}
@@ -137,30 +144,30 @@ function Services() {
         </div>
       </div>
 
-      {/* Divider */}
-      <div className='h-px bg-gray-200'></div>
-
       {/* Sub Services Cards Section */}
-      <div className='max-w-7xl mx-auto px-6 py-6'>
-        <div className='flex items-center justify-between mb-4'>
-          <h2 className='text-2xl font-bold text-gray-900'>Sub Services</h2>
-          {isAdmin && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm'>
-              <Plus size={20} />
-              <span>Add Sub Service</span>
-            </button>
-          )}
-        </div>
+      <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
+        <div className='px-6 py-6'>
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-2xl font-bold text-gray-900'>Sub Services</h2>
+            {isAdmin && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm'>
+                <Plus size={20} />
+                <span>Add Sub Service</span>
+              </button>
+            )}
+          </div>
 
-        {/* Reusable SubServices Component */}
-        <SubServices
-          subservices={filteredSubservices}
-          onSubServiceClick={handleSubServiceClick}
-          onClearFilters={clearFilters}
-          showEmptyState={true}
-        />
+          {/* Reusable SubServices Component */}
+          <SubServices
+            subservices={filteredSubservices}
+            onSubServiceClick={handleSubServiceClick}
+            onClearFilters={clearFilters}
+            showEmptyState={true}
+          />
+        </div>
+      </div>
       </div>
 
       {/* Add SubService Modal */}

@@ -51,7 +51,7 @@ const CustomerTable = ({ customerData }) => {
   return (
     <div className='space-y-5'>
       <Table
-        title='Workers List'
+        title='Customers List'
         data={customerData}
         columns={CustomerColumn}
       />

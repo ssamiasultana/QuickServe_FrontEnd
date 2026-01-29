@@ -45,7 +45,7 @@ const API_CONFIG = {
       // Get all bookings for a specific customer
       getCustomerBookings: (customerID) => `/booking/customer/${customerID}`,
       batchBooking: '/booking/batch',
-      getAllBookings: '/bookings',
+      getAllBookings: '/booking',
       // Get all bookings for the authenticated worker
       getWorkerBookings: '/booking/worker/jobs',
       // Update booking status (confirm/cancel)

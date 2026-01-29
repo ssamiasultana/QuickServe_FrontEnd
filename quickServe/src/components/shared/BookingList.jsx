@@ -8,6 +8,7 @@ import {
   Filter,
   MapPin,
   Package,
+  User,
   X
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
@@ -48,6 +49,7 @@ export default function BookingList({
 }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedBooking, setExpandedBooking] = useState(null);
+  const [expandedCustomers, setExpandedCustomers] = useState(new Set());
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     bookingId: null,
@@ -69,6 +71,82 @@ export default function BookingList({
       (booking) => booking.status === statusFilter
     );
   }, [normalizedBookings, statusFilter]);
+
+  // Group bookings by customer for admin view
+  const bookingsByCustomer = useMemo(() => {
+    if (viewType !== 'admin') return null;
+
+    const grouped = {};
+    filteredBookings.forEach((booking) => {
+      // Use customer_id as primary key, fallback to email or name
+      const customerKey =
+        booking.customer_id ||
+        booking.customer?.id ||
+        booking.customer_email ||
+        booking.customer?.email ||
+        booking.customer_name ||
+        booking.customer?.name ||
+        'unknown';
+
+      if (!grouped[customerKey]) {
+        grouped[customerKey] = {
+          customerId: booking.customer_id || booking.customer?.id,
+          customerName:
+            booking.customer_name ||
+            booking.customer?.name ||
+            'Unknown Customer',
+          customerEmail:
+            booking.customer_email ||
+            booking.customer?.email ||
+            'N/A',
+          customerPhone:
+            booking.customer_phone ||
+            booking.customer?.phone ||
+            'N/A',
+          bookings: [],
+        };
+      }
+      grouped[customerKey].bookings.push(booking);
+    });
+
+    // Calculate stats for each customer
+    return Object.values(grouped).map((group) => {
+      const total = group.bookings.length;
+      const pending = group.bookings.filter((b) => b.status === 'pending').length;
+      const confirmed = group.bookings.filter((b) => b.status === 'confirmed').length;
+      const paid = group.bookings.filter((b) => b.status === 'paid').length;
+      const cancelled = group.bookings.filter((b) => b.status === 'cancelled').length;
+      const totalAmount = group.bookings.reduce(
+        (sum, b) => sum + parseFloat(b.total_amount || 0),
+        0
+      );
+
+      return {
+        ...group,
+        stats: {
+          total,
+          pending,
+          confirmed,
+          paid,
+          cancelled,
+          totalAmount,
+        },
+      };
+    });
+  }, [filteredBookings, viewType]);
+
+  // Toggle customer expansion
+  const toggleCustomerExpansion = (customerKey) => {
+    setExpandedCustomers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerKey)) {
+        newSet.delete(customerKey);
+      } else {
+        newSet.add(customerKey);
+      }
+      return newSet;
+    });
+  };
 
   // Group bookings by status for summary
   const bookingStats = useMemo(() => {
@@ -114,6 +192,11 @@ export default function BookingList({
     } catch (error) {
       return 'N/A';
     }
+  };
+
+  // Format currency helper
+  const formatCurrency = (amount) => {
+    return `৳${parseFloat(amount || 0).toFixed(2)}`;
   };
 
   // Get status badge styling
@@ -176,6 +259,16 @@ export default function BookingList({
   // Check if booking can be cancelled (only pending bookings)
   const canCancel = (booking) => {
     return booking.status === 'pending';
+  };
+
+  // Check if admin can reactivate cancelled booking (change from cancelled to pending)
+  const canReactivate = (booking) => {
+    return viewType === 'admin' && booking.status === 'cancelled';
+  };
+
+  // Check if admin can accept/reactivate cancelled booking (change from cancelled to confirmed)
+  const canAcceptCancelled = (booking) => {
+    return viewType === 'admin' && booking.status === 'cancelled';
   };
 
   if (isLoading) {
@@ -329,7 +422,290 @@ export default function BookingList({
               </>
             )}
           </div>
+        ) : viewType === 'admin' && bookingsByCustomer ? (
+          // Admin view: Grouped by customer
+          <div className='space-y-4'>
+            {bookingsByCustomer.map((customerGroup) => {
+              const customerKey =
+                customerGroup.customerId ||
+                customerGroup.customerEmail ||
+                customerGroup.customerName;
+              const isCustomerExpanded = expandedCustomers.has(customerKey);
+
+              return (
+                <div
+                  key={customerKey}
+                  className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
+                  {/* Customer Header */}
+                  <div
+                    className='p-6 cursor-pointer hover:bg-gray-50 transition-colors'
+                    onClick={() => toggleCustomerExpansion(customerKey)}>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-4 flex-1'>
+                        <div className='w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center'>
+                          <User className='w-6 h-6 text-blue-600' />
+                        </div>
+                        <div className='flex-1'>
+                          <h3 className='text-lg font-semibold text-gray-900'>
+                            {customerGroup.customerName}
+                          </h3>
+                          <div className='flex items-center gap-4 mt-1'>
+                            <p className='text-sm text-gray-600'>
+                              {customerGroup.customerEmail}
+                            </p>
+                            <p className='text-sm text-gray-600'>
+                              {customerGroup.customerPhone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className='flex items-center gap-6'>
+                          <div className='text-right'>
+                            <p className='text-sm text-gray-500'>Total Orders</p>
+                            <p className='text-xl font-bold text-gray-900'>
+                              {customerGroup.stats.total}
+                            </p>
+                          </div>
+                          <div className='text-right'>
+                            <p className='text-sm text-gray-500'>Total Amount</p>
+                            <p className='text-xl font-bold text-green-600'>
+                              ৳{customerGroup.stats.totalAmount.toFixed(2)}
+                            </p>
+                          </div>
+                          <button className='p-2 hover:bg-gray-200 rounded-lg transition-colors'>
+                            {isCustomerExpanded ? (
+                              <ChevronUp className='w-5 h-5 text-gray-600' />
+                            ) : (
+                              <ChevronDown className='w-5 h-5 text-gray-600' />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Customer Stats */}
+                    <div className='mt-4 pt-4 border-t border-gray-200'>
+                      <div className='flex items-center gap-4'>
+                        <div className='flex items-center gap-2'>
+                          <span className='px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium'>
+                            Pending: {customerGroup.stats.pending}
+                          </span>
+                          <span className='px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium'>
+                            Confirmed: {customerGroup.stats.confirmed}
+                          </span>
+                          <span className='px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium'>
+                            Paid: {customerGroup.stats.paid}
+                          </span>
+                          <span className='px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium'>
+                            Cancelled: {customerGroup.stats.cancelled}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customer Bookings */}
+                  {isCustomerExpanded && (
+                    <div className='border-t border-gray-200 bg-gray-50'>
+                      <div className='p-4 space-y-3'>
+                        {customerGroup.bookings.map((booking) => {
+                          const isExpanded = expandedBooking === booking.id;
+                          return (
+                            <div
+                              key={booking.id}
+                              className='bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow'>
+                              <div className='p-4'>
+                                <div className='flex items-start justify-between'>
+                                  <div className='flex-1'>
+                                    <div className='flex items-center gap-3 mb-3'>
+                                      <span
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize ${getStatusBadge(
+                                          booking.status
+                                        )}`}>
+                                        {booking.status?.toUpperCase() || 'PENDING'}
+                                      </span>
+                                      <span className='text-sm text-gray-500'>
+                                        Booking ID: #{booking.id}
+                                      </span>
+                                    </div>
+
+                                    <h4 className='text-base font-semibold text-gray-900 mb-2'>
+                                      {booking.service_subcategory?.name ||
+                                        booking.service?.name ||
+                                        'Service'}
+                                    </h4>
+
+                                    <div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-3'>
+                                      <div className='flex items-center gap-2 text-sm text-gray-600'>
+                                        <Calendar className='w-4 h-4 text-gray-400' />
+                                        <span>
+                                          {formatDate(booking.scheduled_at)}
+                                        </span>
+                                      </div>
+                                      <div className='flex items-center gap-2 text-sm text-gray-600'>
+                                        <Clock className='w-4 h-4 text-gray-400' />
+                                        <span>{formatTime(booking.scheduled_at)}</span>
+                                      </div>
+                                      <div className='flex items-center gap-2 text-sm text-gray-600'>
+                                        <Package className='w-4 h-4 text-gray-400' />
+                                        <span>
+                                          ৳
+                                          {typeof booking.total_amount === 'string'
+                                            ? parseFloat(
+                                              booking.total_amount || 0
+                                            ).toFixed(2)
+                                            : (Number(booking.total_amount) || 0).toFixed(
+                                              2
+                                            )}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Expanded Details for Individual Booking */}
+                                    {isExpanded && (
+                                      <div className='mt-3 pt-3 border-t border-gray-200 space-y-3'>
+                                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                                          {/* Worker details */}
+                                          {booking.worker && (
+                                            <>
+                                              <div>
+                                                <p className='text-xs font-medium text-gray-700 mb-1'>
+                                                  Worker Name:
+                                                </p>
+                                                <p className='text-sm text-gray-600'>
+                                                  {booking.worker.name || 'N/A'}
+                                                </p>
+                                              </div>
+                                              <div>
+                                                <p className='text-xs font-medium text-gray-700 mb-1'>
+                                                  Worker Email:
+                                                </p>
+                                                <p className='text-sm text-gray-600'>
+                                                  {booking.worker.email || 'N/A'}
+                                                </p>
+                                              </div>
+                                            </>
+                                          )}
+
+                                          <div>
+                                            <p className='text-xs font-medium text-gray-700 mb-1'>
+                                              Service Address:
+                                            </p>
+                                            <p className='text-sm text-gray-600'>
+                                              {booking.service_address || 'N/A'}
+                                            </p>
+                                          </div>
+
+                                          {booking.special_instructions && (
+                                            <div className='md:col-span-2'>
+                                              <p className='text-xs font-medium text-gray-700 mb-1'>
+                                                Special Instructions:
+                                              </p>
+                                              <p className='text-sm text-gray-600'>
+                                                {booking.special_instructions}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className='flex items-center gap-2'>
+                                    {/* Admin Action Buttons */}
+                                    <div className='flex items-center gap-2 flex-wrap'>
+                                      {canConfirm(booking) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdateClick(
+                                              booking.id,
+                                              'confirmed',
+                                              booking
+                                            );
+                                          }}
+                                          disabled={updateStatusMutation.isPending}
+                                          className='px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                          <CheckCircle className='w-3 h-3' />
+                                          Confirm
+                                        </button>
+                                      )}
+                                      {canCancel(booking) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdateClick(
+                                              booking.id,
+                                              'cancelled',
+                                              booking
+                                            );
+                                          }}
+                                          disabled={updateStatusMutation.isPending}
+                                          className='px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                          <X className='w-3 h-3' />
+                                          Cancel
+                                        </button>
+                                      )}
+                                      {canReactivate(booking) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdateClick(
+                                              booking.id,
+                                              'pending',
+                                              booking
+                                            );
+                                          }}
+                                          disabled={updateStatusMutation.isPending}
+                                          className='px-3 py-1.5 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                          <Clock className='w-3 h-3' />
+                                          Reactivate
+                                        </button>
+                                      )}
+                                      {canAcceptCancelled(booking) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStatusUpdateClick(
+                                              booking.id,
+                                              'confirmed',
+                                              booking
+                                            );
+                                          }}
+                                          disabled={updateStatusMutation.isPending}
+                                          className='px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                          <CheckCircle className='w-3 h-3' />
+                                          Accept
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleExpand(booking.id);
+                                      }}
+                                      className='p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors'>
+                                      {isExpanded ? (
+                                        <ChevronUp className='w-4 h-4' />
+                                      ) : (
+                                        <ChevronDown className='w-4 h-4' />
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          // Regular view: Flat list
           <div className='space-y-4'>
             {filteredBookings.map((booking) => {
               const isExpanded = expandedBooking === booking.id;
@@ -408,9 +784,19 @@ export default function BookingList({
                         {isExpanded && (
                           <div className='mt-4 pt-4 border-t border-gray-200 space-y-3'>
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                              {/* Customer details for workers */}
-                              {viewType === 'worker' && (
+                              {/* Customer details for workers and admin */}
+                              {(viewType === 'worker' || viewType === 'admin') && (
                                 <>
+                                  <div>
+                                    <p className='text-sm font-medium text-gray-700 mb-1'>
+                                      Customer Name:
+                                    </p>
+                                    <p className='text-sm text-gray-600'>
+                                      {booking.customer_name ||
+                                        booking.customer?.name ||
+                                        'N/A'}
+                                    </p>
+                                  </div>
                                   <div>
                                     <p className='text-sm font-medium text-gray-700 mb-1'>
                                       Customer Email:
@@ -434,8 +820,8 @@ export default function BookingList({
                                 </>
                               )}
 
-                              {/* Worker details for customers */}
-                              {viewType === 'customer' && booking.worker && (
+                              {/* Worker details for customers and admin */}
+                              {(viewType === 'customer' || viewType === 'admin') && booking.worker && (
                                 <>
                                   <div>
                                     <p className='text-sm font-medium text-gray-700 mb-1'>
@@ -473,7 +859,7 @@ export default function BookingList({
                                   )}
                                 </>
                               )}
-                              {viewType === 'customer' && !booking.worker && (
+                              {(viewType === 'customer' || viewType === 'admin') && !booking.worker && (
                                 <div className='md:col-span-2'>
                                   <p className='text-sm font-medium text-gray-700 mb-1'>
                                     Worker:
@@ -485,30 +871,6 @@ export default function BookingList({
                               )}
 
 
-                              <div className='md:col-span-2'>
-                                {viewType === 'worker' && (
-                                  <>
-                                    <p className='text-sm font-medium text-gray-700 mb-1'>
-                                      Customer Name:
-                                      {booking.customer?.name || 'N/A'}
-
-                                    </p>
-
-
-
-                                  </>
-
-                                )}
-                                {viewType === 'customer' && (
-                                  <p className='text-sm font-medium text-gray-700 mb-1'>
-                                    Worker Name:
-
-                                    {booking.worker?.name || 'Not Assigned'}
-                                  </p>
-
-                                )}
-
-                              </div>
 
                               {/* Special instructions */}
                               {booking.special_instructions && (
@@ -547,8 +909,8 @@ export default function BookingList({
                                 </p>
                               </div>
 
-                              {/* Additional details for customers */}
-                              {viewType === 'customer' && (
+                              {/* Additional details for customers and admin */}
+                              {(viewType === 'customer' || viewType === 'admin') && (
                                 <>
                                   <div>
                                     <p className='text-sm font-medium text-gray-700 mb-1'>
@@ -616,6 +978,72 @@ export default function BookingList({
                           </div>
                         )}
 
+                        {/* Action buttons for admin */}
+                        {viewType === 'admin' && (
+                          <div className='flex items-center gap-2 flex-wrap'>
+                            {canConfirm(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'confirmed',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <CheckCircle className='w-4 h-4' />
+                                Confirm
+                              </button>
+                            )}
+                            {canCancel(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'cancelled',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <X className='w-4 h-4' />
+                                Cancel
+                              </button>
+                            )}
+                            {canReactivate(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'pending',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <Clock className='w-4 h-4' />
+                                Reactivate
+                              </button>
+                            )}
+                            {canAcceptCancelled(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'confirmed',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <CheckCircle className='w-4 h-4' />
+                                Accept
+                              </button>
+                            )}
+                          </div>
+                        )}
+
                         <button
                           onClick={() => toggleExpand(booking.id)}
                           className='ml-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors'>
@@ -641,17 +1069,33 @@ export default function BookingList({
         onClose={handleCloseModal}
         title={
           confirmModal.status === 'confirmed'
-            ? 'Confirm Booking'
-            : 'Cancel Booking'
+            ? confirmModal.bookingDetails?.status === 'cancelled'
+              ? 'Accept Cancelled Booking'
+              : 'Confirm Booking'
+            : confirmModal.status === 'pending'
+              ? 'Reactivate Booking'
+              : 'Cancel Booking'
         }
-        icon={confirmModal.status === 'confirmed' ? CheckCircle : AlertTriangle}
+        icon={
+          confirmModal.status === 'confirmed'
+            ? CheckCircle
+            : confirmModal.status === 'pending'
+              ? Clock
+              : AlertTriangle
+        }
         iconBgColor={
-          confirmModal.status === 'confirmed' ? 'bg-green-100' : 'bg-red-100'
+          confirmModal.status === 'confirmed'
+            ? 'bg-green-100'
+            : confirmModal.status === 'pending'
+              ? 'bg-yellow-100'
+              : 'bg-red-100'
         }
         iconColor={
           confirmModal.status === 'confirmed'
             ? 'text-green-600'
-            : 'text-red-600'
+            : confirmModal.status === 'pending'
+              ? 'text-yellow-600'
+              : 'text-red-600'
         }
         size='md'
         showCloseButton={!updateStatusMutation.isPending}
@@ -669,7 +1113,9 @@ export default function BookingList({
               disabled={updateStatusMutation.isPending}
               className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${confirmModal.status === 'confirmed'
                 ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-red-600 text-white hover:bg-red-700'
+                : confirmModal.status === 'pending'
+                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                  : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
               {updateStatusMutation.isPending ? (
                 <>
@@ -677,9 +1123,21 @@ export default function BookingList({
                   Processing...
                 </>
               ) : confirmModal.status === 'confirmed' ? (
+                confirmModal.bookingDetails?.status === 'cancelled' ? (
+                  <>
+                    <CheckCircle className='w-4 h-4' />
+                    Accept Booking
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className='w-4 h-4' />
+                    Confirm Booking
+                  </>
+                )
+              ) : confirmModal.status === 'pending' ? (
                 <>
-                  <CheckCircle className='w-4 h-4' />
-                  Confirm Booking
+                  <Clock className='w-4 h-4' />
+                  Reactivate Booking
                 </>
               ) : (
                 <>
@@ -693,9 +1151,21 @@ export default function BookingList({
         <div className='space-y-4'>
           <p className='text-gray-700'>
             {confirmModal.status === 'confirmed' ? (
+              confirmModal.bookingDetails?.status === 'cancelled' ? (
+                <>
+                  Are you sure you want to <strong>accept</strong> this cancelled booking?
+                  This will change the status from cancelled to confirmed.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to <strong>confirm</strong> this booking?
+                  Once confirmed, you will not be able to cancel it.
+                </>
+              )
+            ) : confirmModal.status === 'pending' ? (
               <>
-                Are you sure you want to <strong>confirm</strong> this booking?
-                Once confirmed, you will not be able to cancel it.
+                Are you sure you want to <strong>reactivate</strong> this cancelled booking?
+                This will change the status from cancelled to pending.
               </>
             ) : (
               <>
@@ -721,7 +1191,7 @@ export default function BookingList({
                     'N/A'}
                 </span>
               </div>
-              {viewType === 'worker' && (
+              {(viewType === 'worker' || viewType === 'admin') && (
                 <div className='flex items-center justify-between'>
                   <span className='text-sm text-gray-600'>Customer:</span>
                   <span className='text-sm font-semibold text-gray-900'>
