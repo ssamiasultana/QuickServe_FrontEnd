@@ -39,6 +39,15 @@ const API_CONFIG = {
     },
     customers: {
       getAll: '/customers',
+      updateCustomer: (id) => `/customers/${id}`,
+      deleteCustomer: (id) => `/customers/${id}`,
+    },
+    moderators: {
+      getAll: '/moderators',
+      getPaginated: '/moderators/paginated',
+      getSingleModerator: (id) => `/moderators/${id}`,
+      updateModerator: (id) => `/moderators/${id}`,
+      deleteModerator: (id) => `/moderators/${id}`,
     },
     booking: {
       createBooking: '/booking',

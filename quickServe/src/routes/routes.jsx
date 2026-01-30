@@ -7,6 +7,7 @@ import WorkerLayout from '../components/Layout/WorkerLayout.jsx';
 import Dashboard from '../components/Admin/Dashboard.jsx';
 import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
+import ActivityLog from '../components/Admin/ActivityLog/ActivityLog.jsx';
 import BookingList from '../components/Admin/Booking/BookingList.jsx';
 import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
 import ModeratorList from '../components/Admin/Moderators/ModeratorList.jsx';
@@ -51,6 +52,7 @@ const routes = createBrowserRouter([
       { path: '/moderators', Component: ModeratorList },
       { path: '/services', Component: Services },
       { path: '/bookings', Component: BookingList },
+      { path: '/activity-log', Component: ActivityLog },
       { path: '/profile', Component: AdminProfile },
     ],
   },

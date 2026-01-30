@@ -1,26 +1,31 @@
-import { Shield, UserCheck, UserX } from 'lucide-react';
+import { AlertTriangle, Pencil, Shield } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
-import { useGetAllCustomers } from '../../../hooks/useCustomer';
-import Card from '../../ui/Card';
+import { useGetAllModerators, useUpdateModerator, useDeleteModerator } from '../../../hooks/useModerator';
+import Modal from '../../ui/Modal';
 import Table from '../../ui/table';
 
 const ModeratorList = () => {
-  const { data: usersData, isLoading, isError, error } = useGetAllCustomers();
+  const { data: moderatorsData, isLoading, isError, error } = useGetAllModerators();
   const [searchTerm, setSearchTerm] = useState('');
+  const [editModal, setEditModal] = useState({ open: false, moderator: null });
+  const [deleteModal, setDeleteModal] = useState({ open: false, moderator: null });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', is_active: true });
+  const [errors, setErrors] = useState({});
 
-  // Filter moderators from all users
+  const updateModeratorMutation = useUpdateModerator();
+  const deleteModeratorMutation = useDeleteModerator();
+
+  // Filter moderators by search term
   const moderators = useMemo(() => {
-    if (!usersData) return [];
-    const allUsers = Array.isArray(usersData) ? usersData : usersData?.data || [];
-    const filtered = allUsers.filter(
-      (user) =>
-        user.role === 'Moderator' &&
-        (searchTerm === '' ||
-          user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+    if (!moderatorsData) return [];
+    const allModerators = Array.isArray(moderatorsData) ? moderatorsData : moderatorsData?.data || [];
+    return allModerators.filter(
+      (moderator) =>
+        searchTerm === '' ||
+        moderator.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        moderator.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    return filtered;
-  }, [usersData, searchTerm]);
+  }, [moderatorsData, searchTerm]);
 
   const moderatorColumns = [
     { header: 'ID', accessor: 'id' },
@@ -101,39 +106,55 @@ const ModeratorList = () => {
     );
   }
 
-  const activeModerators = moderators.filter((m) => m.is_active !== false).length;
-  const inactiveModerators = moderators.length - activeModerators;
+  const handleEdit = (moderator) => {
+    setEditModal({ open: true, moderator });
+    setFormData({
+      name: moderator.name || '',
+      email: moderator.email || '',
+      phone: moderator.phone || '',
+      is_active: moderator.is_active !== false,
+    });
+    setErrors({});
+  };
+
+  const handleDelete = (moderator) => {
+    setDeleteModal({ open: true, moderator });
+  };
+
+  const handleUpdate = async () => {
+    if (!editModal.moderator) return;
+
+    setErrors({});
+    try {
+      await updateModeratorMutation.mutateAsync({
+        id: editModal.moderator.id,
+        data: formData,
+      });
+      setEditModal({ open: false, moderator: null });
+      setFormData({ name: '', email: '', phone: '', is_active: true });
+    } catch (error) {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      }
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.moderator) return;
+
+    try {
+      await deleteModeratorMutation.mutateAsync(deleteModal.moderator.id);
+      setDeleteModal({ open: false, moderator: null });
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
 
   return (
     <div className='p-6'>
       <div className='mb-6'>
         <h1 className='text-2xl font-bold text-gray-900'>Moderators</h1>
         <p className='text-gray-600'>Manage system moderators</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6'>
-        <Card
-          title='Total Moderators'
-          value={moderators.length}
-          icon={Shield}
-          iconColor='text-purple-600'
-          iconBgColor='bg-purple-100'
-        />
-        <Card
-          title='Active Moderators'
-          value={activeModerators}
-          icon={UserCheck}
-          iconColor='text-green-600'
-          iconBgColor='bg-green-100'
-        />
-        <Card
-          title='Inactive Moderators'
-          value={inactiveModerators}
-          icon={UserX}
-          iconColor='text-red-600'
-          iconBgColor='bg-red-100'
-        />
       </div>
 
       {/* Search Bar */}
@@ -165,9 +186,143 @@ const ModeratorList = () => {
         </div>
       ) : (
         <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
-          <Table title='Moderators List' data={moderators} columns={moderatorColumns} />
+          <Table 
+            title='Moderators List' 
+            data={moderators} 
+            columns={moderatorColumns}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         </div>
       )}
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={editModal.open}
+        onClose={() => setEditModal({ open: false, moderator: null })}
+        title='Edit Moderator'
+        icon={Pencil}
+        iconBgColor='bg-purple-100'
+        iconColor='text-purple-600'
+        size='md'
+        footer={
+          <>
+            <button
+              onClick={() => setEditModal({ open: false, moderator: null })}
+              className='px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors'
+              disabled={updateModeratorMutation.isPending}>
+              Cancel
+            </button>
+            <button
+              onClick={handleUpdate}
+              className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50'
+              disabled={updateModeratorMutation.isPending}>
+              {updateModeratorMutation.isPending ? 'Updating...' : 'Update'}
+            </button>
+          </>
+        }>
+        <div className='space-y-4'>
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Name
+            </label>
+            <input
+              type='text'
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+              disabled={updateModeratorMutation.isPending}
+            />
+            {errors.name && (
+              <p className='text-red-600 text-xs mt-1'>{errors.name[0]}</p>
+            )}
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Email
+            </label>
+            <input
+              type='email'
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+              disabled={updateModeratorMutation.isPending}
+            />
+            {errors.email && (
+              <p className='text-red-600 text-xs mt-1'>{errors.email[0]}</p>
+            )}
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-1'>
+              Phone
+            </label>
+            <input
+              type='text'
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+              disabled={updateModeratorMutation.isPending}
+            />
+            {errors.phone && (
+              <p className='text-red-600 text-xs mt-1'>{errors.phone[0]}</p>
+            )}
+          </div>
+          <div>
+            <label className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                checked={formData.is_active}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_active: e.target.checked })
+                }
+                className='w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500'
+                disabled={updateModeratorMutation.isPending}
+              />
+              <span className='text-sm font-medium text-gray-700'>Active</span>
+            </label>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, moderator: null })}
+        title='Delete Moderator'
+        icon={AlertTriangle}
+        iconBgColor='bg-red-100'
+        iconColor='text-red-600'
+        size='md'
+        footer={
+          <>
+            <button
+              onClick={() => setDeleteModal({ open: false, moderator: null })}
+              className='px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors'
+              disabled={deleteModeratorMutation.isPending}>
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50'
+              disabled={deleteModeratorMutation.isPending}>
+              {deleteModeratorMutation.isPending ? 'Deleting...' : 'Delete'}
+            </button>
+          </>
+        }>
+        <p className='text-gray-600'>
+          Are you sure you want to delete moderator{' '}
+          <strong className='text-gray-900'>
+            {deleteModal.moderator?.name}
+          </strong>
+          ? This action cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 };
