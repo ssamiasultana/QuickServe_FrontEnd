@@ -9,6 +9,10 @@ import {
   MapPin,
   Package,
   User,
+  UserCheck,
+  Briefcase,
+  Phone,
+  Mail,
   X
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
@@ -528,11 +532,59 @@ export default function BookingList({
                                       </span>
                                     </div>
 
-                                    <h4 className='text-base font-semibold text-gray-900 mb-2'>
+                                    <h4 className='text-base font-semibold text-gray-900 mb-3'>
                                       {booking.service_subcategory?.name ||
                                         booking.service?.name ||
                                         'Service'}
                                     </h4>
+
+                                    {/* Worker Information - Prominently Displayed */}
+                                    <div className='mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
+                                      <div className='flex items-center gap-2 mb-2'>
+                                        <Briefcase className='w-4 h-4 text-blue-600' />
+                                        <span className='text-xs font-semibold text-blue-900 uppercase tracking-wide'>
+                                          Assigned Worker
+                                        </span>
+                                      </div>
+                                      {booking.worker ? (
+                                        <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
+                                          <div className='flex items-center gap-2'>
+                                            <UserCheck className='w-4 h-4 text-blue-600' />
+                                            <div>
+                                              <p className='text-xs text-gray-500'>Name</p>
+                                              <p className='text-sm font-semibold text-gray-900'>
+                                                {booking.worker.name || 'N/A'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <div className='flex items-center gap-2'>
+                                            <Mail className='w-4 h-4 text-blue-600' />
+                                            <div>
+                                              <p className='text-xs text-gray-500'>Email</p>
+                                              <p className='text-sm text-gray-700'>
+                                                {booking.worker.email || 'N/A'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <div className='flex items-center gap-2'>
+                                            <Phone className='w-4 h-4 text-blue-600' />
+                                            <div>
+                                              <p className='text-xs text-gray-500'>Phone</p>
+                                              <p className='text-sm text-gray-700'>
+                                                {booking.worker.phone || 'N/A'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className='flex items-center gap-2'>
+                                          <AlertTriangle className='w-4 h-4 text-yellow-600' />
+                                          <p className='text-sm text-yellow-700 font-medium'>
+                                            No worker assigned yet
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
 
                                     <div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-3'>
                                       <div className='flex items-center gap-2 text-sm text-gray-600'>
@@ -564,26 +616,16 @@ export default function BookingList({
                                     {isExpanded && (
                                       <div className='mt-3 pt-3 border-t border-gray-200 space-y-3'>
                                         <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                                          {/* Worker details */}
-                                          {booking.worker && (
-                                            <>
-                                              <div>
-                                                <p className='text-xs font-medium text-gray-700 mb-1'>
-                                                  Worker Name:
-                                                </p>
-                                                <p className='text-sm text-gray-600'>
-                                                  {booking.worker.name || 'N/A'}
-                                                </p>
-                                              </div>
-                                              <div>
-                                                <p className='text-xs font-medium text-gray-700 mb-1'>
-                                                  Worker Email:
-                                                </p>
-                                                <p className='text-sm text-gray-600'>
-                                                  {booking.worker.email || 'N/A'}
-                                                </p>
-                                              </div>
-                                            </>
+                                          {/* Additional Worker Details */}
+                                          {booking.worker && booking.worker.shift && (
+                                            <div>
+                                              <p className='text-xs font-medium text-gray-700 mb-1'>
+                                                Worker Shift:
+                                              </p>
+                                              <p className='text-sm text-gray-600 capitalize'>
+                                                {booking.worker.shift}
+                                              </p>
+                                            </div>
                                           )}
 
                                           <div>
@@ -592,6 +634,47 @@ export default function BookingList({
                                             </p>
                                             <p className='text-sm text-gray-600'>
                                               {booking.service_address || 'N/A'}
+                                            </p>
+                                          </div>
+
+                                          <div>
+                                            <p className='text-xs font-medium text-gray-700 mb-1'>
+                                              Quantity:
+                                            </p>
+                                            <p className='text-sm text-gray-600'>
+                                              {booking.quantity}{' '}
+                                              {booking.service_subcategory?.unit_type && (
+                                                <span className='text-gray-500'>
+                                                  ({booking.service_subcategory.unit_type})
+                                                </span>
+                                              )}
+                                            </p>
+                                          </div>
+
+                                          <div>
+                                            <p className='text-xs font-medium text-gray-700 mb-1'>
+                                              Shift Type:
+                                            </p>
+                                            <p className='text-sm text-gray-600 capitalize'>
+                                              {booking.shift_type || 'Day'}
+                                            </p>
+                                          </div>
+
+                                          <div>
+                                            <p className='text-xs font-medium text-gray-700 mb-1'>
+                                              Unit Price:
+                                            </p>
+                                            <p className='text-sm text-gray-600'>
+                                              ৳{parseFloat(booking.unit_price || 0).toFixed(2)}
+                                            </p>
+                                          </div>
+
+                                          <div>
+                                            <p className='text-xs font-medium text-gray-700 mb-1'>
+                                              Subtotal:
+                                            </p>
+                                            <p className='text-sm text-gray-600'>
+                                              ৳{parseFloat(booking.subtotal_amount || 0).toFixed(2)}
                                             </p>
                                           </div>
 
@@ -740,6 +823,56 @@ export default function BookingList({
                               {booking.service.name}
                             </p>
                           )}
+
+                        {/* Worker Information - Prominently Displayed for Admin */}
+                        {viewType === 'admin' && (
+                          <div className='mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+                            <div className='flex items-center gap-2 mb-3'>
+                              <Briefcase className='w-5 h-5 text-blue-600' />
+                              <span className='text-sm font-semibold text-blue-900 uppercase tracking-wide'>
+                                Assigned Worker
+                              </span>
+                            </div>
+                            {booking.worker ? (
+                              <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
+                                <div className='flex items-center gap-2'>
+                                  <UserCheck className='w-5 h-5 text-blue-600' />
+                                  <div>
+                                    <p className='text-xs text-gray-500'>Name</p>
+                                    <p className='text-sm font-semibold text-gray-900'>
+                                      {booking.worker.name || 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <Mail className='w-5 h-5 text-blue-600' />
+                                  <div>
+                                    <p className='text-xs text-gray-500'>Email</p>
+                                    <p className='text-sm text-gray-700'>
+                                      {booking.worker.email || 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <Phone className='w-5 h-5 text-blue-600' />
+                                  <div>
+                                    <p className='text-xs text-gray-500'>Phone</p>
+                                    <p className='text-sm text-gray-700'>
+                                      {booking.worker.phone || 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className='flex items-center gap-2'>
+                                <AlertTriangle className='w-5 h-5 text-yellow-600' />
+                                <p className='text-sm text-yellow-700 font-medium'>
+                                  No worker assigned yet
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4'>
 
