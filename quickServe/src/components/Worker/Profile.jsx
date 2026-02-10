@@ -270,13 +270,17 @@ export default function Profile() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-6'>
+    <div className='p-4 md:p-6 bg-neutral-50 min-h-screen'>
       <div className='max-w-4xl mx-auto'>
         {/* Header */}
-        <div className='mb-8 flex items-center justify-between'>
+        <div className='mb-6 flex items-center justify-between'>
           <div>
-            <h1 className='text-3xl font-bold text-gray-900 mb-2'>My Profile</h1>
-            <p className='text-gray-600'>View and manage your profile information</p>
+            <h1 className='text-2xl md:text-3xl font-bold text-slate-900 mb-1'>
+              Profile Overview
+            </h1>
+            <p className='text-neutral-600 text-sm'>
+              View and manage your profile information
+            </p>
           </div>
           {!isEditing ? (
             <button

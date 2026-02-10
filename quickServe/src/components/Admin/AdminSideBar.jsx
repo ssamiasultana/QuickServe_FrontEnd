@@ -7,6 +7,7 @@ import {
   UserCircle,
   UserPlus,
   Wrench,
+  DollarSign,
 } from 'lucide-react';
 import { use } from 'react';
 // import { useLocation, useNavigate } from "react-router";
@@ -66,6 +67,12 @@ const AdminSideBar = () => {
       icon: CalendarClock, // or CalendarCheck, CalendarClock
       label: 'Bookings',
       link: '/bookings',
+    },
+    {
+      id: 'payments',
+      icon: DollarSign,
+      label: 'Payments',
+      link: '/payments',
     },
     {
       id: 'profile',

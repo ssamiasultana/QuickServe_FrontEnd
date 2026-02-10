@@ -7,10 +7,10 @@ import WorkerLayout from '../components/Layout/WorkerLayout.jsx';
 import Dashboard from '../components/Admin/Dashboard.jsx';
 import AddWorker from '../components/Admin/Worker/AddWorker.jsx';
 
-import ActivityLog from '../components/Admin/ActivityLog/ActivityLog.jsx';
 import BookingList from '../components/Admin/Booking/BookingList.jsx';
 import CustomerList from '../components/Admin/Customer/CustomerList.jsx';
 import ModeratorList from '../components/Admin/Moderators/ModeratorList.jsx';
+import PaymentManagement from '../components/Admin/PaymentManagement.jsx';
 import AdminProfile from '../components/Admin/Profile.jsx';
 import Services from '../components/Admin/Services/Services.jsx';
 import SingleWorker from '../components/Admin/Worker/SingleWorker.jsx';
@@ -26,7 +26,7 @@ import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationP
 import CustomerProfile from '../components/Customer/Profile.jsx';
 import Earnings from '../components/Worker/Earnings.jsx';
 import Profile from '../components/Worker/Profile.jsx';
-import Schedule from '../components/Worker/Schedule.jsx';
+import SubmitPayment from '../components/Worker/SubmitPayment.jsx';
 import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleBasedRoute from './RoleBasedRoute.jsx';
@@ -52,7 +52,7 @@ const routes = createBrowserRouter([
       { path: '/moderators', Component: ModeratorList },
       { path: '/services', Component: Services },
       { path: '/bookings', Component: BookingList },
-      { path: '/activity-log', Component: ActivityLog },
+      { path: '/payments', Component: PaymentManagement },
       { path: '/profile', Component: AdminProfile },
     ],
   },
@@ -88,8 +88,8 @@ const routes = createBrowserRouter([
         element: <Navigate to='/worker/jobs' replace />,
       },
       { path: 'jobs', Component: WorkerPortal },
-      { path: 'schedule', Component: Schedule },
       { path: 'earnings', Component: Earnings },
+      { path: 'submit-payment', Component: SubmitPayment },
       { path: 'profile', Component: Profile },
       { path: 'info', Component: AddWorker },
     ],

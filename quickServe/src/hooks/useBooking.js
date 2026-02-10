@@ -103,7 +103,9 @@ export const useUpdateBookingStatus = () => {
       });
 
       const statusText =
-        variables.status === 'confirmed' ? 'confirmed' : 'cancelled';
+        variables.status === 'confirmed' ? 'confirmed' :
+        variables.status === 'paid' ? 'marked as paid' :
+        'cancelled';
       toast.success(`Booking ${statusText} successfully`);
     },
     onError: (error) => {

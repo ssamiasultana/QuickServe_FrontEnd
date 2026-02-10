@@ -1,9 +1,9 @@
-import { Briefcase, Calendar, UserPen, User } from "lucide-react";
+import { Briefcase, UserPen, User, DollarSign } from "lucide-react";
 import { use } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import Sidebar from "../ui/SideBar";
 
-// Create a components/TakaSignIcon.jsx file
+// Taka Sign Icon Component
 const TakaSignIcon = ({ size = 24, color = "currentColor", ...props }) => {
   return (
     <div
@@ -30,16 +30,16 @@ const WorkerSidebar = () => {
   const workerMenuItems = [
     { id: "jobs", icon: Briefcase, label: "My Jobs", link: "/worker/jobs" },
     {
-      id: "schedule",
-      icon: Calendar,
-      label: "Schedule",
-      link: "/worker/schedule",
-    },
-    {
       id: "earnings",
       icon: TakaSignIcon,
       label: "Earnings",
       link: "/worker/earnings",
+    },
+    {
+      id: "submit-payment",
+      icon: DollarSign,
+      label: "Submit Payment",
+      link: "/worker/submit-payment",
     },
     {
       id: "profile",
@@ -65,7 +65,6 @@ const WorkerSidebar = () => {
         activeColor="purple"
         logo="W"
       />
-      {/* Main content */}
     </div>
   );
 };

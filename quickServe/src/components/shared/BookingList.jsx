@@ -1,18 +1,19 @@
 import {
   AlertTriangle,
+  Briefcase,
   Calendar,
   CheckCircle,
   ChevronDown,
   ChevronUp,
   Clock,
+  DollarSign,
   Filter,
+  Mail,
   MapPin,
   Package,
+  Phone,
   User,
   UserCheck,
-  Briefcase,
-  Phone,
-  Mail,
   X
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
@@ -257,12 +258,20 @@ export default function BookingList({
 
   // Check if booking can be confirmed (only pending bookings)
   const canConfirm = (booking) => {
-    return booking.status === 'pending';
+    const status = booking.status?.toLowerCase();
+    return status === 'pending';
   };
 
   // Check if booking can be cancelled (only pending bookings)
   const canCancel = (booking) => {
-    return booking.status === 'pending';
+    const status = booking.status?.toLowerCase();
+    return status === 'pending';
+  };
+
+  // Check if booking can be marked as paid (from pending or confirmed)
+  const canMarkAsPaid = (booking) => {
+    const status = booking.status?.toLowerCase();
+    return status === 'pending' || status === 'confirmed';
   };
 
   // Check if admin can reactivate cancelled booking (change from cancelled to pending)
@@ -694,73 +703,94 @@ export default function BookingList({
                                   </div>
 
                                   <div className='flex items-center gap-2'>
-                                    {/* Admin Action Buttons */}
-                                    <div className='flex items-center gap-2 flex-wrap'>
-                                      {canConfirm(booking) && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleStatusUpdateClick(
-                                              booking.id,
-                                              'confirmed',
-                                              booking
-                                            );
-                                          }}
-                                          disabled={updateStatusMutation.isPending}
-                                          className='px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
-                                          <CheckCircle className='w-3 h-3' />
-                                          Confirm
-                                        </button>
-                                      )}
-                                      {canCancel(booking) && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleStatusUpdateClick(
-                                              booking.id,
-                                              'cancelled',
-                                              booking
-                                            );
-                                          }}
-                                          disabled={updateStatusMutation.isPending}
-                                          className='px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
-                                          <X className='w-3 h-3' />
-                                          Cancel
-                                        </button>
-                                      )}
-                                      {canReactivate(booking) && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleStatusUpdateClick(
-                                              booking.id,
-                                              'pending',
-                                              booking
-                                            );
-                                          }}
-                                          disabled={updateStatusMutation.isPending}
-                                          className='px-3 py-1.5 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
-                                          <Clock className='w-3 h-3' />
-                                          Reactivate
-                                        </button>
-                                      )}
-                                      {canAcceptCancelled(booking) && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleStatusUpdateClick(
-                                              booking.id,
-                                              'confirmed',
-                                              booking
-                                            );
-                                          }}
-                                          disabled={updateStatusMutation.isPending}
-                                          className='px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
-                                          <CheckCircle className='w-3 h-3' />
-                                          Accept
-                                        </button>
-                                      )}
-                                    </div>
+                                    {/* Action Buttons for Admin and Worker */}
+                                    {(viewType === 'admin' || viewType === 'worker') && (
+                                      <div className='flex items-center gap-2 flex-wrap'>
+                                        {/* Cancel Button - First */}
+                                        {canCancel(booking) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdateClick(
+                                                booking.id,
+                                                'cancelled',
+                                                booking
+                                              );
+                                            }}
+                                            disabled={updateStatusMutation.isPending}
+                                            className='px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                            <X className='w-3 h-3' />
+                                            Cancel
+                                          </button>
+                                        )}
+                                        {/* Confirm Button - Second */}
+                                        {canConfirm(booking) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdateClick(
+                                                booking.id,
+                                                'confirmed',
+                                                booking
+                                              );
+                                            }}
+                                            disabled={updateStatusMutation.isPending}
+                                            className='px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                            <CheckCircle className='w-3 h-3' />
+                                            Confirm
+                                          </button>
+                                        )}
+                                        {/* Mark as Paid Button - Third */}
+                                        {canMarkAsPaid(booking) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdateClick(
+                                                booking.id,
+                                                'paid',
+                                                booking
+                                              );
+                                            }}
+                                            disabled={updateStatusMutation.isPending}
+                                            className='px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                            <DollarSign className='w-3 h-3' />
+                                            Mark as Paid
+                                          </button>
+                                        )}
+                                        {viewType === 'admin' && canReactivate(booking) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdateClick(
+                                                booking.id,
+                                                'pending',
+                                                booking
+                                              );
+                                            }}
+                                            disabled={updateStatusMutation.isPending}
+                                            className='px-3 py-1.5 bg-yellow-600 text-white text-xs font-medium rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                            <Clock className='w-3 h-3' />
+                                            Reactivate
+                                          </button>
+                                        )}
+                                        {viewType === 'admin' && canAcceptCancelled(booking) && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleStatusUpdateClick(
+                                                booking.id,
+                                                'confirmed',
+                                                booking
+                                              );
+                                            }}
+                                            disabled={updateStatusMutation.isPending}
+                                            className='px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1'>
+                                            <CheckCircle className='w-3 h-3' />
+                                            Accept
+                                          </button>
+                                        )}
+                                      </div>
+                                    )}
 
                                     <button
                                       onClick={(e) => {
@@ -797,7 +827,7 @@ export default function BookingList({
                   key={booking.id}
                   className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow'>
                   <div className='p-6'>
-                    <div className='flex items-start justify-between'>
+                    <div className='flex items-start justify-between gap-4'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-3 mb-3'>
                           <span
@@ -1073,11 +1103,31 @@ export default function BookingList({
                           </div>
                         )}
                       </div>
+                    </div>
 
-                      <div className='flex items-center gap-2'>
+                    {/* Action buttons section - Always visible */}
+                    {(viewType === 'worker' || viewType === 'admin') && (
+                      <div className='flex items-center justify-end gap-2 pt-4 mt-4 border-t border-gray-200'>
                         {/* Action buttons for workers */}
                         {viewType === 'worker' && (
-                          <div className='flex items-center gap-2'>
+                          <div className='flex items-center gap-2 flex-wrap'>
+                            {/* Cancel Button - First */}
+                            {canCancel(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'cancelled',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <X className='w-4 h-4' />
+                                Cancel
+                              </button>
+                            )}
+                            {/* Confirm Button - Second */}
                             {canConfirm(booking) && (
                               <button
                                 onClick={() =>
@@ -1093,19 +1143,20 @@ export default function BookingList({
                                 Confirm
                               </button>
                             )}
-                            {canCancel(booking) && (
+                            {/* Mark as Paid Button - Third */}
+                            {canMarkAsPaid(booking) && (
                               <button
                                 onClick={() =>
                                   handleStatusUpdateClick(
                                     booking.id,
-                                    'cancelled',
+                                    'paid',
                                     booking
                                   )
                                 }
                                 disabled={updateStatusMutation.isPending}
-                                className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
-                                <X className='w-4 h-4' />
-                                Cancel
+                                className='px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <DollarSign className='w-4 h-4' />
+                                Mark as Paid
                               </button>
                             )}
                           </div>
@@ -1114,6 +1165,23 @@ export default function BookingList({
                         {/* Action buttons for admin */}
                         {viewType === 'admin' && (
                           <div className='flex items-center gap-2 flex-wrap'>
+                            {/* Cancel Button - First */}
+                            {canCancel(booking) && (
+                              <button
+                                onClick={() =>
+                                  handleStatusUpdateClick(
+                                    booking.id,
+                                    'cancelled',
+                                    booking
+                                  )
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <X className='w-4 h-4' />
+                                Cancel
+                              </button>
+                            )}
+                            {/* Confirm Button - Second */}
                             {canConfirm(booking) && (
                               <button
                                 onClick={() =>
@@ -1129,19 +1197,20 @@ export default function BookingList({
                                 Confirm
                               </button>
                             )}
-                            {canCancel(booking) && (
+                            {/* Mark as Paid Button - Third */}
+                            {canMarkAsPaid(booking) && (
                               <button
                                 onClick={() =>
                                   handleStatusUpdateClick(
                                     booking.id,
-                                    'cancelled',
+                                    'paid',
                                     booking
                                   )
                                 }
                                 disabled={updateStatusMutation.isPending}
-                                className='px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
-                                <X className='w-4 h-4' />
-                                Cancel
+                                className='px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+                                <DollarSign className='w-4 h-4' />
+                                Mark as Paid
                               </button>
                             )}
                             {canReactivate(booking) && (
@@ -1187,7 +1256,7 @@ export default function BookingList({
                           )}
                         </button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1201,34 +1270,42 @@ export default function BookingList({
         isOpen={confirmModal.isOpen}
         onClose={handleCloseModal}
         title={
-          confirmModal.status === 'confirmed'
-            ? confirmModal.bookingDetails?.status === 'cancelled'
-              ? 'Accept Cancelled Booking'
-              : 'Confirm Booking'
-            : confirmModal.status === 'pending'
-              ? 'Reactivate Booking'
-              : 'Cancel Booking'
+          confirmModal.status === 'paid'
+            ? 'Mark Booking as Paid'
+            : confirmModal.status === 'confirmed'
+              ? confirmModal.bookingDetails?.status === 'cancelled'
+                ? 'Accept Cancelled Booking'
+                : 'Confirm Booking'
+              : confirmModal.status === 'pending'
+                ? 'Reactivate Booking'
+                : 'Cancel Booking'
         }
         icon={
-          confirmModal.status === 'confirmed'
-            ? CheckCircle
-            : confirmModal.status === 'pending'
-              ? Clock
-              : AlertTriangle
+          confirmModal.status === 'paid'
+            ? DollarSign
+            : confirmModal.status === 'confirmed'
+              ? CheckCircle
+              : confirmModal.status === 'pending'
+                ? Clock
+                : AlertTriangle
         }
         iconBgColor={
-          confirmModal.status === 'confirmed'
-            ? 'bg-green-100'
-            : confirmModal.status === 'pending'
-              ? 'bg-yellow-100'
-              : 'bg-red-100'
+          confirmModal.status === 'paid'
+            ? 'bg-blue-100'
+            : confirmModal.status === 'confirmed'
+              ? 'bg-green-100'
+              : confirmModal.status === 'pending'
+                ? 'bg-yellow-100'
+                : 'bg-red-100'
         }
         iconColor={
-          confirmModal.status === 'confirmed'
-            ? 'text-green-600'
-            : confirmModal.status === 'pending'
-              ? 'text-yellow-600'
-              : 'text-red-600'
+          confirmModal.status === 'paid'
+            ? 'text-blue-600'
+            : confirmModal.status === 'confirmed'
+              ? 'text-green-600'
+              : confirmModal.status === 'pending'
+                ? 'text-yellow-600'
+                : 'text-red-600'
         }
         size='md'
         showCloseButton={!updateStatusMutation.isPending}
@@ -1244,16 +1321,23 @@ export default function BookingList({
             <button
               onClick={handleConfirmStatusUpdate}
               disabled={updateStatusMutation.isPending}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${confirmModal.status === 'confirmed'
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : confirmModal.status === 'pending'
-                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                  : 'bg-red-600 text-white hover:bg-red-700'
+              className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${confirmModal.status === 'paid'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : confirmModal.status === 'confirmed'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : confirmModal.status === 'pending'
+                    ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                    : 'bg-red-600 text-white hover:bg-red-700'
                 }`}>
               {updateStatusMutation.isPending ? (
                 <>
                   <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
                   Processing...
+                </>
+              ) : confirmModal.status === 'paid' ? (
+                <>
+                  <DollarSign className='w-4 h-4' />
+                  Mark as Paid
                 </>
               ) : confirmModal.status === 'confirmed' ? (
                 confirmModal.bookingDetails?.status === 'cancelled' ? (
@@ -1283,7 +1367,12 @@ export default function BookingList({
         }>
         <div className='space-y-4'>
           <p className='text-gray-700'>
-            {confirmModal.status === 'confirmed' ? (
+            {confirmModal.status === 'paid' ? (
+              <>
+                Are you sure you want to <strong>mark this booking as paid</strong>?
+                This will change the status to paid and make it eligible for payment submission.
+              </>
+            ) : confirmModal.status === 'confirmed' ? (
               confirmModal.bookingDetails?.status === 'cancelled' ? (
                 <>
                   Are you sure you want to <strong>accept</strong> this cancelled booking?

@@ -74,6 +74,7 @@ const PaymentConfirmationPage = () => {
         shift_type: workerShift,
         scheduled_at: formattedScheduledAt,
         quantity: bookingQuantity, // Keep for backward compatibility
+        payment_method: paymentMethod, // Include payment method
       };
 
       await createBookingMutation.mutateAsync(bookingPayload);

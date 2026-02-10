@@ -146,51 +146,61 @@ export default function Earnings() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 p-6'>
+    <div className='p-4 md:p-6 bg-neutral-50 min-h-screen'>
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>My Earnings</h1>
-          <p className='text-gray-600'>
+        <div className='mb-6'>
+          <h1 className='text-2xl md:text-3xl font-bold text-slate-900 mb-1'>
+            Earnings Overview
+          </h1>
+          <p className='text-neutral-600 text-sm'>
             Track your earnings and payment history
           </p>
         </div>
 
         {/* Statistics Cards */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6'>
           <Card
             title='Total Earnings'
             value={formatCurrency(earningsStats.totalEarnings)}
             icon={DollarSign}
             iconColor='text-green-600'
-            iconBgColor='bg-green-100'
+            iconBgColor='bg-green-50'
+            bgColor='bg-gradient-to-br from-green-50/50 to-white'
+            borderColor='border-green-100'
           />
           <Card
             title='Pending Earnings'
             value={formatCurrency(earningsStats.pendingEarnings)}
             icon={TrendingUp}
             iconColor='text-yellow-600'
-            iconBgColor='bg-yellow-100'
+            iconBgColor='bg-yellow-50'
+            bgColor='bg-gradient-to-br from-yellow-50/50 to-white'
+            borderColor='border-yellow-100'
           />
           <Card
             title='This Month'
             value={formatCurrency(earningsStats.monthlyEarnings)}
             icon={Calendar}
             iconColor='text-blue-600'
-            iconBgColor='bg-blue-100'
+            iconBgColor='bg-blue-50'
+            bgColor='bg-gradient-to-br from-blue-50/50 to-white'
+            borderColor='border-blue-100'
           />
           <Card
             title='Average per Job'
             value={formatCurrency(earningsStats.averageEarning)}
             icon={Package}
             iconColor='text-purple-600'
-            iconBgColor='bg-purple-100'
+            iconBgColor='bg-purple-50'
+            bgColor='bg-gradient-to-br from-purple-50/50 to-white'
+            borderColor='border-purple-100'
           />
         </div>
 
         {/* Job Statistics */}
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6'>
-          <div className='bg-white rounded-lg shadow-sm p-6'>
+          <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-6'>
             <h3 className='text-lg font-semibold text-gray-900 mb-4'>
               Job Statistics
             </h3>
@@ -210,7 +220,7 @@ export default function Earnings() {
             </div>
           </div>
 
-          <div className='bg-white rounded-lg shadow-sm p-6'>
+          <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-6'>
             <h3 className='text-lg font-semibold text-gray-900 mb-4'>
               Earnings Summary
             </h3>
@@ -246,7 +256,7 @@ export default function Earnings() {
 
         {/* Monthly Breakdown */}
         {earningsStats.monthlyBreakdown.length > 0 && (
-          <div className='bg-white rounded-lg shadow-sm p-6'>
+          <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-6'>
             <h3 className='text-lg font-semibold text-gray-900 mb-4'>
               Monthly Earnings (Last 6 Months)
             </h3>
@@ -270,7 +280,7 @@ export default function Earnings() {
         {/* Empty State */}
         {earningsStats.totalPaidJobs === 0 &&
           earningsStats.totalPendingJobs === 0 && (
-            <div className='bg-white rounded-lg shadow-sm p-12 text-center'>
+            <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center'>
               <div className='w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
                 <DollarSign className='w-10 h-10 text-gray-400' />
               </div>
