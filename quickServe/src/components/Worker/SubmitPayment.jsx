@@ -1,5 +1,5 @@
 import { Calendar, Clock, CreditCard, Loader, MapPin, User } from 'lucide-react';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation } from 'react-router';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
@@ -7,12 +7,15 @@ import { useGetWorkerTransactions, useInitiateSslCommerzPayment } from '../../ho
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
 import { AuthContext } from '../Context/AuthContext';
 import Card from '../ui/Card';
+import Modal from '../ui/Modal';
 
 export default function SubmitPayment() {
   const { user } = useContext(AuthContext);
   const location = useLocation();
   const [selectedCommissionBooking, setSelectedCommissionBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const initiatePaymentMutation = useInitiateSslCommerzPayment();
+  const toastShownRef = useRef(false);
 
   const {
     data: profileData,
@@ -34,6 +37,20 @@ export default function SubmitPayment() {
     const status = searchParams.get('status');
     const message = searchParams.get('message');
     const transactionId = searchParams.get('transaction_id');
+
+    // Reset ref when search params are cleared
+    if (!location.search) {
+      toastShownRef.current = false;
+      return;
+    }
+
+    // Only process if there's a status and we haven't shown toast for this status yet
+    if (!status || toastShownRef.current === status) {
+      return;
+    }
+
+    // Set ref immediately to prevent duplicate toasts
+    toastShownRef.current = status;
 
     if (status === 'success') {
       toast.success('Payment completed successfully!');
@@ -86,6 +103,12 @@ export default function SubmitPayment() {
 
   const handleCommissionBookingSelect = (booking) => {
     setSelectedCommissionBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCommissionBooking(null);
   };
 
   const handlePayWithSslCommerz = async () => {
@@ -246,55 +269,6 @@ export default function SubmitPayment() {
               )}
             </Card>
 
-            {/* Commission Submission Form */}
-            {selectedCommissionBooking && (
-              <Card
-                title='Submit Commission Payment (30%)'
-                bgColor='bg-white'
-                borderColor='border-gray-200'>
-                <div className='space-y-4'>
-                  <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-                    <div className='flex justify-between items-center mb-2'>
-                      <span className='text-sm font-medium text-gray-700'>
-                        Booking Total:
-                      </span>
-                      <span className='text-lg font-bold text-gray-900'>
-                        ৳{parseFloat(selectedCommissionBooking.total_amount).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-sm font-medium text-gray-700'>
-                        Commission (30%):
-                      </span>
-                      <span className='text-lg font-bold text-blue-600'>
-                        ৳{calculateCommission(selectedCommissionBooking.total_amount)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4'>
-                    <p className='text-sm text-yellow-800'>
-                      <strong>Note:</strong> You will be redirected to SSL Commerz secure payment page to complete the payment.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handlePayWithSslCommerz}
-                    disabled={initiatePaymentMutation.isPending}
-                    className='w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
-                    {initiatePaymentMutation.isPending ? (
-                      <>
-                        <Loader className='w-5 h-5 animate-spin' />
-                        <span>Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className='w-5 h-5' />
-                        <span>Pay with SSL Commerz</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </Card>
-            )}
           </div>
 
           {/* Transaction History */}
@@ -349,6 +323,68 @@ export default function SubmitPayment() {
           </div>
         </div>
       </div>
+
+      {/* Commission Payment Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title='Submit Commission Payment (30%)'
+        icon={CreditCard}
+        iconBgColor='bg-green-100'
+        iconColor='text-green-600'
+        size='lg'>
+        {selectedCommissionBooking && (
+          <div className='space-y-4'>
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+              <div className='flex justify-between items-center mb-2'>
+                <span className='text-sm font-medium text-gray-700'>
+                  Booking Total:
+                </span>
+                <span className='text-lg font-bold text-gray-900'>
+                  ৳{parseFloat(selectedCommissionBooking.total_amount).toFixed(2)}
+                </span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm font-medium text-gray-700'>
+                  Commission (30%):
+                </span>
+                <span className='text-lg font-bold text-blue-600'>
+                  ৳{calculateCommission(selectedCommissionBooking.total_amount)}
+                </span>
+              </div>
+            </div>
+            <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4'>
+              <p className='text-sm text-yellow-800'>
+                <strong>Note:</strong> You will be redirected to SSL Commerz secure payment page to complete the payment.
+              </p>
+            </div>
+            <div className='flex gap-3'>
+              <button
+                onClick={handleCloseModal}
+                disabled={initiatePaymentMutation.isPending}
+                className='flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+                Cancel
+              </button>
+              <button
+                onClick={handlePayWithSslCommerz}
+                disabled={initiatePaymentMutation.isPending}
+                className='flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
+                {initiatePaymentMutation.isPending ? (
+                  <>
+                    <Loader className='w-5 h-5 animate-spin' />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className='w-5 h-5' />
+                    <span>Pay with SSL Commerz</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

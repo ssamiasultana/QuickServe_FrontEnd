@@ -3,7 +3,6 @@ import {
   BarChart3,
   CheckCircle,
   Clock,
-  DollarSign,
   Package,
   TrendingUp,
   UserCheck,
@@ -14,6 +13,27 @@ import { useGetAllBookings } from '../../hooks/useBooking';
 import { useGetAllCustomers } from '../../hooks/useCustomer';
 import { useWorkers } from '../../hooks/useWorker';
 import Card from '../ui/Card';
+
+// Taka Sign Icon Component
+const TakaSignIcon = ({ size = 24, color = "currentColor", ...props }) => {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        color: color,
+        fontSize: 28,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold",
+      }}
+      {...props}
+    >
+      ৳
+    </div>
+  );
+};
 
 function Dashboard() {
   const { data: workersData, isLoading: workersLoading } = useWorkers();
@@ -314,7 +334,7 @@ function Dashboard() {
           <Card
             title='Total Revenue'
             value={formatCurrency(financialStats.totalRevenue)}
-            icon={DollarSign}
+            icon={TakaSignIcon}
             iconColor='text-green-600'
             iconBgColor='bg-green-50'
             bgColor='bg-gradient-to-br from-green-25 to-white'

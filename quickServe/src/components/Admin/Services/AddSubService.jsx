@@ -1,6 +1,29 @@
-import { Clock, DollarSign, Plus, X } from 'lucide-react';
+import { Clock, Plus, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useCreateSubServices } from '../../../hooks/useServiceCategory';
+
+// Taka Sign Icon Component
+const TakaSignIcon = ({ size = 24, color = "currentColor", className, ...props }) => {
+  return (
+    <div
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        color: color,
+        fontSize: size * 0.75,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold",
+      }}
+      {...props}
+    >
+      ৳
+    </div>
+  );
+};
+
 function AddSubService({ isOpen, onClose, services = [] }) {
   const [formData, setFormData] = useState({
     service_id: '',
@@ -145,7 +168,7 @@ function AddSubService({ isOpen, onClose, services = [] }) {
               Base Price <span className='text-red-500'>*</span>
             </label>
             <div className='relative'>
-              <DollarSign
+              <TakaSignIcon
                 className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
                 size={18}
               />
@@ -186,7 +209,7 @@ function AddSubService({ isOpen, onClose, services = [] }) {
                     ? 'border-green-600 bg-green-50 text-green-700'
                     : 'border-gray-300 hover:border-gray-400 text-gray-700'
                 }`}>
-                <DollarSign size={18} />
+                <TakaSignIcon size={18} />
                 Fixed Price
               </button>
               <button

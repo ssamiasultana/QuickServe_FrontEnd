@@ -7,12 +7,32 @@ import {
   UserCircle,
   UserPlus,
   Wrench,
-  DollarSign,
 } from 'lucide-react';
 import { use } from 'react';
 // import { useLocation, useNavigate } from "react-router";
 import { AuthContext } from '../Context/AuthContext';
 import Sidebar from '../ui/SideBar';
+
+// Taka Sign Icon Component
+const TakaSignIcon = ({ size = 24, color = "currentColor", ...props }) => {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        color: color,
+        fontSize: 28,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold",
+      }}
+      {...props}
+    >
+      ৳
+    </div>
+  );
+};
 
 const AdminSideBar = () => {
   // const [isCollapsed, setIsCollapsed] = useState(false);
@@ -70,7 +90,7 @@ const AdminSideBar = () => {
     },
     {
       id: 'payments',
-      icon: DollarSign,
+      icon: TakaSignIcon,
       label: 'Payments',
       link: '/payments',
     },

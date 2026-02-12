@@ -11,7 +11,7 @@ export const useSubmitCommissionPayment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workerTransactions'] });
       queryClient.invalidateQueries({ queryKey: ['workerBookings'] });
-      toast.success('Commission payment submitted successfully');
+      
     },
     onError: (error) => {
       toast.error(error?.message || 'Failed to submit commission payment');
