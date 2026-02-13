@@ -39,6 +39,26 @@ export const useInitiateSslCommerzPayment = () => {
   });
 };
 
+// Customer: Initiate SSL Commerz payment for booking
+export const useInitiateCustomerSslCommerzPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bookingId) => paymentService.initiateCustomerSslCommerzPayment(bookingId),
+    onSuccess: (data) => {
+      // Redirect to SSL Commerz payment page
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        toast.error('Payment URL not received');
+      }
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Failed to initiate payment');
+    },
+  });
+};
+
 // Worker: Get transactions
 export const useGetWorkerTransactions = () => {
   return useQuery({

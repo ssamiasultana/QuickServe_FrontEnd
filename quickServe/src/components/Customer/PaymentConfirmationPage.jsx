@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router';
 import { useCreateBooking } from '../../hooks/useBooking';
+import { useInitiateCustomerSslCommerzPayment } from '../../hooks/usePayment';
 import SectionHeader from './HirePage/SectionHeader';
 
 const PaymentConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const createBookingMutation = useCreateBooking();
+  const initiatePaymentMutation = useInitiateCustomerSslCommerzPayment();
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -77,12 +79,40 @@ const PaymentConfirmationPage = () => {
         payment_method: paymentMethod, // Include payment method
       };
 
-      await createBookingMutation.mutateAsync(bookingPayload);
+      // Create booking first
+      const bookingResponse = await createBookingMutation.mutateAsync(bookingPayload);
+      
+      // If payment method is online, initiate SSL Commerz payment
+      if (paymentMethod === 'online') {
+        // Extract booking ID from response structure: data.bookings[0].id
+        const bookings = bookingResponse?.data?.bookings || [];
+        const bookingId = bookings.length > 0 ? bookings[0]?.id : null;
+        
+        if (bookingId) {
+          try {
+            await initiatePaymentMutation.mutateAsync(bookingId);
+            // The mutation will redirect to SSL Commerz payment page
+            return;
+          } catch (paymentError) {
+            console.error('Payment initiation error:', paymentError);
+            toast.error(paymentError?.response?.data?.message || 'Failed to initiate payment. Please try again.');
+            navigate('/customer/my-booking');
+            return;
+          }
+        } else {
+          console.error('Booking response structure:', bookingResponse);
+          toast.error('Booking created but could not initiate payment. Please contact support.');
+          navigate('/customer/my-booking');
+          return;
+        }
+      }
+
+      // For cash payment, just show success message
       toast.success('Booking confirmed successfully!');
       navigate('/customer/my-booking');
     } catch (error) {
       console.error('Booking error:', error);
-      toast.error('Failed to confirm booking. Please try again.');
+      toast.error(error?.response?.data?.message || 'Failed to confirm booking. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -243,7 +273,9 @@ const PaymentConfirmationPage = () => {
               Payment Method
             </h3>
             <div className='space-y-2'>
-              <label className='flex items-center gap-3 p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors'>
+              <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-blue-500 transition-colors ${
+                paymentMethod === 'cash' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              }`}>
                 <input
                   type='radio'
                   name='payment'
@@ -260,6 +292,25 @@ const PaymentConfirmationPage = () => {
                   </p>
                 </div>
               </label>
+              <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-blue-500 transition-colors ${
+                paymentMethod === 'online' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              }`}>
+                <input
+                  type='radio'
+                  name='payment'
+                  value='online'
+                  checked={paymentMethod === 'online'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className='w-4 h-4 text-blue-600'
+                  disabled={isProcessing}
+                />
+                <div className='flex-1'>
+                  <p className='font-medium text-gray-900'>Pay Online</p>
+                  <p className='text-sm text-gray-500'>
+                    Pay securely with SSL Commerz
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -272,15 +323,15 @@ const PaymentConfirmationPage = () => {
             </button>
             <button
               onClick={handlePayment}
-              disabled={isProcessing}
+              disabled={isProcessing || createBookingMutation.isPending || initiatePaymentMutation.isPending}
               className='flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
-              {isProcessing ? (
+              {(isProcessing || createBookingMutation.isPending || initiatePaymentMutation.isPending) ? (
                 <>
                   <Loader2 className='w-5 h-5 animate-spin' />
-                  Processing...
+                  {paymentMethod === 'online' ? 'Redirecting to payment...' : 'Processing...'}
                 </>
               ) : (
-                'Confirm Payment'
+                paymentMethod === 'online' ? 'Pay Online' : 'Confirm Payment'
               )}
             </button>
           </div>
