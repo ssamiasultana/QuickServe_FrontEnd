@@ -63,17 +63,41 @@ class WorkerService {
     });
   }
 
-  async searchWorkers(searchTerm) {
+  async searchWorkers(searchTerm, filters = {}) {
     const trimmedSearch = searchTerm?.trim();
-    if (!trimmedSearch) {
+    const params = new URLSearchParams();
+    
+    if (trimmedSearch) {
+      params.append('search', trimmedSearch);
+    }
+    
+    // Add location filter
+    if (filters.location) {
+      params.append('location', filters.location.trim());
+    }
+    
+    // Add date filter
+    if (filters.date) {
+      params.append('date', filters.date);
+    }
+    
+    // Add service filter
+    if (filters.service) {
+      params.append('service', filters.service.trim());
+    }
+    
+    // Add shift filter
+    if (filters.shift) {
+      params.append('shift', filters.shift);
+    }
+
+    const queryString = params.toString();
+    if (!queryString && !trimmedSearch) {
       return { data: [] };
     }
-    const params = new URLSearchParams({
-      search: trimmedSearch,
-    });
 
     return this.request(
-      `${API_CONFIG.endpoints.workers.searchWorkers}?${params.toString()}`,
+      `${API_CONFIG.endpoints.workers.searchWorkers}${queryString ? '?' + queryString : ''}`,
       {
         method: 'GET',
       }

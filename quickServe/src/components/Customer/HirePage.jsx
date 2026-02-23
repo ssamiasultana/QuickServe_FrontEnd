@@ -11,6 +11,7 @@ import CustomerInformationForm from './HirePage/CustomerInformationForm';
 import ScheduleSection from './HirePage/ScheduleSection';
 import ServiceSelection from './HirePage/ServiceSelection';
 import WorkerDetailsCard from './HirePage/WorkerDetailsCard';
+import WorkerReviews from './HirePage/WorkerReviews';
 
 function HirePage() {
   const params = useParams();
@@ -418,6 +419,8 @@ function HirePage() {
           workerShift={workerShift}
           services={services}
         />
+
+        <WorkerReviews workerId={worker.id} />
 
         <CustomerInformationForm
           customerName={customerName}

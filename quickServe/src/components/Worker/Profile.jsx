@@ -9,6 +9,7 @@ import Card from '../ui/Card';
 import { FormInput } from '../ui/FormInput';
 import { FormSelect } from '../ui/FormSelect';
 import Rating from '../ui/Rating';
+import WorkerReviews from '../Customer/HirePage/WorkerReviews';
 
 export default function Profile() {
   const { user } = useContext(AuthContext);
@@ -707,19 +708,31 @@ export default function Profile() {
                   {worker.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              {worker.rating && (
+              {(worker.average_rating > 0 || worker.rating) && (
                 <div>
                   <p className='text-sm text-gray-500 mb-1'>Overall Rating</p>
                   <div className='flex items-center gap-1'>
                     <Star className='w-5 h-5 text-yellow-400 fill-current' />
                     <span className='text-lg font-bold text-gray-900'>
-                      {parseFloat(worker.rating).toFixed(1)}
+                      {worker.average_rating > 0 
+                        ? worker.average_rating.toFixed(1) 
+                        : parseFloat(worker.rating || 0).toFixed(1)}
                     </span>
+                    {worker.total_reviews > 0 && (
+                      <span className='text-sm text-gray-500 ml-1'>
+                        ({worker.total_reviews} reviews)
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           </Card>
+        )}
+
+        {/* Customer Reviews */}
+        {!isEditing && worker?.id && (
+          <WorkerReviews workerId={worker.id} />
         )}
       </div>
     </div>

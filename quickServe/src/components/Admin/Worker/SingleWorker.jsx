@@ -11,6 +11,7 @@ import { AuthContext } from '../../../components/Context/AuthContext';
 import { useGetSingleWorker } from '../../../hooks/useWorker';
 import { calculateAverageRating } from '../../../utils/util';
 import NIDVerificationModal from './NIDVerificationModal';
+import WorkerReviews from '../../Customer/HirePage/WorkerReviews';
 
 function SingleWorker() {
   const params = useParams();
@@ -191,8 +192,17 @@ function SingleWorker() {
           <div className='flex items-center gap-2'>
             <Star className='w-5 h-5 text-yellow-400 fill-current' />
             <span className='font-semibold text-gray-900'>
-              {averageRating > 0 ? averageRating.toFixed(1) : '0'}/5
+              {worker.average_rating > 0 
+                ? worker.average_rating.toFixed(1) 
+                : averageRating > 0 
+                  ? averageRating.toFixed(1) 
+                  : '0'}/5
             </span>
+            {worker.total_reviews > 0 && (
+              <span className='text-sm text-gray-500'>
+                ({worker.total_reviews} customer reviews)
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -387,6 +397,11 @@ function SingleWorker() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Customer Reviews */}
+      {worker?.id && (
+        <WorkerReviews workerId={worker.id} />
       )}
 
       {/* NID Verification Modal */}

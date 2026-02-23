@@ -1,8 +1,11 @@
-import { User } from 'lucide-react';
+import { Star, User } from 'lucide-react';
 import React from 'react';
 import SectionHeader from './SectionHeader';
 
 const WorkerDetailsCard = ({ worker, workerShift, services }) => {
+  const averageRating = worker?.average_rating || 0;
+  const totalReviews = worker?.total_reviews || 0;
+
   return (
     <div className='bg-white rounded-lg shadow-sm p-6 mb-6'>
       <SectionHeader
@@ -38,7 +41,23 @@ const WorkerDetailsCard = ({ worker, workerShift, services }) => {
                 </span>
               )}
             </p>
-            <div className='flex items-center gap-2 mt-1'>
+
+            {/* Customer Rating Summary */}
+            <div className='flex items-center gap-2 mt-2'>
+              <div className='inline-flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded-full border border-yellow-200'>
+                <Star className='w-4 h-4 text-yellow-400 fill-yellow-400' />
+                <span className='text-sm font-semibold text-gray-900'>
+                  {averageRating.toFixed(1)}
+                </span>
+              </div>
+              <span className='text-xs text-gray-600'>
+                {totalReviews > 0
+                  ? `${totalReviews} review${totalReviews > 1 ? 's' : ''}`
+                  : 'No customer reviews yet'}
+              </span>
+            </div>
+
+            <div className='flex items-center gap-2 mt-2'>
               <span className='text-sm text-gray-600'>Age: {worker.age}</span>
             </div>
           </div>

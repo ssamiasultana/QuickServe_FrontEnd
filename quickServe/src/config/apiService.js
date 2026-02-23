@@ -60,6 +60,11 @@ const API_CONFIG = {
       // Update booking status (confirm/cancel)
       updateBookingStatus: (bookingId) => `/booking/${bookingId}/status`,
     },
+    reviews: {
+      createReview: '/reviews',
+      getWorkerReviews: (workerId) => `/workers/${workerId}/reviews`,
+      getBookingReview: (bookingId) => `/bookings/${bookingId}/review`,
+    },
   },
   timeout: 10000,
 };

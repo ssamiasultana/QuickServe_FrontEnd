@@ -78,8 +78,17 @@ function SingleWorkerCard({ workerData }) {
                 <div className='flex items-center gap-0.5 text-green-500 shrink-0'>
                   <Star size={12} fill='currentColor' />
                   <span className='font-bold text-xs'>
-                    {averageRating > 0 ? averageRating.toFixed(1) : '0'}
+                    {worker.average_rating > 0 
+                      ? worker.average_rating.toFixed(1) 
+                      : averageRating > 0 
+                        ? averageRating.toFixed(1) 
+                        : '0'}
                   </span>
+                  {worker.total_reviews > 0 && (
+                    <span className='text-xs text-gray-500 ml-1'>
+                      ({worker.total_reviews})
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -24,13 +24,20 @@ export const usePaginatedWorkers = (page, limit) => {
   });
 };
 export const useSearchWorkers = (searchParams, options = {}) => {
+  const filters = {
+    location: options.location,
+    date: options.date,
+    service: options.service,
+    shift: options.shift,
+  };
+  
   return useQuery({
-    queryKey: ['workers', 'search', searchParams?.toLowerCase()?.trim()],
+    queryKey: ['workers', 'search', searchParams?.toLowerCase()?.trim(), filters],
     queryFn: async () => {
-      const response = await workerService.searchWorkers(searchParams);
+      const response = await workerService.searchWorkers(searchParams, filters);
       return response.data || response;
     },
-    enabled: options.enabled ?? !!searchParams?.trim(),
+    enabled: options.enabled ?? (!!searchParams?.trim() || !!filters.location || !!filters.date),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     placeholderData: (previousData) => previousData,
