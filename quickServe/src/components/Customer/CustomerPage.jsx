@@ -3,55 +3,32 @@ import { useDebounce } from "../../hooks/useDebounce";
 import { useSearchWorkers, useWorkers } from "../../hooks/useWorker";
 import SearchBar from "../ui/SearchBar";
 import WorkersCard from "./WorkerCard";
-import { FormInput } from "../ui/FormInput";
-import { MapPin, Calendar } from "lucide-react";
 
 function CustomerPage() {
   const [searchParams, setSearchParams] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
 
   const debouncedSearchParams = useDebounce(searchParams, 500);
-  const debouncedLocation = useDebounce(locationFilter, 500);
 
-  const hasFilters = debouncedSearchParams.trim().length > 0 || 
-                     debouncedLocation.trim().length > 0 || 
-                     dateFilter.trim().length > 0;
+  const hasSearchTerm = debouncedSearchParams.trim().length > 0;
 
   const searchQuery = useSearchWorkers(debouncedSearchParams, {
-    enabled: hasFilters,
-    location: debouncedLocation,
-    date: dateFilter,
+    enabled: hasSearchTerm,
   });
 
   const allWorkersQuery = useWorkers({
-    enabled: !hasFilters,
+    enabled: !hasSearchTerm,
   });
 
-  const activeQuery = hasFilters ? searchQuery : allWorkersQuery;
+  const activeQuery = hasSearchTerm ? searchQuery : allWorkersQuery;
   const { data, isLoading, isError, error, isFetching } = activeQuery;
 
   const handleSearchChange = (value) => {
     setSearchParams(value);
   };
-  
-  const handleLocationChange = (value) => {
-    setLocationFilter(value);
-  };
-  
-  const handleDateChange = (value) => {
-    setDateFilter(value);
-  };
-  
-  const clearFilters = () => {
-    setSearchParams("");
-    setLocationFilter("");
-    setDateFilter("");
-  };
 
   const showLoading = isLoading && !data;
 
-  const showSearching = isFetching && hasFilters && data;
+  const showSearching = isFetching && hasSearchTerm && data;
 
   if (showLoading) {
     return (
@@ -78,48 +55,11 @@ function CustomerPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Find Workers</h1>
-        </div>
-
-        {/* Search and Filter Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <SearchBar
-                placeholder="Search by name or service type"
-                value={searchParams}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <FormInput
-                type="text"
-                placeholder="Filter by location"
-                value={locationFilter}
-                onChange={(e) => handleLocationChange(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <FormInput
-                type="date"
-                placeholder="Filter by date"
-                value={dateFilter}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="pl-10"
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-          </div>
-          {(hasFilters) && (
-            <button
-              onClick={clearFilters}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Clear all filters
-            </button>
-          )}
+          <SearchBar
+            placeholder="Search by name or service type"
+            value={searchParams}
+            onChange={handleSearchChange}
+          />
         </div>
 
         {showSearching && (
@@ -132,7 +72,7 @@ function CustomerPage() {
         <div>
           <WorkersCard
             workerData={Array.isArray(data) ? data : data?.data || []}
-            isSearching={hasFilters}
+            isSearching={hasSearchTerm}
             searchTerm={debouncedSearchParams}
           />
         </div>
