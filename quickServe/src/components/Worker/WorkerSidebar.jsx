@@ -36,6 +36,12 @@ const WorkerSidebar = () => {
       link: "/worker/earnings",
     },
     {
+      id: "pending-payments",
+      icon: TakaSignIcon,
+      label: "Pending Payments",
+      link: "/worker/pending-payments",
+    },
+    {
       id: "submit-payment",
       icon: TakaSignIcon,
       label: "Submit Payment",

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import paymentService from '../services/paymentService';
 
-// Worker: Submit commission payment (30% to admin)
+// Worker: Submit commission payment (20% to admin)
 export const useSubmitCommissionPayment = () => {
   const queryClient = useQueryClient();
 
@@ -134,6 +134,38 @@ export const useGetAllTransactions = () => {
     queryKey: ['allTransactions'],
     queryFn: async () => {
       const response = await paymentService.getAllTransactions();
+      return response.data || response;
+    },
+  });
+};
+
+// Admin: Initiate SSL Commerz payment to worker
+export const useInitiateAdminToWorkerPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ bookingId, notes }) =>
+      paymentService.initiateAdminToWorkerPayment(bookingId, notes),
+    onSuccess: (data) => {
+      // Redirect to SSL Commerz payment page
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        toast.error('Payment URL not received');
+      }
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Failed to initiate payment');
+    },
+  });
+};
+
+// Worker: Get pending payments from admin
+export const useGetWorkerPendingPayments = () => {
+  return useQuery({
+    queryKey: ['workerPendingPayments'],
+    queryFn: async () => {
+      const response = await paymentService.getWorkerPendingPayments();
       return response.data || response;
     },
   });

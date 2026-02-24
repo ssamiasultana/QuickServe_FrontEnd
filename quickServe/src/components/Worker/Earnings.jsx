@@ -2,6 +2,7 @@ import { Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
 import React, { useContext, useMemo } from 'react';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
+import { useGetWorkerTransactions } from '../../hooks/usePayment';
 import { AuthContext } from '../Context/AuthContext';
 import Card from '../ui/Card';
 
@@ -20,6 +21,13 @@ export default function Earnings() {
     error: bookingsErrorData,
   } = useGetWorkerBookings(user?.id);
 
+  const { data: transactionsResponse, refetch: refetchTransactions } = useGetWorkerTransactions();
+
+  // Refetch transactions when component mounts or when bookings change
+  useEffect(() => {
+    refetchTransactions();
+  }, [bookingsResponse, refetchTransactions]);
+
   // Normalize bookings data (backend already filters by worker_id)
   const bookings = useMemo(() => {
     if (!bookingsResponse) return [];
@@ -28,18 +36,69 @@ export default function Earnings() {
       : bookingsResponse?.data || [];
   }, [bookingsResponse]);
 
+  // Normalize worker transactions
+  const transactions = useMemo(() => {
+    if (!transactionsResponse) return [];
+    return Array.isArray(transactionsResponse)
+      ? transactionsResponse
+      : transactionsResponse?.data || [];
+  }, [transactionsResponse]);
+
   // Calculate earnings statistics
   const earningsStats = useMemo(() => {
-    const paidBookings = bookings.filter((b) => b.status === 'paid');
-    const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
+    // Worker is actually paid for online bookings only after admin sends money (online_payment completed)
+    const workerPaidBookingIds = new Set(
+      transactions
+        .filter(
+          (t) =>
+            t.transaction_type === 'online_payment' &&
+            t.status === 'completed'
+        )
+        .map((t) => t.booking_id)
+    );
+
+    // Bookings that are fully paid to the worker:
+    // - Cash bookings marked as paid (worker already has cash)
+    // - Online bookings where admin has sent payment (online_payment transaction completed)
+    const paidBookings = bookings.filter((b) => {
+      if (b.status !== 'paid') return false;
+
+      if (b.payment_method === 'cash') {
+        return true;
+      }
+
+      if (b.payment_method === 'online') {
+        return workerPaidBookingIds.has(b.id);
+      }
+
+      return false;
+    });
+
+    // Pending for worker:
+    // - Confirmed jobs not yet marked as paid
+    // - Online bookings where customer has paid (status=paid, payment_method=online)
+    //   but admin has not sent money to worker yet
+    const pendingBookings = bookings.filter((b) => {
+      if (b.status === 'confirmed') return true;
+
+      if (
+        b.status === 'paid' &&
+        b.payment_method === 'online' &&
+        !workerPaidBookingIds.has(b.id)
+      ) {
+        return true;
+      }
+
+      return false;
+    });
 
     // Calculate total earnings from paid bookings
     const totalEarnings = paidBookings.reduce((sum, booking) => {
       return sum + parseFloat(booking.total_amount || 0);
     }, 0);
 
-    // Calculate pending earnings from confirmed bookings
-    const pendingEarnings = confirmedBookings.reduce((sum, booking) => {
+    // Calculate pending earnings from pending bookings
+    const pendingEarnings = pendingBookings.reduce((sum, booking) => {
       return sum + parseFloat(booking.total_amount || 0);
     }, 0);
 
@@ -86,12 +145,12 @@ export default function Earnings() {
       monthlyEarnings,
       averageEarning,
       totalPaidJobs: paidBookings.length,
-      totalPendingJobs: confirmedBookings.length,
+      totalPendingJobs: pendingBookings.length,
       monthlyBreakdown: Object.entries(monthlyBreakdown)
         .sort((a, b) => b[0].localeCompare(a[0]))
         .slice(0, 6),
     };
-  }, [bookings]);
+  }, [bookings, transactions]);
 
   // Format currency
   const formatCurrency = (amount) => {

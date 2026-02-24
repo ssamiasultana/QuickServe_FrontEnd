@@ -1,4 +1,4 @@
-import { Calendar, Clock, CreditCard, Loader, MapPin, User } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Loader, MapPin, User, ArrowDown, ArrowUp } from 'lucide-react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation } from 'react-router';
@@ -68,7 +68,7 @@ export default function SubmitPayment() {
     }
   }, [location.search, location.pathname]);
 
-  // Get all paid bookings
+  // Get all paid bookings with cash payment method only
   const paidBookings = useMemo(() => {
     if (!bookingsResponse) return [];
     const bookings = Array.isArray(bookingsResponse)
@@ -76,7 +76,10 @@ export default function SubmitPayment() {
       : bookingsResponse?.data || [];
 
     return bookings.filter(
-      (booking) => booking.status === 'paid' && booking.worker_id
+      (booking) => 
+        booking.status === 'paid' && 
+        booking.worker_id &&
+        booking.payment_method === 'cash' // Only show cash payments
     );
   }, [bookingsResponse]);
 
@@ -153,7 +156,7 @@ export default function SubmitPayment() {
   };
 
   const calculateCommission = (totalAmount) => {
-    return (parseFloat(totalAmount) * 0.30).toFixed(2);
+    return (parseFloat(totalAmount) * 0.20).toFixed(2);
   };
 
   if (profileLoading || bookingsLoading) {
@@ -188,7 +191,7 @@ export default function SubmitPayment() {
             Submit Commission Payment
           </h1>
           <p className='text-neutral-600 text-sm'>
-            Submit your 30% commission payment to admin through online payment
+            Submit your 20% commission payment to admin (for cash payments)
           </p>
         </div>
 
@@ -285,38 +288,83 @@ export default function SubmitPayment() {
                 <div className='space-y-3'>
                   {submittedTransactions
                     .slice(0, 10)
-                    .map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className='p-3 bg-gray-50 rounded-lg border border-gray-200'>
-                        <div className='flex items-center justify-between mb-2'>
-                          <div>
-                            <span className='text-sm font-semibold text-gray-900 block'>
-                              ৳{parseFloat(transaction.amount).toFixed(2)}
-                            </span>
-                            <span className='text-xs text-gray-500 capitalize'>
-                              {transaction.transaction_type === 'cash_submission'
-                                ? 'Cash Submission'
-                                : transaction.transaction_type === 'commission_payment'
-                                  ? 'Commission Payment'
-                                  : 'Online Payment'}
+                    .map((transaction) => {
+                      const isReceived = transaction.transaction_type === 'online_payment';
+                      const isSent = transaction.transaction_type === 'commission_payment';
+                      
+                      return (
+                        <div
+                          key={transaction.id}
+                          className={`p-3 rounded-lg border ${
+                            isReceived
+                              ? 'bg-green-50 border-green-200'
+                              : isSent
+                                ? 'bg-red-50 border-red-200'
+                                : 'bg-gray-50 border-gray-200'
+                          }`}>
+                          <div className='flex items-start justify-between mb-2'>
+                            <div className='flex-1'>
+                              <div className='flex items-center gap-2 mb-1'>
+                                {isReceived ? (
+                                  <ArrowDown className='w-4 h-4 text-green-600' />
+                                ) : isSent ? (
+                                  <ArrowUp className='w-4 h-4 text-red-600' />
+                                ) : null}
+                                <span
+                                  className={`text-sm font-semibold block ${
+                                    isReceived
+                                      ? 'text-green-700'
+                                      : isSent
+                                        ? 'text-red-700'
+                                        : 'text-gray-900'
+                                  }`}>
+                                  {isReceived ? '+' : isSent ? '-' : ''}৳
+                                  {parseFloat(transaction.amount).toFixed(2)}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-xs font-medium block ${
+                                  isReceived
+                                    ? 'text-green-600'
+                                    : isSent
+                                      ? 'text-red-600'
+                                      : 'text-gray-500'
+                                }`}>
+                                {isReceived
+                                  ? 'Received from Admin'
+                                  : isSent
+                                    ? 'Sent to Admin (Commission)'
+                                    : transaction.transaction_type === 'cash_submission'
+                                      ? 'Cash Submission'
+                                      : 'Payment'}
+                              </span>
+                              {isReceived && (
+                                <span className='text-xs text-gray-500'>
+                                  Online Payment (80%)
+                                </span>
+                              )}
+                              {isSent && (
+                                <span className='text-xs text-gray-500'>
+                                  Commission Payment (20%)
+                                </span>
+                              )}
+                            </div>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium border capitalize ${getStatusBadge(
+                                transaction.status
+                              )}`}>
+                              {transaction.status}
                             </span>
                           </div>
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium border capitalize ${getStatusBadge(
-                              transaction.status
-                            )}`}>
-                            {transaction.status}
-                          </span>
+                          <p className='text-xs text-gray-600 mt-2'>
+                            Booking #{transaction.booking_id}
+                          </p>
+                          <p className='text-xs text-gray-500 mt-1'>
+                            {new Date(transaction.created_at).toLocaleDateString()}
+                          </p>
                         </div>
-                        <p className='text-xs text-gray-600'>
-                          Booking #{transaction.booking_id}
-                        </p>
-                        <p className='text-xs text-gray-500 mt-1'>
-                          {new Date(transaction.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </Card>
@@ -328,7 +376,7 @@ export default function SubmitPayment() {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title='Submit Commission Payment (30%)'
+        title='Submit Commission Payment (20%)'
         icon={CreditCard}
         iconBgColor='bg-green-100'
         iconColor='text-green-600'
@@ -346,7 +394,7 @@ export default function SubmitPayment() {
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-sm font-medium text-gray-700'>
-                  Commission (30%):
+                  Commission (20%):
                 </span>
                 <span className='text-lg font-bold text-blue-600'>
                   ৳{calculateCommission(selectedCommissionBooking.total_amount)}

@@ -44,7 +44,7 @@ class PaymentService {
     }
   }
 
-  // Worker: Submit commission payment (30% to admin)
+  // Worker: Submit commission payment (20% to admin)
   async submitCommissionPayment(data) {
     return this.request('/payments/submit-commission', {
       method: 'POST',
@@ -102,6 +102,19 @@ class PaymentService {
   // Admin: Get all transactions
   async getAllTransactions() {
     return this.request('/payments/all-transactions');
+  }
+
+  // Admin: Initiate SSL Commerz payment to worker
+  async initiateAdminToWorkerPayment(bookingId, notes = null) {
+    return this.request('/payments/admin-to-worker/initiate', {
+      method: 'POST',
+      body: JSON.stringify({ booking_id: bookingId, notes }),
+    });
+  }
+
+  // Worker: Get pending payments from admin
+  async getWorkerPendingPayments() {
+    return this.request('/payments/worker/pending-payments');
   }
 }
 

@@ -10,23 +10,67 @@ import {
   Filter,
   CreditCard,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { toast } from 'react-hot-toast';
 import { useGetPendingCommissionPayments, useProcessCommissionPayment } from '../../hooks/usePayment';
-import { useGetPendingOnlinePayments, useSendOnlinePayment } from '../../hooks/usePayment';
+import { useGetPendingOnlinePayments, useSendOnlinePayment, useInitiateAdminToWorkerPayment } from '../../hooks/usePayment';
 import { useGetAllTransactions } from '../../hooks/usePayment';
 import Card from '../ui/Card';
 
 export default function PaymentManagement() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('commission'); // 'commission', 'online', 'history'
   const [processingId, setProcessingId] = useState(null);
   const [notes, setNotes] = useState({});
   const [showModal, setShowModal] = useState({ type: null, id: null });
+  const toastShownRef = useRef(false);
+
+  // Handle payment callback status
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const status = searchParams.get('status');
+    const message = searchParams.get('message');
+    const transactionId = searchParams.get('transaction_id');
+
+    // Reset ref when search params are cleared
+    if (!location.search) {
+      toastShownRef.current = false;
+      return;
+    }
+
+    // Only process if there's a status and we haven't shown toast for this status yet
+    if (!status || toastShownRef.current === status + transactionId) {
+      return;
+    }
+
+    // Set ref immediately to prevent duplicate toasts
+    toastShownRef.current = status + transactionId;
+
+    if (status === 'success') {
+      toast.success('Payment sent to worker successfully!');
+      // Switch to online payments tab to see updated list
+      setActiveTab('online');
+      // Clear URL parameters
+      navigate(location.pathname, { replace: true });
+    } else if (status === 'failed' || status === 'error') {
+      toast.error(message || 'Payment failed. Please try again.');
+      // Clear URL parameters
+      navigate(location.pathname, { replace: true });
+    } else if (status === 'cancelled') {
+      toast.error('Payment was cancelled.');
+      // Clear URL parameters
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   const { data: commissionPayments, isLoading: commissionLoading } = useGetPendingCommissionPayments();
   const { data: onlinePayments, isLoading: onlineLoading } = useGetPendingOnlinePayments();
   const { data: allTransactions, isLoading: historyLoading } = useGetAllTransactions();
   const processCommissionMutation = useProcessCommissionPayment();
-  const sendOnlineMutation = useSendOnlinePayment();
+  const sendOnlineMutation = useSendOnlinePayment(); // kept for backward compatibility (not used now)
+  const initiateAdminToWorkerMutation = useInitiateAdminToWorkerPayment();
 
   const pendingCommission = Array.isArray(commissionPayments)
     ? commissionPayments
@@ -60,15 +104,15 @@ export default function PaymentManagement() {
   const handleSendOnline = async (bookingId) => {
     setProcessingId(bookingId);
     try {
-      await sendOnlineMutation.mutateAsync({
+      // Use SSL Commerz to send payment to worker
+      await initiateAdminToWorkerMutation.mutateAsync({
         bookingId,
         notes: notes[bookingId] || null,
       });
-      setShowModal({ type: null, id: null });
-      setNotes({ ...notes, [bookingId]: '' });
+      // The mutation will redirect to SSL Commerz payment page
+      // No need to close modal as we're redirecting
     } catch (error) {
       // Error handled by mutation
-    } finally {
       setProcessingId(null);
     }
   };
@@ -108,7 +152,7 @@ export default function PaymentManagement() {
             Payment Management
           </h1>
           <p className='text-neutral-600 text-sm'>
-            Manage worker commission payments and send online payments
+            Manage worker commission payments and manually transfer online payments to workers
           </p>
         </div>
 
@@ -183,7 +227,7 @@ export default function PaymentManagement() {
                             ৳{parseFloat(transaction.amount).toFixed(2)}
                           </p>
                           <span className='text-sm text-gray-500'>
-                            (30% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
+                            (20% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
                           </span>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize block mt-2 ${getStatusBadge(
@@ -313,7 +357,11 @@ export default function PaymentManagement() {
                           <p className='text-2xl font-bold text-blue-600 mb-2'>
                             ৳{parseFloat(booking.total_amount).toFixed(2)}
                           </p>
-                          <span className='px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200'>
+                          <div className='text-xs text-gray-600 space-y-1'>
+                            <div>Worker: ৳{(parseFloat(booking.total_amount) * 0.80).toFixed(2)} (80%)</div>
+                            <div>Commission: ৳{(parseFloat(booking.total_amount) * 0.20).toFixed(2)} (20%)</div>
+                          </div>
+                          <span className='px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200 mt-2 inline-block'>
                             Online Payment
                           </span>
                         </div>
@@ -338,10 +386,29 @@ export default function PaymentManagement() {
                         </div>
                       </div>
 
-                      {showModal.type === 'online' && showModal.id === booking.id ? (
-                        <div className='mt-4 p-4 bg-gray-50 rounded-lg'>
+                      {!booking.worker_id || !booking.worker ? (
+                        <div className='mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg'>
+                          <div className='flex items-center gap-2 text-yellow-800 mb-2'>
+                            <XCircle className='w-5 h-5' />
+                            <span className='font-semibold'>Worker Not Assigned</span>
+                          </div>
+                          <p className='text-sm text-yellow-700'>
+                            This booking does not have a worker assigned. Please assign a worker before sending payment.
+                          </p>
+                        </div>
+                      ) : showModal.type === 'online' && showModal.id === booking.id ? (
+                        <div className='mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200'>
+                          <div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
+                            <p className='text-sm font-semibold text-blue-900 mb-1'>
+                              SSL Commerz Payment to Worker
+                            </p>
+                            <p className='text-xs text-blue-700'>
+                              You will be redirected to SSL Commerz to send <strong>৳{(parseFloat(booking.total_amount) * 0.80).toFixed(2)}</strong> (80%) to the worker. 
+                              Commission of <strong>৳{(parseFloat(booking.total_amount) * 0.20).toFixed(2)}</strong> (20%) will be automatically deducted.
+                            </p>
+                          </div>
                           <label className='block text-sm font-medium text-gray-700 mb-2'>
-                            Notes (Optional)
+                            Transfer Notes (Optional)
                           </label>
                           <textarea
                             value={notes[booking.id] || ''}
@@ -350,15 +417,24 @@ export default function PaymentManagement() {
                             }
                             rows={2}
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3'
-                            placeholder='Add notes...'
+                            placeholder='Add transfer notes (e.g., bank transfer reference, transaction ID)...'
                           />
                           <div className='flex gap-2'>
                             <button
                               onClick={() => handleSendOnline(booking.id)}
                               disabled={processingId === booking.id}
                               className='flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
-                              <Send className='w-4 h-4' />
-                              Send Payment
+                              {processingId === booking.id ? (
+                                <>
+                                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white'></div>
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className='w-4 h-4' />
+                                  Pay via SSL Commerz
+                                </>
+                              )}
                             </button>
                             <button
                               onClick={() => setShowModal({ type: null, id: null })}
@@ -371,8 +447,8 @@ export default function PaymentManagement() {
                         <button
                           onClick={() => setShowModal({ type: 'online', id: booking.id })}
                           className='px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2'>
-                          <Send className='w-4 h-4' />
-                          Send to Worker
+                          <CreditCard className='w-4 h-4' />
+                          Pay via SSL Commerz
                         </button>
                       )}
                     </div>
