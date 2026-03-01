@@ -1,4 +1,4 @@
-import { Briefcase, UserPen, User } from "lucide-react";
+import { Briefcase, History, UserPen, User } from "lucide-react";
 import { use } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import Sidebar from "../ui/SideBar";
@@ -46,6 +46,12 @@ const WorkerSidebar = () => {
       icon: TakaSignIcon,
       label: "Submit Payment",
       link: "/worker/submit-payment",
+    },
+    {
+      id: "payment-history",
+      icon: History,
+      label: "Payment History",
+      link: "/worker/payment-history",
     },
     {
       id: "profile",

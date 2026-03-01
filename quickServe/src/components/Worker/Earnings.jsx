@@ -1,5 +1,5 @@
 import { Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo ,useEffect} from 'react';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
 import { useGetWorkerTransactions } from '../../hooks/usePayment';

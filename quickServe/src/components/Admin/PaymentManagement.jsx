@@ -72,9 +72,17 @@ export default function PaymentManagement() {
   const sendOnlineMutation = useSendOnlinePayment(); // kept for backward compatibility (not used now)
   const initiateAdminToWorkerMutation = useInitiateAdminToWorkerPayment();
 
-  const pendingCommission = Array.isArray(commissionPayments)
+  // Get all commission payments and separate by status
+  const allCommissionPayments = Array.isArray(commissionPayments)
     ? commissionPayments
     : commissionPayments?.data || [];
+  
+  // Separate pending and completed/approved/rejected
+  const pendingCommission = allCommissionPayments.filter(t => t.status === 'pending');
+  const completedCommission = allCommissionPayments.filter(t => 
+    ['completed', 'approved'].includes(t.status)
+  );
+  const rejectedCommission = allCommissionPayments.filter(t => t.status === 'rejected');
 
   const pendingOnline = Array.isArray(onlinePayments)
     ? onlinePayments
@@ -194,125 +202,308 @@ export default function PaymentManagement() {
               <div className='flex justify-center items-center py-12'>
                 <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
               </div>
-            ) : pendingCommission.length === 0 ? (
+            ) : allCommissionPayments.length === 0 ? (
               <Card bgColor='bg-white' borderColor='border-gray-200'>
                 <div className='text-center py-12'>
                   <CreditCard className='w-12 h-12 text-gray-400 mx-auto mb-3' />
-                  <p className='text-gray-600'>No pending commission payments</p>
+                  <p className='text-gray-600'>No commission payments</p>
                 </div>
               </Card>
             ) : (
-              <div className='space-y-4'>
-                {pendingCommission.map((transaction) => (
-                  <Card
-                    key={transaction.id}
-                    bgColor='bg-white'
-                    borderColor='border-gray-200'>
-                    <div className='p-6'>
-                      <div className='flex items-start justify-between mb-4'>
-                        <div>
-                          <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-                            {transaction.booking?.service_subcategory?.name ||
-                              transaction.booking?.service?.name ||
-                              'Service'}
-                          </h3>
-                          <div className='flex items-center gap-4 text-sm text-gray-600'>
-                            <span>Booking ID: #{transaction.booking_id}</span>
-                            <span>Worker: {transaction.worker?.name || 'N/A'}</span>
-                            <span>Customer: {transaction.booking?.customer_name || 'N/A'}</span>
+              <div className='space-y-6'>
+                {/* Pending Commission Payments */}
+                {pendingCommission.length > 0 && (
+                  <div>
+                    <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                      Pending ({pendingCommission.length})
+                    </h2>
+                    <div className='space-y-4'>
+                      {pendingCommission.map((transaction) => (
+                        <Card
+                          key={transaction.id}
+                          bgColor='bg-white'
+                          borderColor='border-yellow-200'>
+                          <div className='p-6'>
+                            <div className='flex items-start justify-between mb-4'>
+                              <div>
+                                <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                                  {transaction.booking?.service_subcategory?.name ||
+                                    transaction.booking?.service?.name ||
+                                    'Service'}
+                                </h3>
+                                <div className='flex items-center gap-4 text-sm text-gray-600'>
+                                  <span>Booking ID: #{transaction.booking_id}</span>
+                                  <span>Worker: {transaction.worker?.name || 'N/A'}</span>
+                                  <span>Customer: {transaction.booking?.customer_name || 'N/A'}</span>
+                                </div>
+                              </div>
+                              <div className='text-right'>
+                                <p className='text-2xl font-bold text-blue-600 mb-2'>
+                                  ৳{parseFloat(transaction.amount).toFixed(2)}
+                                </p>
+                                <span className='text-sm text-gray-500'>
+                                  (20% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
+                                </span>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize block mt-2 ${getStatusBadge(
+                                    transaction.status
+                                  )}`}>
+                                  {transaction.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm text-gray-600'>
+                              <div className='flex items-center gap-2'>
+                                <Calendar className='w-4 h-4' />
+                                <span>{formatDate(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Clock className='w-4 h-4' />
+                                <span>{formatTime(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <MapPin className='w-4 h-4' />
+                                <span className='truncate'>
+                                  {transaction.booking?.service_address || 'N/A'}
+                                </span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Package className='w-4 h-4' />
+                                <span>
+                                  ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {transaction.notes && (
+                              <div className='mb-4 p-3 bg-gray-50 rounded-lg'>
+                                <p className='text-sm text-gray-700 whitespace-pre-wrap'>{transaction.notes}</p>
+                              </div>
+                            )}
+
+                            {showModal.type === 'commission' && showModal.id === transaction.id ? (
+                              <div className='mt-4 p-4 bg-gray-50 rounded-lg'>
+                                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                                  Notes (Optional)
+                                </label>
+                                <textarea
+                                  value={notes[transaction.id] || ''}
+                                  onChange={(e) =>
+                                    setNotes({ ...notes, [transaction.id]: e.target.value })
+                                  }
+                                  rows={2}
+                                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3'
+                                  placeholder='Add notes...'
+                                />
+                                <div className='flex gap-2'>
+                                  <button
+                                    onClick={() => handleProcessCommission(transaction.id, 'approve')}
+                                    disabled={processingId === transaction.id}
+                                    className='flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
+                                    <CheckCircle className='w-4 h-4' />
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleProcessCommission(transaction.id, 'reject')}
+                                    disabled={processingId === transaction.id}
+                                    className='flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
+                                    <XCircle className='w-4 h-4' />
+                                    Reject
+                                  </button>
+                                  <button
+                                    onClick={() => setShowModal({ type: null, id: null })}
+                                    className='px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors'>
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setShowModal({ type: 'commission', id: transaction.id })}
+                                className='px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2'>
+                                <CheckCircle className='w-4 h-4' />
+                                Process Payment
+                              </button>
+                            )}
                           </div>
-                        </div>
-                        <div className='text-right'>
-                          <p className='text-2xl font-bold text-blue-600 mb-2'>
-                            ৳{parseFloat(transaction.amount).toFixed(2)}
-                          </p>
-                          <span className='text-sm text-gray-500'>
-                            (20% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
-                          </span>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize block mt-2 ${getStatusBadge(
-                              transaction.status
-                            )}`}>
-                            {transaction.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm text-gray-600'>
-                        <div className='flex items-center gap-2'>
-                          <Calendar className='w-4 h-4' />
-                          <span>{formatDate(transaction.booking?.scheduled_at)}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                          <Clock className='w-4 h-4' />
-                          <span>{formatTime(transaction.booking?.scheduled_at)}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                          <MapPin className='w-4 h-4' />
-                          <span className='truncate'>
-                            {transaction.booking?.service_address || 'N/A'}
-                          </span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                          <Package className='w-4 h-4' />
-                          <span>
-                            ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {transaction.notes && (
-                        <div className='mb-4 p-3 bg-gray-50 rounded-lg'>
-                          <p className='text-sm text-gray-700 whitespace-pre-wrap'>{transaction.notes}</p>
-                        </div>
-                      )}
-
-                      {showModal.type === 'commission' && showModal.id === transaction.id ? (
-                        <div className='mt-4 p-4 bg-gray-50 rounded-lg'>
-                          <label className='block text-sm font-medium text-gray-700 mb-2'>
-                            Notes (Optional)
-                          </label>
-                          <textarea
-                            value={notes[transaction.id] || ''}
-                            onChange={(e) =>
-                              setNotes({ ...notes, [transaction.id]: e.target.value })
-                            }
-                            rows={2}
-                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3'
-                            placeholder='Add notes...'
-                          />
-                          <div className='flex gap-2'>
-                            <button
-                              onClick={() => handleProcessCommission(transaction.id, 'approve')}
-                              disabled={processingId === transaction.id}
-                              className='flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
-                              <CheckCircle className='w-4 h-4' />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleProcessCommission(transaction.id, 'reject')}
-                              disabled={processingId === transaction.id}
-                              className='flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
-                              <XCircle className='w-4 h-4' />
-                              Reject
-                            </button>
-                            <button
-                              onClick={() => setShowModal({ type: null, id: null })}
-                              className='px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors'>
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setShowModal({ type: 'commission', id: transaction.id })}
-                          className='px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors'>
-                          Process Payment
-                        </button>
-                      )}
+                        </Card>
+                      ))}
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                )}
+
+                {/* Completed/Approved Commission Payments */}
+                {completedCommission.length > 0 && (
+                  <div>
+                    <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                      Completed/Approved ({completedCommission.length})
+                    </h2>
+                    <div className='space-y-4'>
+                      {completedCommission.map((transaction) => (
+                        <Card
+                          key={transaction.id}
+                          bgColor='bg-white'
+                          borderColor='border-green-200'>
+                          <div className='p-6'>
+                            <div className='flex items-start justify-between mb-4'>
+                              <div>
+                                <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                                  {transaction.booking?.service_subcategory?.name ||
+                                    transaction.booking?.service?.name ||
+                                    'Service'}
+                                </h3>
+                                <div className='flex items-center gap-4 text-sm text-gray-600'>
+                                  <span>Booking ID: #{transaction.booking_id}</span>
+                                  <span>Worker: {transaction.worker?.name || 'N/A'}</span>
+                                  <span>Customer: {transaction.booking?.customer_name || 'N/A'}</span>
+                                </div>
+                              </div>
+                              <div className='text-right'>
+                                <p className='text-2xl font-bold text-green-600 mb-2'>
+                                  ৳{parseFloat(transaction.amount).toFixed(2)}
+                                </p>
+                                <span className='text-sm text-gray-500'>
+                                  (20% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
+                                </span>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize block mt-2 ${getStatusBadge(
+                                    transaction.status
+                                  )}`}>
+                                  {transaction.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm text-gray-600'>
+                              <div className='flex items-center gap-2'>
+                                <Calendar className='w-4 h-4' />
+                                <span>{formatDate(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Clock className='w-4 h-4' />
+                                <span>{formatTime(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <MapPin className='w-4 h-4' />
+                                <span className='truncate'>
+                                  {transaction.booking?.service_address || 'N/A'}
+                                </span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Package className='w-4 h-4' />
+                                <span>
+                                  ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {transaction.notes && (
+                              <div className='mb-4 p-3 bg-gray-50 rounded-lg'>
+                                <p className='text-sm text-gray-700 whitespace-pre-wrap'>{transaction.notes}</p>
+                              </div>
+                            )}
+
+                            {transaction.processed_by && transaction.processed_at && (
+                              <div className='mb-4 p-3 bg-blue-50 rounded-lg'>
+                                <p className='text-xs text-gray-600'>
+                                  Processed by: {transaction.processed_by?.name || 'Admin'} on{' '}
+                                  {formatDate(transaction.processed_at)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejected Commission Payments */}
+                {rejectedCommission.length > 0 && (
+                  <div>
+                    <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+                      Rejected ({rejectedCommission.length})
+                    </h2>
+                    <div className='space-y-4'>
+                      {rejectedCommission.map((transaction) => (
+                        <Card
+                          key={transaction.id}
+                          bgColor='bg-white'
+                          borderColor='border-red-200'>
+                          <div className='p-6'>
+                            <div className='flex items-start justify-between mb-4'>
+                              <div>
+                                <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                                  {transaction.booking?.service_subcategory?.name ||
+                                    transaction.booking?.service?.name ||
+                                    'Service'}
+                                </h3>
+                                <div className='flex items-center gap-4 text-sm text-gray-600'>
+                                  <span>Booking ID: #{transaction.booking_id}</span>
+                                  <span>Worker: {transaction.worker?.name || 'N/A'}</span>
+                                  <span>Customer: {transaction.booking?.customer_name || 'N/A'}</span>
+                                </div>
+                              </div>
+                              <div className='text-right'>
+                                <p className='text-2xl font-bold text-red-600 mb-2'>
+                                  ৳{parseFloat(transaction.amount).toFixed(2)}
+                                </p>
+                                <span className='text-sm text-gray-500'>
+                                  (20% of ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)})
+                                </span>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize block mt-2 ${getStatusBadge(
+                                    transaction.status
+                                  )}`}>
+                                  {transaction.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm text-gray-600'>
+                              <div className='flex items-center gap-2'>
+                                <Calendar className='w-4 h-4' />
+                                <span>{formatDate(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Clock className='w-4 h-4' />
+                                <span>{formatTime(transaction.booking?.scheduled_at)}</span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <MapPin className='w-4 h-4' />
+                                <span className='truncate'>
+                                  {transaction.booking?.service_address || 'N/A'}
+                                </span>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Package className='w-4 h-4' />
+                                <span>
+                                  ৳{parseFloat(transaction.booking?.total_amount || 0).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {transaction.notes && (
+                              <div className='mb-4 p-3 bg-gray-50 rounded-lg'>
+                                <p className='text-sm text-gray-700 whitespace-pre-wrap'>{transaction.notes}</p>
+                              </div>
+                            )}
+
+                            {transaction.processed_by && transaction.processed_at && (
+                              <div className='mb-4 p-3 bg-blue-50 rounded-lg'>
+                                <p className='text-xs text-gray-600'>
+                                  Processed by: {transaction.processed_by?.name || 'Admin'} on{' '}
+                                  {formatDate(transaction.processed_at)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

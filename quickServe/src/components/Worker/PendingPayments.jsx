@@ -125,9 +125,8 @@ export default function PendingPayments() {
                 Commission Information
               </p>
               <p className='text-sm text-blue-700'>
-                Admin keeps 20% ({formatCurrency(pendingPayments.commission_amount)}) as commission. 
-                You will receive 80% ({formatCurrency(pendingPayments.worker_pending_amount)}) 
-                when admin processes the payment.
+                Platform commission is 20% ({formatCurrency(pendingPayments.commission_amount)}).
+                Your payout is 80% ({formatCurrency(pendingPayments.worker_pending_amount)}) once the payment is processed.
               </p>
             </div>
           </div>

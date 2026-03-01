@@ -1,7 +1,8 @@
-import { Calendar, Clock, CreditCard, Loader, MapPin, User, ArrowDown, ArrowUp } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Loader, MapPin, User, ArrowDown, ArrowUp, RefreshCw } from 'lucide-react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation } from 'react-router';
+import { Link } from 'react-router';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useGetWorkerTransactions, useInitiateSslCommerzPayment } from '../../hooks/usePayment';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
@@ -27,9 +28,10 @@ export default function SubmitPayment() {
     data: bookingsResponse,
     isLoading: bookingsLoading,
     isError: bookingsError,
+    refetch: refetchBookings,
   } = useGetWorkerBookings(user?.id);
 
-  const { data: transactionsResponse } = useGetWorkerTransactions();
+  const { data: transactionsResponse, refetch: refetchTransactions } = useGetWorkerTransactions();
 
   // Handle payment callback status
   useEffect(() => {
@@ -54,6 +56,9 @@ export default function SubmitPayment() {
 
     if (status === 'success') {
       toast.success('Payment completed successfully!');
+      // Refresh bookings and transactions
+      refetchBookings();
+      refetchTransactions();
       // Refresh transactions by removing query params
       window.history.replaceState({}, '', location.pathname);
     } else if (status === 'failed') {
@@ -66,7 +71,28 @@ export default function SubmitPayment() {
       toast.error(message || 'An error occurred during payment');
       window.history.replaceState({}, '', location.pathname);
     }
-  }, [location.search, location.pathname]);
+  }, [location.search, location.pathname, refetchBookings, refetchTransactions]);
+
+  // Refetch bookings when component mounts or becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refetchBookings();
+        refetchTransactions();
+      }
+    };
+
+    // Refetch on mount
+    refetchBookings();
+    refetchTransactions();
+
+    // Refetch when page becomes visible (user switches back to tab)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refetchBookings, refetchTransactions]);
 
   // Get all paid bookings with cash payment method only
   const paidBookings = useMemo(() => {
@@ -155,6 +181,35 @@ export default function SubmitPayment() {
     return styles[status] || styles.pending;
   };
 
+  const COMMISSION_RATE = 0.2;
+
+  const formatCurrency = (amount) => {
+    const n = Number(amount);
+    if (!Number.isFinite(n)) return '৳0.00';
+    return `৳${n.toFixed(2)}`;
+  };
+
+  const getBookingMoneyBreakdown = (transaction) => {
+    const amount = Number(transaction?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return null;
+
+    if (transaction?.transaction_type === 'online_payment') {
+      const payout = amount;
+      const gross = payout / (1 - COMMISSION_RATE);
+      const commission = gross * COMMISSION_RATE;
+      return { gross, commission, payout };
+    }
+
+    if (transaction?.transaction_type === 'commission_payment') {
+      const commission = amount;
+      const gross = commission / COMMISSION_RATE;
+      const payout = gross - commission;
+      return { gross, commission, payout };
+    }
+
+    return null;
+  };
+
   const calculateCommission = (totalAmount) => {
     return (parseFloat(totalAmount) * 0.20).toFixed(2);
   };
@@ -186,13 +241,26 @@ export default function SubmitPayment() {
   return (
     <div className='p-4 md:p-6 bg-neutral-50 min-h-screen'>
       <div className='max-w-7xl mx-auto'>
-        <div className='mb-6'>
-          <h1 className='text-2xl md:text-3xl font-bold text-slate-900 mb-1'>
-            Submit Commission Payment
-          </h1>
-          <p className='text-neutral-600 text-sm'>
-            Submit your 20% commission payment to admin (for cash payments)
-          </p>
+        <div className='mb-6 flex items-center justify-between'>
+          <div>
+            <h1 className='text-2xl md:text-3xl font-bold text-slate-900 mb-1'>
+              Submit Commission Payment
+            </h1>
+            <p className='text-neutral-600 text-sm'>
+              Submit your 20% commission payment to admin (for cash payments)
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              refetchBookings();
+              refetchTransactions();
+              toast.success('Refreshed booking list');
+            }}
+            disabled={bookingsLoading}
+            className='px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'>
+            <RefreshCw className={`w-4 h-4 ${bookingsLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -277,7 +345,7 @@ export default function SubmitPayment() {
           {/* Transaction History */}
           <div className='lg:col-span-1'>
             <Card
-              title='Payment History'
+              title='Payment History (Payouts & Commissions)'
               bgColor='bg-white'
               borderColor='border-gray-200'>
               {submittedTransactions.length === 0 ? (
@@ -286,11 +354,22 @@ export default function SubmitPayment() {
                 </div>
               ) : (
                 <div className='space-y-3'>
+                  <div className='flex items-center justify-between'>
+                    <p className='text-xs text-gray-500'>Showing latest 10</p>
+                    <Link
+                      to='/worker/payment-history'
+                      className='text-xs font-semibold text-blue-600 hover:underline'>
+                      View all
+                    </Link>
+                  </div>
                   {submittedTransactions
                     .slice(0, 10)
                     .map((transaction) => {
                       const isReceived = transaction.transaction_type === 'online_payment';
                       const isSent = transaction.transaction_type === 'commission_payment';
+                      const isBookingPayment = transaction.transaction_type === 'payment';
+                      const isCashSubmission = transaction.transaction_type === 'cash_submission';
+                      const breakdown = getBookingMoneyBreakdown(transaction);
                       
                       return (
                         <div
@@ -318,8 +397,7 @@ export default function SubmitPayment() {
                                         ? 'text-red-700'
                                         : 'text-gray-900'
                                   }`}>
-                                  {isReceived ? '+' : isSent ? '-' : ''}৳
-                                  {parseFloat(transaction.amount).toFixed(2)}
+                                  {formatCurrency(transaction.amount)}
                                 </span>
                               </div>
                               <span
@@ -330,23 +408,29 @@ export default function SubmitPayment() {
                                       ? 'text-red-600'
                                       : 'text-gray-500'
                                 }`}>
-                                {isReceived
-                                  ? 'Received from Admin'
-                                  : isSent
-                                    ? 'Sent to Admin (Commission)'
-                                    : transaction.transaction_type === 'cash_submission'
-                                      ? 'Cash Submission'
-                                      : 'Payment'}
+                                {isReceived ? (
+                                  'Payout received (from Admin)'
+                                ) : isSent ? (
+                                  'Commission paid (to Admin)'
+                                ) : isCashSubmission ? (
+                                  'Cash submission'
+                                ) : isBookingPayment ? (
+                                  'Booking total (for reference)'
+                                ) : (
+                                  'Payment'
+                                )}
                               </span>
-                              {isReceived && (
-                                <span className='text-xs text-gray-500'>
-                                  Online Payment (80%)
-                                </span>
-                              )}
-                              {isSent && (
-                                <span className='text-xs text-gray-500'>
-                                  Commission Payment (20%)
-                                </span>
+                              {(isReceived || isSent) && breakdown && (
+                                <div className='mt-1 text-[11px] leading-4 text-gray-600'>
+                                  <span className='font-medium'>Booking total:</span>{' '}
+                                  {formatCurrency(breakdown.gross)}{' '}
+                                  <span className='mx-1 text-gray-400'>•</span>
+                                  <span className='font-medium'>Platform commission (20%):</span>{' '}
+                                  {formatCurrency(breakdown.commission)}{' '}
+                                  <span className='mx-1 text-gray-400'>•</span>
+                                  <span className='font-medium'>Your payout (80%):</span>{' '}
+                                  {formatCurrency(breakdown.payout)}
+                                </div>
                               )}
                             </div>
                             <span
@@ -356,7 +440,7 @@ export default function SubmitPayment() {
                               {transaction.status}
                             </span>
                           </div>
-                          <p className='text-xs text-gray-600 mt-2'>
+                          <p className='text-xs text-gray-700 mt-2 font-medium'>
                             Booking #{transaction.booking_id}
                           </p>
                           <p className='text-xs text-gray-500 mt-1'>

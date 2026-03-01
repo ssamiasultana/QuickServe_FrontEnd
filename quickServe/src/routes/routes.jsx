@@ -25,6 +25,7 @@ import MyBooking from '../components/Customer/MyBooking.jsx';
 import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationPage.jsx';
 import CustomerProfile from '../components/Customer/Profile.jsx';
 import Earnings from '../components/Worker/Earnings.jsx';
+import PaymentHistory from '../components/Worker/PaymentHistory.jsx';
 import PendingPayments from '../components/Worker/PendingPayments.jsx';
 import Profile from '../components/Worker/Profile.jsx';
 import SubmitPayment from '../components/Worker/SubmitPayment.jsx';
@@ -92,6 +93,7 @@ const routes = createBrowserRouter([
       { path: 'earnings', Component: Earnings },
       { path: 'pending-payments', Component: PendingPayments },
       { path: 'submit-payment', Component: SubmitPayment },
+      { path: 'payment-history', Component: PaymentHistory },
       { path: 'profile', Component: Profile },
       { path: 'info', Component: AddWorker },
     ],
