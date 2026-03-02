@@ -159,6 +159,7 @@ export default function SubmitPayment() {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'Asia/Dhaka',
     });
   };
 
@@ -167,6 +168,7 @@ export default function SubmitPayment() {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Dhaka',
     });
   };
 

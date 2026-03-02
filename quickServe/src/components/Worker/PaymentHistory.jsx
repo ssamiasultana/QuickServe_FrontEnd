@@ -267,7 +267,7 @@ export default function PaymentHistory() {
                             Booking #{entry.bookingId}
                           </div>
                           <div className='text-xs text-gray-500 mt-1'>
-                            {new Date(entry.payout.created_at).toLocaleString()}
+                            {new Date(entry.payout.created_at).toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })}
                           </div>
                         </div>
 
@@ -341,7 +341,7 @@ export default function PaymentHistory() {
                           Booking #{entry.bookingId}
                         </div>
                         <div className='text-xs text-gray-500 mt-1'>
-                          {new Date(transaction.created_at).toLocaleString()}
+                          {new Date(transaction.created_at).toLocaleString('en-US', { timeZone: 'Asia/Dhaka' })}
                         </div>
                       </div>
 

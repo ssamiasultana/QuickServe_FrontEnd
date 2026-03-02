@@ -131,6 +131,7 @@ export default function PaymentManagement() {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: 'Asia/Dhaka',
     });
   };
 
@@ -139,6 +140,7 @@ export default function PaymentManagement() {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Dhaka',
     });
   };
 

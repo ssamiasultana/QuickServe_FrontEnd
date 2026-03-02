@@ -26,6 +26,7 @@ export default function PendingPayments() {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'Asia/Dhaka',
     });
   };
 

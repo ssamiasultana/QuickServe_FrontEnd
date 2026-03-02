@@ -36,13 +36,20 @@ export default function Schedule() {
     return allBookings.filter((booking) => booking.scheduled_at && booking.status !== 'cancelled');
   }, [bookingsResponse]);
 
-  // Group bookings by date
+  // Helper to get YYYY-MM-DD in Asia/Dhaka timezone
+  const getDateKeyInDhaka = (dateString) => {
+    const date = new Date(dateString);
+    // Use toLocaleDateString with Asia/Dhaka to get the correct local date
+    const parts = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Dhaka' }); // en-CA gives YYYY-MM-DD format
+    return parts;
+  };
+
+  // Group bookings by date (in Asia/Dhaka timezone)
   const bookingsByDate = useMemo(() => {
     const grouped = {};
     bookings.forEach((booking) => {
       if (booking.scheduled_at) {
-        const date = new Date(booking.scheduled_at);
-        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateKey = getDateKeyInDhaka(booking.scheduled_at);
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
@@ -89,6 +96,7 @@ export default function Schedule() {
       month: 'long',
       day: 'numeric',
       weekday: 'long',
+      timeZone: 'Asia/Dhaka',
     });
   };
 
@@ -99,6 +107,7 @@ export default function Schedule() {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Dhaka',
     });
   };
 
