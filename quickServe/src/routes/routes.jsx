@@ -24,6 +24,7 @@ import HirePage from '../components/Customer/HirePage.jsx';
 import MyBooking from '../components/Customer/MyBooking.jsx';
 import PaymentConfirmationPage from '../components/Customer/PaymentConfirmationPage.jsx';
 import CustomerProfile from '../components/Customer/Profile.jsx';
+import WorkerProfileView from '../components/Customer/WorkerProfileView.jsx';
 import Earnings from '../components/Worker/Earnings.jsx';
 import PaymentHistory from '../components/Worker/PaymentHistory.jsx';
 import PendingPayments from '../components/Worker/PendingPayments.jsx';
@@ -106,6 +107,7 @@ const routes = createBrowserRouter([
       { index: true, element: <Navigate to='/customer/dashboard' replace /> },
       { path: 'dashboard', Component: CustomerDashboard },
       { path: 'manage-workers', Component: CustomerPage },
+      { path: 'worker-profile/:id', Component: WorkerProfileView },
       { path: 'hire-worker/:id', Component: HirePage },
       {
         path: 'payment-confirmation',

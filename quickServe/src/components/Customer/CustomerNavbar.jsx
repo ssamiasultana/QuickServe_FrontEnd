@@ -1,5 +1,5 @@
-import { LogOut, User } from 'lucide-react';
-import { use } from 'react';
+import { LogOut, Menu, User, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState, use } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import logo from '../../assets/logo.png';
 import { AuthContext } from '../Context/AuthContext';
@@ -9,182 +9,203 @@ const CustomerNavbar = () => {
   const { user, logout, isAuthenticated } = use(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const navItems = [
-    { id: 'workers', label: 'Find Workers', path: '/customer/manage-workers' },
-    { id: 'bookings', label: 'My Bookings', path: '/customer/my-booking' },
-    { id: 'profile', label: 'Profile', path: '/customer/profile' },
-  ];
+  const navItems = useMemo(
+    () => [
+      { id: 'workers', label: 'Find Workers', path: '/customer/manage-workers' },
+      { id: 'services', label: 'All Services', path: '/customer/service-page' },
+      { id: 'bookings', label: 'My Bookings', path: '/customer/my-booking' },
+    ],
+    []
+  );
 
   const isActivePath = (path) => {
     return location.pathname.startsWith(path);
   };
 
+  useEffect(() => {
+    // Close menus on navigation
+    setMobileOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
+
   return (
-    <nav
-      className='shadow-lg  backdrop-blur-sm'
-      style={{
-        backgroundColor: colors.primary[50],
-        borderColor: colors.primary[200],
-      }}>
+    <nav className='sticky top-0 z-50  bg-white/80 backdrop-blur-md shadow-sm'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='flex justify-between items-center h-16'>
-          <div
-            className='flex items-center cursor-pointer group'
-            onClick={() => navigate('/dashboard')}>
-            <div
-              className='w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:shadow-md'
-              style={{
-                backgroundColor: colors.accent[600],
-                color: colors.white,
-              }}>
-              <img src={logo} alt='sp' />
-            </div>
-            <div className='ml-3'>
-              <h1
-                className='text-xl font-bold transition-colors group-hover:text-accent-600'
-                style={{ color: colors.primary[900] }}>
-                Quick Serve
-              </h1>
-              <p
-                className='text-xs transition-colors group-hover:text-accent-500'
-                style={{ color: colors.primary[500] }}>
-                ServicePro
-              </p>
-            </div>
+        <div className='h-16 flex items-center justify-between gap-4'>
+          {/* Brand */}
+          <div className='flex items-center gap-3 min-w-0'>
+            <button
+              type='button'
+              onClick={() => navigate('/customer/dashboard')}
+              className='flex items-center gap-3 group min-w-0'>
+              <div
+                className='w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ring-1 ring-black/5 group-hover:shadow transition'
+                style={{ backgroundColor: colors.accent[600] }}>
+                <img src={logo} alt='Quick Serve' className='w-7 h-7 object-contain' />
+              </div>
+              <div className='min-w-0 text-left hidden sm:block'>
+                <div className='text-base font-extrabold text-slate-900 truncate'>
+                  Quick Serve
+                </div>
+                <div className='text-xs text-slate-500 -mt-0.5'>ServicePro</div>
+              </div>
+            </button>
           </div>
-          <div>
-            <h2
-              onClick={() => navigate('/customer/service-page')}
-              className='text-xl font-semibold transition-colors group-hover:text-accent-600 cursor-pointer'
-              style={{ color: colors.primary[900] }}>
-              All Services
-            </h2>
+
+          {/* Desktop nav */}
+          <div className='hidden md:flex items-center gap-1'>
+            {navItems.map((item) => {
+              const active = isActivePath(item.path);
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    active
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}>
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
-          {isAuthenticated ? (
-            <div className='flex items-center gap-3'>
-              <span
-                className='font-medium'
-                style={{ color: colors.primary[700] }}>
-                Welcome, {user?.name || user?.email}
-              </span>
-              <button
-                onClick={() => navigate('/customer/profile')}
-                className='p-2.5 rounded-lg transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md'
-                style={{
-                  color: isActivePath('/customer/profile')
-                    ? colors.white
-                    : colors.primary[700],
-                  backgroundColor: isActivePath('/customer/profile')
-                    ? colors.accent[600]
-                    : colors.white,
-                  border: `2px solid ${
-                    isActivePath('/customer/profile')
-                      ? colors.accent[600]
-                      : colors.primary[300]
-                  }`,
-                  minWidth: '40px',
-                  minHeight: '40px',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActivePath('/customer/profile')) {
-                    e.target.style.backgroundColor = colors.accent[50];
-                    e.target.style.borderColor = colors.accent[400];
-                    e.target.style.color = colors.accent[600];
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActivePath('/customer/profile')) {
-                    e.target.style.backgroundColor = colors.white;
-                    e.target.style.borderColor = colors.primary[300];
-                    e.target.style.color = colors.primary[700];
-                  }
-                }}
-                title='Profile'>
-                <User size={22} strokeWidth={2.5} />
-              </button>
-              <button
-                className='px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2'
-                style={{ color: colors.error[500], border: 'none' }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = colors.error[50];
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-                onClick={handleLogout}>
-                <LogOut size={18} />
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className='flex gap-3'>
-              <Link
-                to='/login'
-                className='px-5 py-2.5 font-medium rounded-lg transition-colors'
-                style={{
-                  color: colors.accent[600],
-                  border: `1px solid ${colors.accent[200]}`,
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = colors.accent[50];
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}>
-                Login
-              </Link>
-              <Link
-                to='/signup'
-                className='px-5 py-2.5 font-medium rounded-lg transition-colors'
-                style={{
-                  backgroundColor: colors.accent[600],
-                  color: colors.white,
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = colors.accent[500];
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = colors.accent[600];
-                }}>
-                Sign Up
-              </Link>
-            </div>
-          )}
+
+          {/* Right side */}
+          <div className='flex items-center gap-2'>
+            {!isAuthenticated ? (
+              <div className='hidden sm:flex items-center gap-2'>
+                <Link
+                  to='/login'
+                  className='px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition'>
+                  Login
+                </Link>
+                <Link
+                  to='/signup'
+                  className='px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm'>
+                  Sign Up
+                </Link>
+              </div>
+            ) : (
+              <div className='relative'>
+                <button
+                  type='button'
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className='flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-slate-100 transition'
+                  aria-haspopup='menu'
+                  aria-expanded={userMenuOpen}>
+                  <div className='w-9 h-9 rounded-xl bg-slate-100 ring-1 ring-black/5 flex items-center justify-center overflow-hidden'>
+                    <User size={18} className='text-slate-700' />
+                  </div>
+                  <div className='hidden lg:block text-left'>
+                    <div className='text-sm font-bold text-slate-900 leading-4 max-w-[180px] truncate'>
+                      {user?.name || user?.email}
+                    </div>
+                    <div className='text-xs text-slate-500 leading-4'>Customer</div>
+                  </div>
+                </button>
+
+                {userMenuOpen && (
+                  <div
+                    role='menu'
+                    className='absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden'>
+                    <button
+                      type='button'
+                      onClick={() => navigate('/customer/profile')}
+                      className='w-full px-4 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2'>
+                      <User size={16} />
+                      Profile
+                    </button>
+                    <button
+                      type='button'
+                      onClick={handleLogout}
+                      className='w-full px-4 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 transition flex items-center gap-2'>
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              type='button'
+              className='md:hidden p-2 rounded-xl hover:bg-slate-100 transition'
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label='Toggle menu'>
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
 
-        <div
-          className='md:hidden flex space-x-2 pb-4 pt-2'
-          style={{ borderTop: `1px solid ${colors.primary[200]}` }}>
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex-1 text-center ${
-                isActivePath(item.path) ? 'shadow-sm' : 'hover:shadow-md'
-              }`}
-              style={{
-                backgroundColor: isActivePath(item.path)
-                  ? colors.accent[500]
-                  : colors.white,
-                color: isActivePath(item.path)
-                  ? colors.white
-                  : colors.primary[700],
-                border: `1px solid ${
-                  isActivePath(item.path)
-                    ? colors.accent[500]
-                    : colors.primary[200]
-                }`,
-              }}>
-              {item.label}
-            </button>
-          ))}
-        </div>
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className='md:hidden pb-4'>
+            <div className='pt-2 border-t border-slate-200'>
+              <div className='grid grid-cols-1 gap-2 mt-3'>
+                {navItems.map((item) => {
+                  const active = isActivePath(item.path);
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.path}
+                      className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+                        active
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                      }`}>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {!isAuthenticated ? (
+                <div className='mt-3 grid grid-cols-2 gap-2'>
+                  <Link
+                    to='/login'
+                    className='px-4 py-2.5 rounded-lg text-sm font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition text-center'>
+                    Login
+                  </Link>
+                  <Link
+                    to='/signup'
+                    className='px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm text-center'>
+                    Sign Up
+                  </Link>
+                </div>
+              ) : (
+                <div className='mt-3 grid grid-cols-1 gap-2'>
+                  <Link
+                    to='/customer/profile'
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold border transition flex items-center gap-2 ${
+                      isActivePath('/customer/profile')
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}>
+                    <User size={16} />
+                    Profile
+                  </Link>
+                  <button
+                    type='button'
+                    onClick={handleLogout}
+                    className='px-4 py-2.5 rounded-lg text-sm font-semibold text-rose-600 border border-rose-200 hover:bg-rose-50 transition flex items-center gap-2'>
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

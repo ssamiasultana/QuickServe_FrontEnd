@@ -132,7 +132,7 @@ function SingleWorkerCard({ workerData }) {
                 </button>
                 <button
                   className='flex-1 py-0.5 px-1.5 rounded text-xs font-medium transition-colors'
-                  onClick={() => navigate(`/worker/${worker.id}`)}
+                  onClick={() => navigate(`/customer/worker-profile/${worker.id}`)}
                   style={{
                     backgroundColor: colors.primary[100],
                     color: colors.primary[700],
