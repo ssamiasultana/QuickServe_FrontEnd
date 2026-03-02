@@ -1,3 +1,15 @@
+import {
+  Briefcase,
+  Camera,
+  CheckCircle,
+  CreditCard,
+  FileText,
+  Shield,
+  Upload,
+  User,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { useActionState, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useGetAllUsers } from '../../../hooks/useAuth';
@@ -5,7 +17,6 @@ import { useGetServices } from '../../../hooks/useWorker';
 import { uploadImageToCloudinary } from '../../../utils/cloudinaryUpload';
 import { SHIFT_OPTIONS } from '../../../utils/constants';
 import { submitWorkerData } from '../../../utils/workerAction';
-import Card from '../../ui/Card';
 import { FormInput } from '../../ui/FormInput';
 import { FormSelect } from '../../ui/FormSelect';
 import Rating from '../../ui/Rating';
@@ -121,14 +132,12 @@ export default function AddWorker({ isAdminMode = false }) {
         return;
       }
 
-      // Show preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(file);
 
-      // Upload to Cloudinary
       setUploading(true);
       try {
         const url = await uploadImageToCloudinary(file);
@@ -257,51 +266,133 @@ export default function AddWorker({ isAdminMode = false }) {
       </>
     );
   };
+
   const handleServiceCheckbox = (service, isChecked) => {
     handleServiceChange(service.id, isChecked);
   };
 
-  return (
-    <div className='w-full max-w-4xl mx-auto p-4'>
-      <h2 className='text-2xl font-bold text-center mb-6 text-gray-900'>
-        {isAdminMode
-          ? 'Register Worker (Admin)'
-          : 'Worker Profile Registration'}
-      </h2>
+  // Section header component
+  const SectionHeader = ({ step, icon: Icon, title, subtitle, color = 'blue' }) => {
+    const colorMap = {
+      blue: { bg: 'bg-blue-100', text: 'text-blue-600', badge: 'bg-blue-600' },
+      purple: { bg: 'bg-purple-100', text: 'text-purple-600', badge: 'bg-purple-600' },
+      amber: { bg: 'bg-amber-100', text: 'text-amber-600', badge: 'bg-amber-600' },
+      green: { bg: 'bg-green-100', text: 'text-green-600', badge: 'bg-green-600' },
+      indigo: { bg: 'bg-indigo-100', text: 'text-indigo-600', badge: 'bg-indigo-600' },
+    };
+    const c = colorMap[color] || colorMap.blue;
+    return (
+      <div className='flex items-center gap-3 mb-5'>
+        <div className={`w-8 h-8 rounded-full ${c.badge} text-white flex items-center justify-center text-sm font-bold flex-shrink-0`}>
+          {step}
+        </div>
+        <div className={`p-2 rounded-lg ${c.bg}`}>
+          <Icon className={`w-5 h-5 ${c.text}`} />
+        </div>
+        <div>
+          <h3 className='text-base font-semibold text-gray-800'>{title}</h3>
+          {subtitle && <p className='text-xs text-gray-500'>{subtitle}</p>}
+        </div>
+      </div>
+    );
+  };
 
-      <Card
-        title=''
-        className='mb-6'
-        bgColor='bg-gradient-to-br from-blue-25 to-white'
-        borderColor='border-blue-100'
-        formCard={true}>
+  // Image upload box component
+  const ImageUploadBox = ({ label, preview: imgPreview, uploading: isUploading, uploaded, onChange, accept = 'image/*', className = '' }) => (
+    <div className={className}>
+      <label className='block text-sm mb-2 text-gray-600 font-semibold'>{label}</label>
+      <div className='relative'>
+        <label className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+          imgPreview ? 'border-green-300 bg-green-50/30' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/30'
+        } ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+          {imgPreview ? (
+            <img src={imgPreview} alt='Preview' className='h-full w-full object-cover rounded-xl' />
+          ) : (
+            <div className='flex flex-col items-center justify-center pt-5 pb-6'>
+              {isUploading ? (
+                <>
+                  <div className='w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mb-2' />
+                  <p className='text-sm text-blue-600 font-medium'>Uploading...</p>
+                </>
+              ) : (
+                <>
+                  <Upload className='w-8 h-8 text-gray-400 mb-2' />
+                  <p className='text-sm text-gray-500'>
+                    <span className='font-medium text-blue-600'>Click to upload</span>
+                  </p>
+                  <p className='text-xs text-gray-400 mt-1'>PNG, JPG, WEBP (max 2MB)</p>
+                </>
+              )}
+            </div>
+          )}
+          <input type='file' accept={accept} onChange={onChange} disabled={isUploading} className='hidden' />
+        </label>
+        {uploaded && (
+          <div className='absolute top-2 right-2 bg-green-500 text-white rounded-full p-1'>
+            <CheckCircle className='w-4 h-4' />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className='w-full max-w-3xl mx-auto'>
+      {/* Header */}
+      <div className='mb-6'>
+        <div className='flex items-center gap-3 mb-2'>
+          <div className={`p-2.5 rounded-xl ${isAdminMode ? 'bg-blue-100' : 'bg-purple-100'}`}>
+            <Briefcase className={`w-6 h-6 ${isAdminMode ? 'text-blue-600' : 'text-purple-600'}`} />
+          </div>
+          <div>
+            <h1 className='text-2xl font-bold text-gray-900'>
+              {isAdminMode ? 'Add Worker Profile' : 'Worker Profile Registration'}
+            </h1>
+            <p className='text-sm text-gray-500'>
+              {isAdminMode
+                ? 'Create a complete worker profile with services and verification'
+                : 'Complete your worker profile to start receiving jobs'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Success / Error Alert */}
+      {state.message && (
+        <div
+          className={`flex items-center gap-3 p-4 rounded-xl mb-6 border ${
+            state.success
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+          {state.success ? (
+            <CheckCircle className='w-5 h-5 text-green-600 flex-shrink-0' />
+          ) : (
+            <Shield className='w-5 h-5 text-red-600 flex-shrink-0' />
+          )}
+          <span className='text-sm font-medium'>{state.message}</span>
+        </div>
+      )}
+
+      {/* Form */}
+      <div className='bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden'>
         <form action={formAction}>
           {renderHiddenInputs()}
           <input type='hidden' name='imageUrl' value={imageUrl || ''} />
+
+          {/* Step 0: Select User (Admin Only) */}
           {isAdminMode && (
-            <div className='mb-8'>
-              <h3 className='text-lg font-semibold text-slate-800 mb-4 flex items-center'>
-                <svg
-                  className='w-5 h-5 mr-2 text-amber-600'
-                  fill='currentColor'
-                  viewBox='0 0 20 20'>
-                  <path
-                    fillRule='evenodd'
-                    d='M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z'
-                    clipRule='evenodd'
-                  />
-                </svg>
-                Select User for Worker Profile
-              </h3>
-              <div>
+            <div className='p-6 border-b border-gray-100'>
+              <SectionHeader step={0} icon={UserPlus} title='Select User Account' subtitle='Choose the user to create a worker profile for' color='amber' />
+              <div className='max-w-md'>
                 <label className='block text-sm mb-2 text-gray-600 font-semibold'>
-                  User *
+                  User Account *
                 </label>
                 <select
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
                   required
-                  className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'>
+                  className='w-full border border-gray-300 p-3 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'>
                   <option value=''>-- Select a user --</option>
                   {users
                     .filter((user) => user.role === 'Worker')
@@ -320,98 +411,67 @@ export default function AddWorker({ isAdminMode = false }) {
             </div>
           )}
 
-          <div className='mb-8'>
-            <h3 className='text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-blue-100'>
-              Personal Information
-            </h3>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-              <div className='space-y-4'>
-                <FormInput
-                  label='Full Name'
-                  name='name'
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder='Full Name'
-                  required
-                  error={state.errors?.name}
-                />
+          {/* Step 1: Personal Information */}
+          <div className='p-6 border-b border-gray-100'>
+            <SectionHeader step={1} icon={User} title='Personal Information' subtitle='Basic details about the worker' color='blue' />
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+              <FormInput
+                label='Full Name'
+                name='name'
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder='Enter full name'
+                required
+                error={state.errors?.name}
+              />
+              <FormInput
+                label='Email Address'
+                type='email'
+                name='email'
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder='email@example.com'
+                required
+                error={state.errors?.email}
+              />
+              <FormInput
+                label='Age'
+                type='number'
+                name='age'
+                value={formData.age}
+                onChange={handleInputChange}
+                placeholder='Enter age'
+                required
+                error={state.errors?.age}
+              />
+              <FormInput
+                label='Phone Number'
+                name='phone'
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder='+880 1XXX-XXXXXX'
+                required
+                error={state.errors?.phone}
+              />
+            </div>
 
-                <FormInput
-                  label='Email Address'
-                  type='email'
-                  name='email'
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder='Email Address'
-                  required
-                  error={state.errors?.email}
-                />
-
-                <FormInput
-                  label='Age'
-                  type='number'
-                  name='age'
-                  value={formData.age}
-                  onChange={handleInputChange}
-                  placeholder='Age'
-                  required
-                  error={state.errors?.age}
-                />
-              </div>
-
-              <div className='space-y-4'>
-                <FormInput
-                  label='Phone Number'
-                  name='phone'
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder='Phone Number'
-                  required
-                  error={state.errors?.phone}
-                />
-
-                <div>
-                  <label className='block text-sm mb-2 text-gray-600 font-semibold'>
-                    Profile Image
-                  </label>
-                  <input
-                    type='file'
-                    name='image'
-                    accept='image/*'
-                    onChange={handleImageChange}
-                    disabled={uploading}
-                    className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed'
-                  />
-                  {uploading && (
-                    <p className='mt-2 text-sm text-blue-600'>
-                      Uploading image...
-                    </p>
-                  )}
-                  {imageUrl && (
-                    <p className='mt-2 text-sm text-green-600'>
-                      Image uploaded successfully!
-                    </p>
-                  )}
-                  {preview && (
-                    <div className='mt-3'>
-                      <img
-                        src={preview}
-                        alt='Preview'
-                        className='w-20 h-20 object-cover rounded-lg border border-gray-200'
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Profile Image */}
+            <div className='mt-5'>
+              <ImageUploadBox
+                label='Profile Photo'
+                preview={preview}
+                uploading={uploading}
+                uploaded={!!imageUrl}
+                onChange={handleImageChange}
+                className='max-w-xs'
+              />
             </div>
           </div>
 
-          <div className='mb-8'>
-            <h3 className='text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-purple-100'>
-              National ID Verification
-            </h3>
-
-            <div className='mb-6'>
+          {/* Step 2: NID Verification */}
+          <div className='p-6 border-b border-gray-100'>
+            <SectionHeader step={2} icon={CreditCard} title='National ID Verification' subtitle='Upload NID images for identity verification' color='purple' />
+            <div className='mb-5 max-w-md'>
               <FormInput
                 label='NID Number'
                 name='nid'
@@ -421,107 +481,61 @@ export default function AddWorker({ isAdminMode = false }) {
                 required
                 error={state.errors?.nid}
               />
-              <p className='mt-1 text-xs text-gray-500'>
-                Supported formats: 10-digit (old) or 13/17-digit (new)
-                Bangladesh NID
+              <p className='mt-1.5 text-xs text-gray-400'>
+                Supported: 10-digit (old) or 13/17-digit (new) Bangladesh NID
               </p>
             </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-              <div>
-                <label className='block text-sm mb-2 text-gray-600 font-semibold'>
-                  NID Front Image *
-                </label>
-                <input
-                  type='file'
-                  name='nid_front'
-                  accept='image/*'
-                  onChange={(e) => handleNidImageChange(e, 'front')}
-                  disabled={uploadingNidFront}
-                  className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
-                />
-                {uploadingNidFront && (
-                  <p className='mt-2 text-sm text-purple-600'>
-                    Uploading NID front image...
-                  </p>
-                )}
-                {nidFrontUrl && (
-                  <p className='mt-2 text-sm text-green-600'>
-                    NID front uploaded!
-                  </p>
-                )}
-                {nidFrontPreview && (
-                  <div className='mt-3'>
-                    <img
-                      src={nidFrontPreview}
-                      alt='NID Front'
-                      className='w-full h-32 object-cover rounded-lg border border-gray-200'
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className='block text-sm mb-2 text-gray-600 font-semibold'>
-                  NID Back Image *
-                </label>
-                <input
-                  type='file'
-                  name='nid_back'
-                  accept='image/*'
-                  onChange={(e) => handleNidImageChange(e, 'back')}
-                  disabled={uploadingNidBack}
-                  className='w-full border border-gray-300 p-3 rounded-lg bg-white text-gray-700 focus:outline-none transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed'
-                />
-                {uploadingNidBack && (
-                  <p className='mt-2 text-sm text-purple-600'>
-                    Uploading NID back image...
-                  </p>
-                )}
-                {nidBackUrl && (
-                  <p className='mt-2 text-sm text-green-600'>
-                    NID back uploaded!
-                  </p>
-                )}
-                {nidBackPreview && (
-                  <div className='mt-3'>
-                    <img
-                      src={nidBackPreview}
-                      alt='NID Back'
-                      className='w-full h-32 object-cover rounded-lg border border-gray-200'
-                    />
-                  </div>
-                )}
-              </div>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+              <ImageUploadBox
+                label='NID Front Image *'
+                preview={nidFrontPreview}
+                uploading={uploadingNidFront}
+                uploaded={!!nidFrontUrl}
+                onChange={(e) => handleNidImageChange(e, 'front')}
+              />
+              <ImageUploadBox
+                label='NID Back Image *'
+                preview={nidBackPreview}
+                uploading={uploadingNidBack}
+                uploaded={!!nidBackUrl}
+                onChange={(e) => handleNidImageChange(e, 'back')}
+              />
             </div>
           </div>
-          <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-slate-800 mb-6 pb-2 border-b border-green-100'>
-              Service Information
-            </h3>
 
-            <div className='mb-6'>
+          {/* Step 3: Services & Expertise */}
+          <div className='p-6 border-b border-gray-100'>
+            <SectionHeader step={3} icon={Briefcase} title='Services & Expertise' subtitle='Select services and rate expertise level' color='green' />
+
+            <div className='mb-5'>
               <label className='block text-sm mb-3 text-gray-600 font-semibold'>
-                Service Type *
+                Select Services *
               </label>
-              <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-                {services.map((service) => (
-                  <label
-                    key={service.id}
-                    className='flex items-center space-x-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer bg-white'>
-                    <input
-                      type='checkbox'
-                      checked={selectedServices.includes(service.id)}
-                      className='w-4 h-4 text-blue-600 focus:ring-blue-500'
-                      onChange={(e) =>
-                        handleServiceCheckbox(service, e.target.checked)
-                      }
-                    />
-                    <span className='text-sm font-medium text-gray-700'>
-                      {service.name}
-                    </span>
-                  </label>
-                ))}
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5'>
+                {services.map((service) => {
+                  const isSelected = selectedServices.includes(service.id);
+                  return (
+                    <label
+                      key={service.id}
+                      className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}>
+                      <input
+                        type='checkbox'
+                        checked={isSelected}
+                        className='w-4 h-4 text-blue-600 rounded focus:ring-blue-500'
+                        onChange={(e) =>
+                          handleServiceCheckbox(service, e.target.checked)
+                        }
+                      />
+                      <span className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}>
+                        {service.name}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
               {state.errors?.service_type && (
                 <p className='text-sm mt-2 text-red-500'>
@@ -529,21 +543,26 @@ export default function AddWorker({ isAdminMode = false }) {
                 </p>
               )}
             </div>
+
+            {/* Expertise Rating */}
             {selectedServices.length > 0 && (
-              <div className='mb-6'>
+              <div className='mb-5'>
                 <label className='block text-sm mb-3 text-gray-600 font-semibold'>
-                  Rate Your Expertise Per Service *
+                  Expertise Rating Per Service *
                 </label>
-                <div className='space-y-4'>
+                <div className='space-y-2.5'>
                   {selectedServices.map((serviceId) => {
                     const service = services.find((s) => s.id === serviceId);
                     return service ? (
                       <div
                         key={serviceId}
-                        className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200'>
-                        <span className='text-sm font-medium text-gray-700'>
-                          {service.name}
-                        </span>
+                        className='flex items-center justify-between p-3.5 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200'>
+                        <div className='flex items-center gap-2'>
+                          <div className='w-2 h-2 rounded-full bg-blue-500' />
+                          <span className='text-sm font-medium text-gray-700'>
+                            {service.name}
+                          </span>
+                        </div>
                         <Rating
                           value={serviceRatings[serviceId] || 0}
                           onChange={(rating) =>
@@ -563,7 +582,12 @@ export default function AddWorker({ isAdminMode = false }) {
                 )}
               </div>
             )}
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
+          </div>
+
+          {/* Step 4: Work Preferences */}
+          <div className='p-6 border-b border-gray-100'>
+            <SectionHeader step={4} icon={FileText} title='Work Preferences' subtitle='Shift preference and additional notes' color='indigo' />
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
               <FormSelect
                 label='Preferred Shift'
                 name='shift'
@@ -574,28 +598,43 @@ export default function AddWorker({ isAdminMode = false }) {
                 error={state.errors?.shift}
               />
             </div>
-
-            <FormInput
-              label='Additional Feedback'
-              name='feedback'
-              type='textarea'
-              value={formData.feedback || ''}
-              onChange={handleInputChange}
-              placeholder='Share any additional information, special skills, or preferences...'
-              error={state.errors?.feedback}
-            />
+            <div className='mt-5'>
+              <FormInput
+                label='Additional Notes'
+                name='feedback'
+                type='textarea'
+                value={formData.feedback || ''}
+                onChange={handleInputChange}
+                placeholder='Special skills, certifications, or any additional information...'
+                error={state.errors?.feedback}
+              />
+            </div>
           </div>
 
-          <div className='flex justify-center pt-6 border-t border-gray-100'>
+          {/* Submit */}
+          <div className='p-6 bg-gray-50 flex items-center justify-between'>
+            <p className='text-xs text-gray-400'>
+              Fields marked with * are required
+            </p>
             <button
-              disabled={isPending}
+              disabled={isPending || uploading || uploadingNidFront || uploadingNidBack}
               type='submit'
-              className='px-8 py-3 rounded-lg text-white font-semibold transition-all duration-200 hover:shadow-lg cursor-pointer bg-blue-600 hover:bg-blue-700 min-w-48 disabled:bg-blue-400 disabled:cursor-not-allowed'>
-              {isPending ? 'Registering...' : 'Register Worker'}
+              className='px-8 py-3 rounded-xl text-white font-semibold transition-all duration-200 hover:shadow-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2'>
+              {isPending ? (
+                <>
+                  <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                  Registering...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className='w-4 h-4' />
+                  Register Worker
+                </>
+              )}
             </button>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

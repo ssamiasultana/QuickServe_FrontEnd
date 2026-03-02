@@ -1,5 +1,7 @@
+import { use } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import App from '../App.jsx';
+import { AuthContext } from '../components/Context/AuthContext.jsx';
 import CustomerDashboard from '../components/CustomerDashboard.jsx';
 import CustomerLayout from '../components/Layout/CustomerLayout.jsx';
 import WorkerLayout from '../components/Layout/WorkerLayout.jsx';
@@ -34,6 +36,15 @@ import WorkerPortal from '../components/Worker/WorkerPortal.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleBasedRoute from './RoleBasedRoute.jsx';
 
+// Smart redirect: Moderator goes to /manage, Admin goes to /dashboard
+const AdminIndexRedirect = () => {
+  const { user } = use(AuthContext);
+  if (user?.role === 'Moderator') {
+    return <Navigate to='/manage' replace />;
+  }
+  return <Navigate to='/dashboard' replace />;
+};
+
 const routes = createBrowserRouter([
   {
     path: '/',
@@ -45,17 +56,54 @@ const routes = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to='/dashboard' replace /> },
-      { path: 'dashboard', Component: Dashboard },
+      { index: true, element: <AdminIndexRedirect /> },
+      // Admin-only routes
+      {
+        path: 'dashboard',
+        element: (
+          <RoleBasedRoute allowedRoles={['Admin']}>
+            <Dashboard />
+          </RoleBasedRoute>
+        ),
+      },
+      { path: 'user-signup', Component: Register },
+      {
+        path: '/customers',
+        element: (
+          <RoleBasedRoute allowedRoles={['Admin']}>
+            <CustomerList />
+          </RoleBasedRoute>
+        ),
+      },
+      {
+        path: '/moderators',
+        element: (
+          <RoleBasedRoute allowedRoles={['Admin']}>
+            <ModeratorList />
+          </RoleBasedRoute>
+        ),
+      },
+      {
+        path: '/services',
+        element: (
+          <RoleBasedRoute allowedRoles={['Admin']}>
+            <Services />
+          </RoleBasedRoute>
+        ),
+      },
+      {
+        path: '/payments',
+        element: (
+          <RoleBasedRoute allowedRoles={['Admin']}>
+            <PaymentManagement />
+          </RoleBasedRoute>
+        ),
+      },
+      // Shared routes (Admin & Moderator)
       { path: '/add', element: <AddWorker isAdminMode={true} /> },
       { path: '/manage', Component: WorkerList },
       { path: '/workers/:id', Component: SingleWorker },
-      { path: 'user-signup', Component: Register },
-      { path: '/customers', Component: CustomerList },
-      { path: '/moderators', Component: ModeratorList },
-      { path: '/services', Component: Services },
       { path: '/bookings', Component: BookingList },
-      { path: '/payments', Component: PaymentManagement },
       { path: '/profile', Component: AdminProfile },
     ],
   },
