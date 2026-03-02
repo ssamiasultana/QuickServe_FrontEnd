@@ -53,35 +53,73 @@ export default function PaymentHistory() {
   const [filter, setFilter] = useState('all'); // all | payouts | commissions
   const [bookingIdQuery, setBookingIdQuery] = useState('');
 
-  const transactions = useMemo(() => {
+  // Group transactions: merge online_payment + commission_payment for same booking into one entry
+  const groupedTransactions = useMemo(() => {
     if (!transactionsResponse) return [];
     const list = Array.isArray(transactionsResponse)
       ? transactionsResponse
       : transactionsResponse?.data || [];
 
-    return [...list].sort((a, b) => {
-      const da = new Date(a?.created_at || 0).getTime();
-      const db = new Date(b?.created_at || 0).getTime();
-      return db - da;
-    });
+    const relevant = list.filter(
+      (t) => t.transaction_type === 'online_payment' || t.transaction_type === 'commission_payment'
+    );
+
+    // Group by booking_id
+    const byBooking = {};
+    for (const t of relevant) {
+      const key = t.booking_id;
+      if (!byBooking[key]) byBooking[key] = {};
+      if (t.transaction_type === 'online_payment') byBooking[key].payout = t;
+      if (t.transaction_type === 'commission_payment') byBooking[key].commission = t;
+    }
+
+    const entries = [];
+    for (const bookingId of Object.keys(byBooking)) {
+      const { payout, commission } = byBooking[bookingId];
+      if (payout && commission) {
+        // Online payment: both exist → combined card
+        entries.push({
+          type: 'online_combined',
+          bookingId: Number(bookingId),
+          payout,
+          commission,
+          timestamp: new Date(payout.created_at || 0).getTime(),
+        });
+      } else if (commission) {
+        // Cash commission only
+        entries.push({
+          type: 'commission_only',
+          bookingId: Number(bookingId),
+          commission,
+          timestamp: new Date(commission.created_at || 0).getTime(),
+        });
+      } else if (payout) {
+        // Payout only (edge case)
+        entries.push({
+          type: 'payout_only',
+          bookingId: Number(bookingId),
+          payout,
+          timestamp: new Date(payout.created_at || 0).getTime(),
+        });
+      }
+    }
+
+    return entries.sort((a, b) => b.timestamp - a.timestamp);
   }, [transactionsResponse]);
 
   const filteredTransactions = useMemo(() => {
     const q = bookingIdQuery.trim();
-    return transactions.filter((t) => {
-      const isPayout = t.transaction_type === 'online_payment';
-      const isCommission = t.transaction_type === 'commission_payment';
-
-      if (filter === 'payouts' && !isPayout) return false;
-      if (filter === 'commissions' && !isCommission) return false;
+    return groupedTransactions.filter((entry) => {
+      if (filter === 'payouts' && !entry.payout) return false;
+      if (filter === 'commissions' && !entry.commission) return false;
 
       if (q) {
-        return String(t.booking_id || '').includes(q);
+        return String(entry.bookingId || '').includes(q);
       }
 
       return true;
     });
-  }, [transactions, filter, bookingIdQuery]);
+  }, [groupedTransactions, filter, bookingIdQuery]);
 
   return (
     <div className='p-4 md:p-6 bg-neutral-50 min-h-screen'>
@@ -172,39 +210,102 @@ export default function PaymentHistory() {
             </div>
           ) : (
             <div className='space-y-3'>
-              {filteredTransactions.map((transaction) => {
-                const isReceived = transaction.transaction_type === 'online_payment';
-                const isSent = transaction.transaction_type === 'commission_payment';
-                const isBookingPayment = transaction.transaction_type === 'payment';
-                const isCashSubmission = transaction.transaction_type === 'cash_submission';
+              {filteredTransactions.map((entry) => {
+                if (entry.type === 'online_combined') {
+                  // Combined card for online payments (commission + payout in one card)
+                  const breakdown = getBookingMoneyBreakdown(entry.payout);
+                  return (
+                    <div
+                      key={`combined-${entry.bookingId}`}
+                      className='p-4 rounded-lg border bg-blue-50 border-blue-200'>
+                      <div className='flex items-start justify-between gap-3'>
+                        <div className='flex-1'>
+                          <p className='text-xs font-semibold text-blue-700 mb-3'>
+                            Online Payment
+                          </p>
+
+                          {/* Commission sent */}
+                          <div className='flex items-center gap-2 mb-1'>
+                            <ArrowUp className='w-4 h-4 text-red-500' />
+                            <span className='text-sm font-semibold text-red-700'>
+                              {formatCurrency(entry.commission.amount)}
+                            </span>
+                            <span className='text-xs text-red-600'>
+                              Commission paid (to Admin)
+                            </span>
+                          </div>
+
+                          {/* Payout received */}
+                          <div className='flex items-center gap-2 mb-2'>
+                            <ArrowDown className='w-4 h-4 text-green-500' />
+                            <span className='text-sm font-semibold text-green-700'>
+                              {formatCurrency(entry.payout.amount)}
+                            </span>
+                            <span className='text-xs text-green-600'>
+                              Payout received (from Admin)
+                            </span>
+                          </div>
+
+                          {breakdown && (
+                            <div className='mt-2 text-[12px] leading-5 text-gray-700'>
+                              <div>
+                                <span className='font-semibold'>Booking total:</span>{' '}
+                                {formatCurrency(breakdown.gross)}
+                              </div>
+                              <div>
+                                <span className='font-semibold'>Platform commission (20%):</span>{' '}
+                                {formatCurrency(breakdown.commission)}
+                              </div>
+                              <div>
+                                <span className='font-semibold'>Your payout (80%):</span>{' '}
+                                {formatCurrency(breakdown.payout)}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className='mt-3 text-xs text-gray-700 font-medium'>
+                            Booking #{entry.bookingId}
+                          </div>
+                          <div className='text-xs text-gray-500 mt-1'>
+                            {new Date(entry.payout.created_at).toLocaleString()}
+                          </div>
+                        </div>
+
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-semibold border capitalize ${getStatusBadge(
+                            entry.payout.status
+                          )}`}>
+                          {entry.payout.status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Standalone commission card (cash payment)
+                const transaction = entry.commission || entry.payout;
+                const isSent = !!entry.commission;
                 const breakdown = getBookingMoneyBreakdown(transaction);
 
                 return (
                   <div
                     key={transaction.id}
                     className={`p-4 rounded-lg border ${
-                      isReceived
-                        ? 'bg-green-50 border-green-200'
-                        : isSent
-                          ? 'bg-red-50 border-red-200'
-                          : 'bg-gray-50 border-gray-200'
+                      isSent
+                        ? 'bg-red-50 border-red-200'
+                        : 'bg-green-50 border-green-200'
                     }`}>
                     <div className='flex items-start justify-between gap-3'>
                       <div className='flex-1'>
                         <div className='flex items-center gap-2'>
-                          {isReceived ? (
-                            <ArrowDown className='w-4 h-4 text-green-600' />
-                          ) : isSent ? (
+                          {isSent ? (
                             <ArrowUp className='w-4 h-4 text-red-600' />
-                          ) : null}
-
+                          ) : (
+                            <ArrowDown className='w-4 h-4 text-green-600' />
+                          )}
                           <span
                             className={`text-sm font-semibold ${
-                              isReceived
-                                ? 'text-green-700'
-                                : isSent
-                                  ? 'text-red-700'
-                                  : 'text-gray-900'
+                              isSent ? 'text-red-700' : 'text-green-700'
                             }`}>
                             {formatCurrency(transaction.amount)}
                           </span>
@@ -212,26 +313,14 @@ export default function PaymentHistory() {
 
                         <p
                           className={`text-xs font-medium mt-1 ${
-                            isReceived
-                              ? 'text-green-700'
-                              : isSent
-                                ? 'text-red-700'
-                                : 'text-gray-600'
+                            isSent ? 'text-red-700' : 'text-green-700'
                           }`}>
-                          {isReceived ? (
-                            'Payout received (from Admin)'
-                          ) : isSent ? (
-                            'Commission paid (to Admin)'
-                          ) : isCashSubmission ? (
-                            'Cash submission'
-                          ) : isBookingPayment ? (
-                            'Booking total (for reference)'
-                          ) : (
-                            'Payment'
-                          )}
+                          {isSent
+                            ? 'Commission paid (to Admin)'
+                            : 'Payout received (from Admin)'}
                         </p>
 
-                        {(isReceived || isSent) && breakdown && (
+                        {breakdown && (
                           <div className='mt-2 text-[12px] leading-5 text-gray-700'>
                             <div>
                               <span className='font-semibold'>Booking total:</span>{' '}
@@ -249,7 +338,7 @@ export default function PaymentHistory() {
                         )}
 
                         <div className='mt-3 text-xs text-gray-700 font-medium'>
-                          Booking #{transaction.booking_id}
+                          Booking #{entry.bookingId}
                         </div>
                         <div className='text-xs text-gray-500 mt-1'>
                           {new Date(transaction.created_at).toLocaleString()}

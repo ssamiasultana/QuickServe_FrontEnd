@@ -1,8 +1,7 @@
-import { Calendar, Clock, CreditCard, Loader, MapPin, User, ArrowDown, ArrowUp, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Loader, MapPin, User, RefreshCw } from 'lucide-react';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation } from 'react-router';
-import { Link } from 'react-router';
 import { useGetWorkerBookings } from '../../hooks/useBooking';
 import { useGetWorkerTransactions, useInitiateSslCommerzPayment } from '../../hooks/usePayment';
 import { useCheckWorkerProfile } from '../../hooks/useWorker';
@@ -171,45 +170,6 @@ export default function SubmitPayment() {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      approved: 'bg-blue-100 text-blue-800 border-blue-200',
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      rejected: 'bg-red-100 text-red-800 border-red-200',
-    };
-    return styles[status] || styles.pending;
-  };
-
-  const COMMISSION_RATE = 0.2;
-
-  const formatCurrency = (amount) => {
-    const n = Number(amount);
-    if (!Number.isFinite(n)) return '৳0.00';
-    return `৳${n.toFixed(2)}`;
-  };
-
-  const getBookingMoneyBreakdown = (transaction) => {
-    const amount = Number(transaction?.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return null;
-
-    if (transaction?.transaction_type === 'online_payment') {
-      const payout = amount;
-      const gross = payout / (1 - COMMISSION_RATE);
-      const commission = gross * COMMISSION_RATE;
-      return { gross, commission, payout };
-    }
-
-    if (transaction?.transaction_type === 'commission_payment') {
-      const commission = amount;
-      const gross = commission / COMMISSION_RATE;
-      const payout = gross - commission;
-      return { gross, commission, payout };
-    }
-
-    return null;
-  };
-
   const calculateCommission = (totalAmount) => {
     return (parseFloat(totalAmount) * 0.20).toFixed(2);
   };
@@ -263,197 +223,78 @@ export default function SubmitPayment() {
           </button>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-          {/* Available Bookings */}
-          <div className='lg:col-span-2'>
-            <Card
-              title='Available Bookings for Commission Payment'
-              bgColor='bg-white'
-              borderColor='border-gray-200'
-              className='mb-6'>
-              {availableCommissionBookings.length === 0 ? (
-                <div className='text-center py-12'>
-                  <CreditCard className='w-12 h-12 text-gray-400 mx-auto mb-3' />
-                  <p className='text-gray-600'>
-                    No bookings available for commission payment
-                  </p>
-                </div>
-              ) : (
-                <div className='space-y-4'>
-                  {availableCommissionBookings.map((booking) => {
-                    const commissionAmount = calculateCommission(booking.total_amount);
-                    return (
-                      <div
-                        key={booking.id}
-                        onClick={() => handleCommissionBookingSelect(booking)}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedCommissionBooking?.id === booking.id
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                          }`}>
-                        <div className='flex items-start justify-between mb-2'>
-                          <div>
-                            <h3 className='font-semibold text-gray-900'>
-                              {booking.service_subcategory?.name ||
-                                booking.service?.name ||
-                                'Service'}
-                            </h3>
-                            <p className='text-sm text-gray-600'>
-                              Booking ID: #{booking.id}
-                            </p>
-                            <p className='text-xs text-gray-500 mt-1'>
-                              Payment: {booking.payment_method === 'cash' ? 'Cash' : 'Online'}
-                            </p>
-                          </div>
-                          <div className='text-right'>
-                            <span className='text-lg font-bold text-green-600 block'>
-                              ৳{parseFloat(booking.total_amount).toFixed(2)}
-                            </span>
-                            <span className='text-sm text-blue-600 font-medium'>
-                              Commission: ৳{commissionAmount}
-                            </span>
-                          </div>
-                        </div>
-                        <div className='grid grid-cols-2 gap-2 text-sm text-gray-600'>
-                          <div className='flex items-center gap-1'>
-                            <User className='w-4 h-4' />
-                            <span>{booking.customer_name || 'N/A'}</span>
-                          </div>
-                          <div className='flex items-center gap-1'>
-                            <Calendar className='w-4 h-4' />
-                            <span>{formatDate(booking.scheduled_at)}</span>
-                          </div>
-                          <div className='flex items-center gap-1'>
-                            <Clock className='w-4 h-4' />
-                            <span>{formatTime(booking.scheduled_at)}</span>
-                          </div>
-                          <div className='flex items-center gap-1'>
-                            <MapPin className='w-4 h-4' />
-                            <span className='truncate'>
-                              {booking.service_address || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
+        <Card
+          title='Available Bookings for Commission Payment'
+          bgColor='bg-white'
+          borderColor='border-gray-200'>
+          {availableCommissionBookings.length === 0 ? (
+            <div className='text-center py-12'>
+              <CreditCard className='w-12 h-12 text-gray-400 mx-auto mb-3' />
+              <p className='text-gray-600'>
+                No bookings available for commission payment
+              </p>
+            </div>
+          ) : (
+            <div className='space-y-4'>
+              {availableCommissionBookings.map((booking) => {
+                const commissionAmount = calculateCommission(booking.total_amount);
+                return (
+                  <div
+                    key={booking.id}
+                    onClick={() => handleCommissionBookingSelect(booking)}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedCommissionBooking?.id === booking.id
+                      ? 'border-blue-600 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      }`}>
+                    <div className='flex items-start justify-between mb-2'>
+                      <div>
+                        <h3 className='font-semibold text-gray-900'>
+                          {booking.service_subcategory?.name ||
+                            booking.service?.name ||
+                            'Service'}
+                        </h3>
+                        <p className='text-sm text-gray-600'>
+                          Booking ID: #{booking.id}
+                        </p>
+                        <p className='text-xs text-gray-500 mt-1'>
+                          Payment: {booking.payment_method === 'cash' ? 'Cash' : 'Online'}
+                        </p>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-
-          </div>
-
-          {/* Transaction History */}
-          <div className='lg:col-span-1'>
-            <Card
-              title='Payment History (Payouts & Commissions)'
-              bgColor='bg-white'
-              borderColor='border-gray-200'>
-              {submittedTransactions.length === 0 ? (
-                <div className='text-center py-8'>
-                  <p className='text-gray-600 text-sm'>No submissions yet</p>
-                </div>
-              ) : (
-                <div className='space-y-3'>
-                  <div className='flex items-center justify-between'>
-                    <p className='text-xs text-gray-500'>Showing latest 10</p>
-                    <Link
-                      to='/worker/payment-history'
-                      className='text-xs font-semibold text-blue-600 hover:underline'>
-                      View all
-                    </Link>
+                      <div className='text-right'>
+                        <span className='text-lg font-bold text-green-600 block'>
+                          ৳{parseFloat(booking.total_amount).toFixed(2)}
+                        </span>
+                        <span className='text-sm text-blue-600 font-medium'>
+                          Commission: ৳{commissionAmount}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='grid grid-cols-2 gap-2 text-sm text-gray-600'>
+                      <div className='flex items-center gap-1'>
+                        <User className='w-4 h-4' />
+                        <span>{booking.customer_name || 'N/A'}</span>
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        <Calendar className='w-4 h-4' />
+                        <span>{formatDate(booking.scheduled_at)}</span>
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        <Clock className='w-4 h-4' />
+                        <span>{formatTime(booking.scheduled_at)}</span>
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        <MapPin className='w-4 h-4' />
+                        <span className='truncate'>
+                          {booking.service_address || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  {submittedTransactions
-                    .slice(0, 10)
-                    .map((transaction) => {
-                      const isReceived = transaction.transaction_type === 'online_payment';
-                      const isSent = transaction.transaction_type === 'commission_payment';
-                      const isBookingPayment = transaction.transaction_type === 'payment';
-                      const isCashSubmission = transaction.transaction_type === 'cash_submission';
-                      const breakdown = getBookingMoneyBreakdown(transaction);
-                      
-                      return (
-                        <div
-                          key={transaction.id}
-                          className={`p-3 rounded-lg border ${
-                            isReceived
-                              ? 'bg-green-50 border-green-200'
-                              : isSent
-                                ? 'bg-red-50 border-red-200'
-                                : 'bg-gray-50 border-gray-200'
-                          }`}>
-                          <div className='flex items-start justify-between mb-2'>
-                            <div className='flex-1'>
-                              <div className='flex items-center gap-2 mb-1'>
-                                {isReceived ? (
-                                  <ArrowDown className='w-4 h-4 text-green-600' />
-                                ) : isSent ? (
-                                  <ArrowUp className='w-4 h-4 text-red-600' />
-                                ) : null}
-                                <span
-                                  className={`text-sm font-semibold block ${
-                                    isReceived
-                                      ? 'text-green-700'
-                                      : isSent
-                                        ? 'text-red-700'
-                                        : 'text-gray-900'
-                                  }`}>
-                                  {formatCurrency(transaction.amount)}
-                                </span>
-                              </div>
-                              <span
-                                className={`text-xs font-medium block ${
-                                  isReceived
-                                    ? 'text-green-600'
-                                    : isSent
-                                      ? 'text-red-600'
-                                      : 'text-gray-500'
-                                }`}>
-                                {isReceived ? (
-                                  'Payout received (from Admin)'
-                                ) : isSent ? (
-                                  'Commission paid (to Admin)'
-                                ) : isCashSubmission ? (
-                                  'Cash submission'
-                                ) : isBookingPayment ? (
-                                  'Booking total (for reference)'
-                                ) : (
-                                  'Payment'
-                                )}
-                              </span>
-                              {(isReceived || isSent) && breakdown && (
-                                <div className='mt-1 text-[11px] leading-4 text-gray-600'>
-                                  <span className='font-medium'>Booking total:</span>{' '}
-                                  {formatCurrency(breakdown.gross)}{' '}
-                                  <span className='mx-1 text-gray-400'>•</span>
-                                  <span className='font-medium'>Platform commission (20%):</span>{' '}
-                                  {formatCurrency(breakdown.commission)}{' '}
-                                  <span className='mx-1 text-gray-400'>•</span>
-                                  <span className='font-medium'>Your payout (80%):</span>{' '}
-                                  {formatCurrency(breakdown.payout)}
-                                </div>
-                              )}
-                            </div>
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-medium border capitalize ${getStatusBadge(
-                                transaction.status
-                              )}`}>
-                              {transaction.status}
-                            </span>
-                          </div>
-                          <p className='text-xs text-gray-700 mt-2 font-medium'>
-                            Booking #{transaction.booking_id}
-                          </p>
-                          <p className='text-xs text-gray-500 mt-1'>
-                            {new Date(transaction.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </Card>
-          </div>
-        </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* Commission Payment Modal */}
