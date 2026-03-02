@@ -77,15 +77,40 @@ const WorkerDetailsCard = ({ worker, workerShift, services }) => {
             <h4 className='text-sm font-semibold text-gray-900 mb-2'>
               Service Types
             </h4>
-            <div className='flex flex-wrap gap-2'>
+            <div className='space-y-2'>
               {services.length > 0 ? (
-                services.map((service) => (
-                  <span
-                    key={service.id}
-                    className='px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full'>
-                    {service.name}
-                  </span>
-                ))
+                services.map((service, index) => {
+                  const expertise = Array.isArray(worker.expertise_of_service)
+                    ? worker.expertise_of_service
+                    : typeof worker.expertise_of_service === 'string'
+                      ? JSON.parse(worker.expertise_of_service || '[]')
+                      : [];
+                  const rating = expertise[index] || 0;
+                  return (
+                    <div
+                      key={service.id}
+                      className='flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg'>
+                      <span className='text-sm font-medium text-gray-700'>
+                        {service.name}
+                      </span>
+                      <div className='flex items-center gap-1'>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-3.5 h-3.5 ${
+                              star <= rating
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className='text-xs font-semibold text-gray-600 ml-1'>
+                          {rating}/5
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
                 <span className='text-sm text-gray-500'>
                   No services listed
