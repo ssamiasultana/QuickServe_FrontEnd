@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Edit2, Save, X, User, Mail, Phone, Calendar, IdCard, MapPin, Briefcase, Clock, Star } from 'lucide-react';
+import { Edit2, Save, X, User, Mail, Phone, Calendar, IdCard, MapPin, Briefcase, Clock, Star, CheckCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../Context/AuthContext';
 import { useGetProfile, useUpdateProfile, useGetServices } from '../../hooks/useWorker';
@@ -468,6 +468,36 @@ export default function Profile() {
           bgColor='bg-white'
           borderColor='border-gray-200'>
           <div className='space-y-6'>
+            {/* NID Status Banner */}
+            {!isEditing && (
+              <div>
+                {worker.nid_verified ? (
+                  <div className='flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg'>
+                    <CheckCircle className='w-5 h-5 text-green-600' />
+                    <p className='text-green-700 text-sm font-medium'>
+                      Your NID has been verified — You are visible to customers
+                    </p>
+                  </div>
+                ) : worker.nid && worker.nid_front_image && worker.nid_back_image ? (
+                  <div className='flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg'>
+                    <AlertTriangle className='w-5 h-5 text-yellow-600' />
+                    <p className='text-yellow-700 text-sm font-medium'>
+                      Your NID is pending admin verification — Your profile is not yet visible to customers
+                    </p>
+                  </div>
+                ) : (
+                  <div className='flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg'>
+                    <ShieldAlert className='w-5 h-5 text-red-600' />
+                    <p className='text-red-700 text-sm font-medium'>
+                      {!worker.nid
+                        ? 'Please submit your NID number to get verified and become visible to customers'
+                        : 'Please upload both NID front and back images to complete verification'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className='flex items-start gap-3'>
               <IdCard className='w-5 h-5 text-purple-600 mt-1' />
               <div className='flex-1'>

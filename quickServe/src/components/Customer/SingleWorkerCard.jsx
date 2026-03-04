@@ -1,4 +1,4 @@
-import { Briefcase, Star, User } from 'lucide-react';
+import { Briefcase, CheckCircle, Star, User } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { calculateAverageRating, getShiftColor } from '../../utils/util';
 import Card from '../ui/Card';
@@ -61,9 +61,14 @@ function SingleWorkerCard({ workerData }) {
                     )}
                   </div>
                   <div className='flex-1 min-w-0'>
-                    <h3 className='text-sm font-bold text-gray-900 truncate'>
-                      {worker.name}
-                    </h3>
+                    <div className='flex items-center gap-1'>
+                      <h3 className='text-sm font-bold text-gray-900 truncate'>
+                        {worker.name}
+                      </h3>
+                      {worker.nid_verified && (
+                        <CheckCircle size={14} className='text-green-500 shrink-0' title='NID Verified' />
+                      )}
+                    </div>
                     <div
                       className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium mt-0.5'
                       style={{
