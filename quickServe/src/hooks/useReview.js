@@ -58,3 +58,17 @@ export const useGetBookingReview = (bookingId, options = {}) => {
     ...options,
   });
 };
+
+// Get all reviews (for dashboard/public display)
+export const useGetAllReviews = (limit = 10, options = {}) => {
+  return useQuery({
+    queryKey: ['reviews', 'all', limit],
+    queryFn: async () => {
+      const response = await reviewService.getAllReviews(limit);
+      return response.data || response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    ...options,
+  });
+};

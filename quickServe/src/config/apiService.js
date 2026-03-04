@@ -62,6 +62,7 @@ const API_CONFIG = {
     },
     reviews: {
       createReview: '/reviews',
+      getAllReviews: '/reviews',
       getWorkerReviews: (workerId) => `/workers/${workerId}/reviews`,
       getBookingReview: (bookingId) => `/bookings/${bookingId}/review`,
     },

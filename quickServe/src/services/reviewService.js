@@ -63,6 +63,13 @@ class ReviewService {
       method: 'GET',
     });
   }
+
+  async getAllReviews(limit = 10) {
+    return this.request(API_CONFIG.endpoints.reviews.getAllReviews, {
+      method: 'GET',
+      params: { limit },
+    });
+  }
 }
 
 const reviewService = new ReviewService();

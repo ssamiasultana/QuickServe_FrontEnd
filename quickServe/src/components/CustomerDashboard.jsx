@@ -11,10 +11,11 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { AuthContext } from './Context/AuthContext';
-import { bestWorkers, customerReviews } from './data';
+import { bestWorkers } from './data';
+import { useGetAllReviews } from '../hooks/useReview';
 import colors from './ui/color';
 import Modal from './ui/Modal';
 
@@ -22,6 +23,9 @@ const CustomerDashboard = () => {
   const { user, isAuthenticated } = use(AuthContext);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  
+  // Fetch dynamic reviews for dashboard
+  const { data: reviewsData, isLoading: reviewsLoading, isError: reviewsError } = useGetAllReviews(4);
 
   const popularServices = [
     {
@@ -86,6 +90,56 @@ const CustomerDashboard = () => {
       </div>
     );
   };
+
+  // Format reviews data for display
+  const formattedReviews = useMemo(() => {
+    if (!reviewsData || !Array.isArray(reviewsData)) return [];
+    
+    return reviewsData.map((review) => {
+      // Get customer name
+      const customerName = review.customer?.name || 'Anonymous Customer';
+      // Get initials for avatar
+      const initials = customerName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      
+      // Get service name from booking
+      const serviceName = review.booking?.serviceSubcategory?.name || 
+                         review.booking?.service_subcategory?.name ||
+                         review.booking?.service?.name || 
+                         'Service';
+      
+      // Format date (relative time)
+      const formatDate = (dateString) => {
+        if (!dateString) return 'Recently';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 14) return '1 week ago';
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        return `${Math.floor(diffDays / 365)} years ago`;
+      };
+
+      return {
+        id: review.id,
+        name: customerName,
+        service: serviceName,
+        rating: review.rating || 0,
+        comment: review.review || 'No comment provided',
+        date: formatDate(review.created_at),
+        avatar: initials,
+      };
+    });
+  }, [reviewsData]);
   return (
     <>
       {showModal && (
@@ -418,49 +472,66 @@ const CustomerDashboard = () => {
               Real feedback from satisfied customers who used our services
             </p>
           </div>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-            {customerReviews.map((review) => (
-              <div
-                key={review.id}
-                className='bg-white rounded-xl shadow-lg p-6 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl'
-                style={{ border: `1px solid ${colors.primary[100]}` }}>
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='flex items-center space-x-3'>
-                    <div
-                      className='w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold'
-                      style={{ backgroundColor: colors.accent[500] }}>
-                      {review.avatar}
-                    </div>
-                    <div>
-                      <h4
-                        className='font-semibold'
-                        style={{ color: colors.primary[900] }}>
-                        {review.name}
-                      </h4>
-                      <p
-                        className='text-sm'
-                        style={{ color: colors.primary[600] }}>
-                        {review.service}
-                      </p>
-                    </div>
-                  </div>
-                  <Quote size={24} style={{ color: colors.primary[200] }} />
-                </div>
-
-                {renderStars(review.rating)}
-
-                <p
-                  className='mt-4 mb-4 leading-relaxed'
-                  style={{ color: colors.primary[700] }}>
-                  "{review.comment}"
-                </p>
-
-                <div className='text-sm' style={{ color: colors.primary[500] }}>
-                  {review.date}
-                </div>
+          {reviewsLoading ? (
+            <div className='flex justify-center items-center py-12'>
+              <div className='text-center'>
+                <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
+                <p className='mt-4 text-gray-600'>Loading reviews...</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : reviewsError ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-600'>Failed to load reviews. Please try again later.</p>
+            </div>
+          ) : formattedReviews.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-600'>No reviews available yet.</p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+              {formattedReviews.map((review) => (
+                <div
+                  key={review.id}
+                  className='bg-white rounded-xl shadow-lg p-6 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl'
+                  style={{ border: `1px solid ${colors.primary[100]}` }}>
+                  <div className='flex items-start justify-between mb-4'>
+                    <div className='flex items-center space-x-3'>
+                      <div
+                        className='w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold'
+                        style={{ backgroundColor: colors.accent[500] }}>
+                        {review.avatar}
+                      </div>
+                      <div>
+                        <h4
+                          className='font-semibold'
+                          style={{ color: colors.primary[900] }}>
+                          {review.name}
+                        </h4>
+                        <p
+                          className='text-sm'
+                          style={{ color: colors.primary[600] }}>
+                          {review.service}
+                        </p>
+                      </div>
+                    </div>
+                    <Quote size={24} style={{ color: colors.primary[200] }} />
+                  </div>
+
+                  {renderStars(review.rating)}
+
+                  <p
+                    className='mt-4 mb-4 leading-relaxed'
+                    style={{ color: colors.primary[700] }}>
+                    "{review.comment}"
+                  </p>
+
+                  <div className='text-sm' style={{ color: colors.primary[500] }}>
+                    {review.date}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>
