@@ -39,12 +39,13 @@ export const useInitiateSslCommerzPayment = () => {
   });
 };
 
-// Customer: Initiate SSL Commerz payment for booking
+// Customer: Initiate SSL Commerz payment for booking(s)
+// Accepts either { booking_id: number } or { booking_ids: number[] }
 export const useInitiateCustomerSslCommerzPayment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (bookingId) => paymentService.initiateCustomerSslCommerzPayment(bookingId),
+    mutationFn: (payload) => paymentService.initiateCustomerSslCommerzPayment(payload),
     onSuccess: (data) => {
       // Redirect to SSL Commerz payment page
       if (data.payment_url) {

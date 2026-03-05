@@ -84,13 +84,18 @@ const PaymentConfirmationPage = () => {
       
       // If payment method is online, initiate SSL Commerz payment
       if (paymentMethod === 'online') {
-        // Extract booking ID from response structure: data.bookings[0].id
+        // Extract all booking IDs from response structure
         const bookings = bookingResponse?.data?.bookings || [];
-        const bookingId = bookings.length > 0 ? bookings[0]?.id : null;
+        const bookingIds = bookings.map((booking) => booking.id).filter(Boolean);
         
-        if (bookingId) {
+        if (bookingIds.length > 0) {
           try {
-            await initiatePaymentMutation.mutateAsync(bookingId);
+            // Pass booking_ids array if multiple bookings, or booking_id if single
+            const paymentPayload = bookingIds.length > 1 
+              ? { booking_ids: bookingIds }
+              : { booking_id: bookingIds[0] };
+            
+            await initiatePaymentMutation.mutateAsync(paymentPayload);
             // The mutation will redirect to SSL Commerz payment page
             return;
           } catch (paymentError) {

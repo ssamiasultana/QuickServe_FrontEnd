@@ -60,11 +60,12 @@ class PaymentService {
     });
   }
 
-  // Customer: Initiate SSL Commerz payment for booking
-  async initiateCustomerSslCommerzPayment(bookingId) {
+  // Customer: Initiate SSL Commerz payment for booking(s)
+  // Accepts either { booking_id: number } or { booking_ids: number[] }
+  async initiateCustomerSslCommerzPayment(payload) {
     return this.request('/payments/sslcommerz/customer/initiate', {
       method: 'POST',
-      body: JSON.stringify({ booking_id: bookingId }),
+      body: JSON.stringify(payload),
     });
   }
 
